@@ -26,6 +26,8 @@ import {
 } from "./finance";
 import type { DB } from "./db";
 import { registerPush } from "./push";
+import { registerCms } from "./cms";
+import { remoteFilesEnabled, uploadRemoteFile, filesCall } from "./files-service";
 export function mapRecord(r: any) {
   return {
     id: r.id,
@@ -54,6 +56,11 @@ export async function makeApp(
     bodyLimit: 1048576,
     trustProxy: "127.0.0.1",
   });
+  app.removeContentTypeParser('application/json');
+  app.addContentTypeParser('application/json', {parseAs:'string'}, (req:any,body:any,done:any)=>{
+    req.rawBody=body;
+    try {done(null,JSON.parse(body));}catch {done(Object.assign(new Error('Invalid JSON'),{statusCode:400}));}
+  });
   await app.register(cookie);
   await app.register(helmet);
   await app.register(rateLimit, { max: 240, timeWindow: "1 minute" });
@@ -66,15 +73,7 @@ export async function makeApp(
     reply.header("Cache-Control", "no-store");
     const publicPath = ["/api/health", "/api/auth/login", "/api/auth/recover"];
     const bridgePath = req.url.split("?")[0] === "/api/integrations/cms/events";
-    if (bridgePath && req.method === "POST") {
-      const configured = process.env.FEBRO_CMS_BRIDGE_TOKEN;
-      const provided = req.headers["x-febro-bridge-token"];
-      if (!configured || typeof provided !== "string" ||
-          Buffer.byteLength(provided) !== Buffer.byteLength(configured) ||
-          !timingSafeEqual(Buffer.from(provided), Buffer.from(configured)))
-        return reply.code(401).send({error:"Unauthorized"});
-      return;
-    }
+    if (bridgePath && req.method === "POST") return;
     if (
       !["GET", "HEAD", "OPTIONS"].includes(req.method) &&
       req.headers.origin !== options.origin
@@ -224,23 +223,7 @@ export async function makeApp(
     await db.query("DELETE FROM sessions WHERE owner_id=$1 AND id<>$2",[owner(req),req.session.id]);
     return {ok:true};
   });
-  // Service-to-service CMS events: authenticated by a dedicated shared secret.
-  // Push delivery reuses the existing Febro One notification pipeline.
-  app.post("/api/integrations/cms/events", async (req: any, reply) => {
-    const event = z.object({
-      id: z.string().min(1).max(100).regex(/^[A-Za-z0-9:_-]+$/),
-      type: z.enum(["document_access_requested", "cv_access_requested", "contact_received"]),
-      title: z.string().trim().min(1).max(180),
-    }).parse(req.body);
-    const account = (await db.query("SELECT id FROM users ORDER BY created_at ASC LIMIT 1")).rows[0];
-    if (!account) return reply.code(503).send({error:"Account unavailable"});
-    const notificationId = "cms:" + createHash("sha256").update(event.type + ":" + event.id).digest("hex");
-    await db.query(
-      "INSERT INTO notifications(id,owner_id,title) VALUES($1,$2,$3) ON CONFLICT DO NOTHING",
-      [notificationId, account.id, event.title],
-    );
-    return {ok:true};
-  });
+  await registerCms(app, db);
   await registerPush(app, db);
   app.patch("/api/preferences/workspace", async (req) => {
     const p=z.object({expandedCategories:z.array(z.string().max(100)).max(40)}).parse(req.body);
@@ -592,13 +575,14 @@ export async function makeApp(
       ).rows[0].total;
       if (used + data.length > 104857600)
         throw new Error("Kuota 100 MB terlampaui");
-      await writeFile(path.join(options.storage, fid), data, {
+      const remoteId = remoteFilesEnabled() ? await uploadRemoteFile(rid,safeName,data) : null;
+      if (!remoteId) await writeFile(path.join(options.storage, fid), data, {
         mode: 0o600,
         flag: "wx",
       });
       try {
         await tx.query(
-          "INSERT INTO files(id,owner_id,record_id,name,mime,size,sha256) VALUES($1,$2,$3,$4,$5,$6,$7)",
+          "INSERT INTO files(id,owner_id,record_id,name,mime,size,sha256,remote_file_id) VALUES($1,$2,$3,$4,$5,$6,$7,$8)",
           [
             fid,
             owner(req),
@@ -607,10 +591,12 @@ export async function makeApp(
             type.mime,
             data.length,
             createHash("sha256").update(data).digest("hex"),
+            remoteId,
           ],
         );
       } catch (e) {
-        await unlink(path.join(options.storage, fid));
+        if (remoteId) await filesCall("DELETE","/"+remoteId).catch(()=>{});
+        else await unlink(path.join(options.storage, fid));
         throw e;
       }
       return { id: fid };
@@ -632,19 +618,24 @@ export async function makeApp(
         `attachment; filename*=UTF-8''${encodeURIComponent(f.name)}`,
       )
       .header("X-Content-Type-Options", "nosniff");
+    if (f.remote_file_id) {
+      const remote=await filesCall("GET","/"+z.uuid().parse(f.remote_file_id)+"/download");
+      await db.query("INSERT INTO audit_logs(owner_id,action) VALUES($1,$2)",[owner(req),"files.download:"+fid]);
+      return Buffer.from(await remote.arrayBuffer());
+    }
     return await readFile(path.join(options.storage, fid));
   });
-  app.delete("/api/files/:id", async (req: any) => {
-    const fid = id.parse(req.params.id);
-    const f = (
-      await db.query(
-        "DELETE FROM files WHERE id=$1 AND owner_id=$2 RETURNING id",
-        [fid, owner(req)],
-      )
-    ).rows[0];
-    if (!f) throw new Error("Tidak ditemukan");
-    await unlink(path.join(options.storage, fid)).catch(() => {});
-    return { ok: true };
+  app.delete("/api/files/:id", async (req: any,reply) => {
+    const fid=id.parse(req.params.id);
+    return db.transaction(async tx=>{
+      const f=(await tx.query("SELECT * FROM files WHERE id=$1 AND owner_id=$2 FOR UPDATE",[fid,owner(req)])).rows[0];
+      if(!f)return reply.code(404).send({error:"Tidak ditemukan"});
+      if(f.remote_file_id)await filesCall("DELETE","/"+z.uuid().parse(f.remote_file_id));
+      await tx.query("DELETE FROM files WHERE id=$1 AND owner_id=$2",[fid,owner(req)]);
+      if(!f.remote_file_id)await unlink(path.join(options.storage,fid)).catch(()=>{});
+      await tx.query("INSERT INTO audit_logs(owner_id,action) VALUES($1,$2)",[owner(req),"files.delete:"+fid]);
+      return {ok:true};
+    });
   });
   app.get("/api/notifications", async (req) => {
     await runAutomation(db);

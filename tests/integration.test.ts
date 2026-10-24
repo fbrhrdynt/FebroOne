@@ -103,7 +103,7 @@ test("migration repeat is idempotent", async () => {
   assert.equal(
     (await db.query("SELECT count(*)::int count FROM schema_migrations"))
       .rows[0].count,
-    3,
+    4,
   );
 });
 test("authentication, origin and CSRF controls", async () => {
@@ -556,7 +556,7 @@ test("certificate upload magic validation, private download and deletion", async
   );
   assert.equal(
     (await req("DELETE", "/api/files/" + fid, undefined, true)).statusCode,
-    400,
+    404,
   );
   assert.equal((await req("DELETE", "/api/files/" + fid)).statusCode, 200);
 });

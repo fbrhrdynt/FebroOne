@@ -49,6 +49,8 @@ const Finance = lazy(() => import("./FinancePage"));
 const Tools = lazy(() => import("./ToolsPage"));
 const Insights = lazy(() => import("./Insights"));
 const Settings = lazy(() => import("./Settings"));
+const Cms = lazy(() => import("./CmsPage"));
+const CmsRequest = lazy(() => import("./CmsPage").then(module => ({default: module.CmsRequestPage})));
 const nav = [
   ["/", "Home", HomeIcon],
   ["/calendar", "Calendar", CalendarDays],
@@ -62,6 +64,7 @@ const nav = [
   ["/records/documents", "Documents", FolderLock],
   ["/tools", "Tools", Calculator],
   ["/insights", "Insights", ChartNoAxesCombined],
+  ["/cms", "CMS", Inbox],
 ] as const;
 function Login({ onDone }: { onDone: () => void }) {
   const [recovery, setRecovery] = useState(false);
@@ -227,7 +230,7 @@ export default function App() {
     );
   if (!identity.data) return <Login onDone={() => q.invalidateQueries()} />;
   const current =
-    nav.find((n) => n[0] === location.pathname)?.[1] ||
+    (location.pathname.startsWith("/cms") ? "CMS" : nav.find((n) => n[0] === location.pathname)?.[1]) ||
     catalog[location.pathname.split("/")[2]]?.title ||
     "Workspace";
   const matches = search.trim()
@@ -377,6 +380,8 @@ export default function App() {
               <Route path="/tools" element={<Tools />} />
               <Route path="/insights" element={<Insights />} />
               <Route path="/settings" element={<Settings />} />
+              <Route path="/cms" element={<Cms />} />
+              <Route path="/cms/:kind/:id" element={<CmsRequest key={location.pathname} />} />
               <Route
                 path="/more"
                 element={
@@ -389,6 +394,7 @@ export default function App() {
                       <WorkspaceCategories />
                       <section className="panel">
                         <h2>Workspace</h2>
+                        <Link to="/cms">CMS inbox<ChevronRight size={15} /></Link>
                         <Link to="/settings">
                           Settings
                           <ChevronRight size={15} />
@@ -520,7 +526,7 @@ export default function App() {
           {ns.data?.map((n: any) => (
             <div className="row" key={n.id}>
               <div>
-                <strong>{n.title}</strong>
+                {typeof n.target_url === "string" && /^\/cms\/(document|cv|contact)\/[^/]+$/.test(n.target_url) ? <Link to={n.target_url} onClick={() => setNotificationsOpen(false)}>{n.title}</Link> : <strong>{n.title}</strong>}
                 <small>{n.read_at ? "Sudah dibaca" : "Pengingat aktif"}</small>
               </div>
               <Button
