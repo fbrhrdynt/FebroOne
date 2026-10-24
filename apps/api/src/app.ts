@@ -3,7 +3,7 @@ import cookie from "@fastify/cookie";
 import helmet from "@fastify/helmet";
 import rateLimit from "@fastify/rate-limit";
 import multipart from "@fastify/multipart";
-import { randomBytes, randomUUID, createHash } from "node:crypto";
+import { randomBytes, randomUUID, createHash, timingSafeEqual } from "node:crypto";
 import { mkdir, writeFile, readFile, unlink } from "node:fs/promises";
 import path from "node:path";
 import { fileTypeFromBuffer } from "file-type";
@@ -65,6 +65,16 @@ export async function makeApp(
   app.addHook("onRequest", async (req, reply) => {
     reply.header("Cache-Control", "no-store");
     const publicPath = ["/api/health", "/api/auth/login", "/api/auth/recover"];
+    const bridgePath = req.url.split("?")[0] === "/api/integrations/cms/events";
+    if (bridgePath && req.method === "POST") {
+      const configured = process.env.FEBRO_CMS_BRIDGE_TOKEN;
+      const provided = req.headers["x-febro-bridge-token"];
+      if (!configured || typeof provided !== "string" ||
+          Buffer.byteLength(provided) !== Buffer.byteLength(configured) ||
+          !timingSafeEqual(Buffer.from(provided), Buffer.from(configured)))
+        return reply.code(401).send({error:"Unauthorized"});
+      return;
+    }
     if (
       !["GET", "HEAD", "OPTIONS"].includes(req.method) &&
       req.headers.origin !== options.origin
@@ -212,6 +222,23 @@ export async function makeApp(
   });
   app.post("/api/auth/sessions/revoke-others", async (req: any) => {
     await db.query("DELETE FROM sessions WHERE owner_id=$1 AND id<>$2",[owner(req),req.session.id]);
+    return {ok:true};
+  });
+  // Service-to-service CMS events: authenticated by a dedicated shared secret.
+  // Push delivery reuses the existing Febro One notification pipeline.
+  app.post("/api/integrations/cms/events", async (req: any, reply) => {
+    const event = z.object({
+      id: z.string().min(1).max(100).regex(/^[A-Za-z0-9:_-]+$/),
+      type: z.enum(["document_access_requested", "cv_access_requested", "contact_received"]),
+      title: z.string().trim().min(1).max(180),
+    }).parse(req.body);
+    const account = (await db.query("SELECT id FROM users ORDER BY created_at ASC LIMIT 1")).rows[0];
+    if (!account) return reply.code(503).send({error:"Account unavailable"});
+    const notificationId = "cms:" + createHash("sha256").update(event.type + ":" + event.id).digest("hex");
+    await db.query(
+      "INSERT INTO notifications(id,owner_id,title) VALUES($1,$2,$3) ON CONFLICT DO NOTHING",
+      [notificationId, account.id, event.title],
+    );
     return {ok:true};
   });
   await registerPush(app, db);
