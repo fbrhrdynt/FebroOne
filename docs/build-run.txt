@@ -1,0 +1,48 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> febro-one@1.0.0 build
+> tsc --noEmit && vite build && esbuild apps/api/src/server.ts --bundle --platform=node --packages=external --format=esm --outfile=build/server.js
+
+vite v7.3.7 building client environment for production...
+transforming...
+node_modules/zod/v4/core/util.js (400:0): A comment
+
+"// Wrapped in a `@__PURE__` IIFE: esbuild never tree-shakes a top-level initializer that contains a member access on `Number`, so the bare object literal survived into every bundle."
+
+in "node_modules/zod/v4/core/util.js" contains an annotation that Rollup cannot interpret due to the position of the comment. The comment will be removed to avoid issues.
+node_modules/zod/v4/core/regexes.js (74:0): A comment
+
+"/** Anchors a pattern source. The interpolation lives here rather than at the call site because
+ * esbuild will not drop a `@__PURE__` call whose own argument interpolates a variable, but it
+ * will drop `anchor(dateSource)`. Keeping it inline pinned `date` into every bundle. */"
+
+in "node_modules/zod/v4/core/regexes.js" contains an annotation that Rollup cannot interpret due to the position of the comment. The comment will be removed to avoid issues.
+✓ 1874 modules transformed.
+rendering chunks...
+computing gzip size...
+../../dist/index.html                          0.54 kB │ gzip:   0.35 kB
+../../dist/assets/index-BRoV4B7p.css          35.02 kB │ gzip:   8.05 kB
+../../dist/assets/upload-B1xJDOmg.js           0.25 kB │ gzip:   0.21 kB
+../../dist/assets/financeFiles-BvvZYxnt.js     2.90 kB │ gzip:   1.46 kB
+../../dist/assets/ToolsPage-CEitLx_o.js        4.21 kB │ gzip:   1.70 kB
+../../dist/assets/Settings-DKYiR4fN.js         4.82 kB │ gzip:   1.98 kB
+../../dist/assets/Insights-DscnzCiw.js         5.12 kB │ gzip:   2.12 kB
+../../dist/assets/Home-Bbl5uH6s.js             8.11 kB │ gzip:   2.88 kB
+../../dist/assets/RecordsPage-0A8cixt3.js      8.23 kB │ gzip:   3.29 kB
+../../dist/assets/CalendarPage-BfvauceL.js     8.31 kB │ gzip:   3.27 kB
+../../dist/assets/FinancePage-CkYiWSGg.js     19.10 kB │ gzip:   6.11 kB
+../../dist/assets/papaparse.min-qwjMBwvk.js   19.24 kB │ gzip:   7.15 kB
+../../dist/assets/ical-DBeo3FCe.js            77.84 kB │ gzip:  23.32 kB
+../../dist/assets/Editor-DDaTzJZY.js         408.26 kB │ gzip: 130.10 kB
+../../dist/assets/index-D22t0c9I.js          639.38 kB │ gzip: 206.19 kB
+../../dist/assets/exceljs.min-TgWEl4iD.js    936.98 kB │ gzip: 270.74 kB
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 8.91s
+
+  build/server.js  51.1kb
+
+⚡ Done in 5ms

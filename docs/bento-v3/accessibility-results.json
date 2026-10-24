@@ -1,0 +1,37 @@
+[
+  {
+    "width": 375,
+    "dialog": "passed",
+    "keyboardFocus": "passed",
+    "headerOverlap": false,
+    "navigationClearance": "passed"
+  },
+  {
+    "width": 390,
+    "dialog": "passed",
+    "keyboardFocus": "passed",
+    "headerOverlap": false,
+    "navigationClearance": "passed"
+  },
+  {
+    "width": 430,
+    "dialog": "passed",
+    "keyboardFocus": "passed",
+    "headerOverlap": false,
+    "navigationClearance": "passed"
+  },
+  {
+    "width": 768,
+    "dialog": "passed",
+    "keyboardFocus": "passed",
+    "headerOverlap": false,
+    "navigationClearance": "passed"
+  },
+  {
+    "width": 1366,
+    "dialog": "passed",
+    "keyboardFocus": "passed",
+    "headerOverlap": false,
+    "navigationClearance": "passed"
+  }
+]

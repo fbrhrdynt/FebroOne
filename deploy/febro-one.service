@@ -1,0 +1,32 @@
+[Unit]
+Description=Febro One private workspace
+After=network.target postgresql.service
+Wants=postgresql.service
+
+[Service]
+Type=simple
+User=febro-one
+Group=febro-one
+WorkingDirectory=/opt/febro-one
+EnvironmentFile=/opt/febro-one/.env
+ExecStart=/opt/febro-one/runtime/node/bin/node /opt/febro-one/build/server.js
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=30
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+ReadWritePaths=/var/lib/febro-one
+StateDirectory=febro-one
+StateDirectoryMode=0700
+LimitNOFILE=4096
+
+[Install]
+WantedBy=multi-user.target

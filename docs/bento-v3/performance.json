@@ -1,0 +1,57 @@
+{
+  "baseline": [
+    {
+      "path": "/assets/index-C9fq9BeQ.js",
+      "bytes": 374264,
+      "gzipBytes": 122850
+    },
+    {
+      "path": "/assets/react-vendor-DGE5gFI4.js",
+      "bytes": 83732,
+      "gzipBytes": 27382
+    },
+    {
+      "path": "/assets/offline-CWMfv5jo.js",
+      "bytes": 96410,
+      "gzipBytes": 32430
+    },
+    {
+      "path": "/assets/validation-rL9V3L3X.js",
+      "bytes": 91009,
+      "gzipBytes": 25930
+    },
+    {
+      "path": "/assets/index-D_umZQlH.css",
+      "bytes": 46407,
+      "gzipBytes": 10240
+    }
+  ],
+  "v3": [
+    {
+      "path": "/assets/index-C5yWilN2.js",
+      "bytes": 378198,
+      "gzipBytes": 124011
+    },
+    {
+      "path": "/assets/react-vendor-DGE5gFI4.js",
+      "bytes": 83732,
+      "gzipBytes": 27382
+    },
+    {
+      "path": "/assets/offline-CWMfv5jo.js",
+      "bytes": 96410,
+      "gzipBytes": 32430
+    },
+    {
+      "path": "/assets/validation-rL9V3L3X.js",
+      "bytes": 91009,
+      "gzipBytes": 25930
+    },
+    {
+      "path": "/assets/index-CtS7vP59.css",
+      "bytes": 74462,
+      "gzipBytes": 14759
+    }
+  ],
+  "notes": "Static initial-asset sizes, not a runtime performance benchmark. Editor and ExcelJS remain dynamic imports."
+}

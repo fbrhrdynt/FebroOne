@@ -1,0 +1,3 @@
+8f4d1556f385714c808ea337dea1da859865cca2cd27a075e936f894bc4c9bb6  .env
+95cee14b838b0724519189217375bfaead5b0ec8360cf6850a1020de3a834f44  /etc/systemd/system/febro-one.service
+dc2434dd1d45e8e4095ec939a63d720f4d7c3d91f7b7d32f77403d571392ba63  /etc/nginx/conf.d/one.febro.id.conf

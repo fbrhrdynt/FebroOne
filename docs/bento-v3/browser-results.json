@@ -1,0 +1,25 @@
+{
+  "artifactHash": "25f385d82cc7996f523df6fe05cd8282b0701a340961d90252358796787e6b82",
+  "visited": 252,
+  "sizes": [
+    375,
+    390,
+    430,
+    768,
+    1366,
+    1920
+  ],
+  "overflow": [],
+  "errors": [],
+  "quickAdd": "passed",
+  "themePersistence": "passed",
+  "checklistTransitions": "passed",
+  "focusTimesheet": "passed",
+  "privacyPreference": "passed",
+  "sidebarPersistence": "passed",
+  "logout": "passed",
+  "calendarViews": "passed",
+  "emptyDashboard": "passed",
+  "keyboardDialogs": "passed",
+  "storage": "/tmp/febro-bento-browser-mGscvh"
+}

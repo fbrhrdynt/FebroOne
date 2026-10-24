@@ -1,0 +1,41 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> febro-one@1.0.0 test
+> node --import tsx --test tests/*.test.ts
+
+✔ decimal money exact and rejects invalid precision (2.01537ms)
+✔ transfer conserves money and is not income (0.297809ms)
+✔ expense ledger has equal balancing posting (0.209957ms)
+✔ amortization known 1200 12% 12 months (1.504439ms)
+✔ zero APR, flat interest, extra payments, variable interest (1.223295ms)
+✔ recurrence exclusion and end date persist through serialized data (14.65479ms)
+✔ monthly recurrence clamps end of month (0.150778ms)
+✔ Asia Jakarta dates and habit streak (0.348616ms)
+✔ certificate reminder expiry threshold (0.353273ms)
+✔ validation rejects unknown fields and invalid dates (2.49271ms)
+✔ engineering reference values and bounds (0.399022ms)
+✔ negative reconciliation changes balance without an expense classification (0.163517ms)
+✔ Excel imports text values and rejects formulas (68.881059ms)
+✔ migration repeat is idempotent (1217.639868ms)
+✔ authentication, origin and CSRF controls (44.625975ms)
+✔ note CRUD, persistence, version conflict, archive restore (38.049132ms)
+✔ owner isolation across records and versions (16.013059ms)
+✔ all module forms validate and persist (231.239527ms)
+✔ task dependencies block completion; recurrence creates one next task (29.007086ms)
+✔ finance opening, expense, transfer, ledger invariant and replay (42.126971ms)
+✔ financial reversal restores balances and forbids double reversal (14.308709ms)
+✔ debt payments exactly once, interest, overpayment and reversal (48.393162ms)
+✔ financial ownership and API validation (11.07378ms)
+✔ training certificate evidence and cross-owner link integrity (21.503619ms)
+✔ certificate upload magic validation, private download and deletion (31.785506ms)
+✔ automation scheduled task runs once (26.402267ms)
+✔ AI unconfigured setup and authenticated export (9.618996ms)
+✔ batch import is atomic and replay-safe (46.498364ms)
+ℹ tests 28
+ℹ suites 0
+ℹ pass 28
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2756.854065

@@ -1,0 +1,5 @@
+60ac647e64e5d6f131710f7268d482d1e7130c2eba3cad4e7c8a718a5fb8ed8d  backups/v12/application.tar.gz
+3cab0409a7158535819f2c260540cc2227024d86a378547fc3aad6b33032f2fa  backups/v12/database.dump
+4de51d4ca7c75143a81e49c7fcb92d82bc9801572cd961a0644a5737dab0e882  backups/v12/uploads.tar.gz
+4fefa6009ce7529c981e2ab42daac761b56d5757c59828a81b18874635541f2c  backups/v12/configuration.tar.gz
+98366a828bf6554b7469bd67ddd209bbab8a6619f36e877677efd7a268d4b3a8  backups/v12/pre-deploy.dump

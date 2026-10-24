@@ -1,0 +1,38 @@
+node_modules/
+build/
+.env
+.data/
+coverage/
+*.log
+runtime/
+dist/
+
+# Febro One - Security
+.env
+.env.*
+!.env.example
+*.sqlite
+*.sqlite-*
+*.db
+*.db-*
+*.pem
+*.key
+*.log
+*.p12
+*.pfx
+
+# Runtime
+node_modules/
+dist/
+build/
+backups/
+.bento-stage/
+.bento-v3-stage/
+.v12-stage/
+*.zip
+.DS_Store
+
+# Private data
+data/
+uploads/
+storage/
