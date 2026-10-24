@@ -11,7 +11,7 @@ export default function NoteContent({ value }: { value: unknown }) {
   const lines = raw.split(/\r?\n/);
   return <div className="fh-note-content">{lines.map((line,i)=>{
     const heading = /^(#{1,6})\s+(.+)$/.exec(line);
-    if (heading) {const H = ("h"+Math.min(heading[1].length,6)) as keyof JSX.IntrinsicElements; return <div className={"fh-note-heading level-"+heading[1].length} key={i}>{heading[2]}</div>;}
+    if (heading) {return <div className={"fh-note-heading level-"+heading[1].length} key={i}>{heading[2]}</div>;}
     const check=/^\s*[-*]\s+\[([ xX])\]\s+(.*)$/.exec(line);
     if(check)return <p key={i} className="fh-note-check"><input type="checkbox" readOnly checked={check[1].toLowerCase()==="x"}/> {check[2]}</p>;
     const bullet=/^\s*[-*]\s+(.+)$/.exec(line);
