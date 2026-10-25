@@ -1,0 +1,40 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import {PGlite} from '@electric-sql/pglite';
+import {randomUUID} from 'node:crypto';
+import {migrate} from '../scripts/migrate';
+import {makeApp} from '../apps/api/src/app';
+import {signature} from '../apps/api/src/cms';
+import {hashToken} from '../apps/api/src/auth';
+import {runPush,pushKeys} from '../apps/api/src/push';
+test('CMS signed event, replay defense, admin authorization, CSRF and private push destination',async()=>{
+ const pg=new PGlite();await pg.waitReady;
+ const adapter=(p:any):any=>({query:async(s:string,a?:any[])=>!a&&s.split(';').filter(Boolean).length>1?(await p.exec(s)).at(-1):p.query(s,a),transaction:(fn:any)=>p.transaction((tx:any)=>fn(adapter(tx)))});
+ const db=adapter(pg);await migrate(db);
+ const admin=randomUUID(),other=randomUUID(),secret='a'.repeat(64),now=String(Date.now());
+ const old={...process.env};process.env.FEBRO_ONE_CMS_SECRET=secret;process.env.CMS_ADMIN_USER_IDS=admin;
+ await db.query("INSERT INTO users(id,email,name,password_hash) VALUES($1,'a@test.invalid','Admin','unused'),($2,'b@test.invalid','Other','unused')",[admin,other]);
+ await db.query("INSERT INTO sessions(id,owner_id,csrf,expires_at) VALUES($1,$2,'csrf',now()+interval '1 day'),($3,$4,'csrf',now()+interval '1 day')",[hashToken('admin'),admin,hashToken('other'),other]);
+ const app=await makeApp(db,{origin:'https://one.test',secure:true,storage:'/tmp/unused-cms-test'});
+ try{
+ const event={id:'cms:document:1:created',kind:'document',requestId:1,event:'created',createdAt:new Date().toISOString()};const body=JSON.stringify(event),url='/api/integrations/cms/events';
+ const eventReq=(nonce:string,t=now,raw=body)=>app.inject({method:'POST',url,payload:raw,headers:{'content-type':'application/json','x-febro-timestamp':t,'x-febro-nonce':nonce,'x-febro-signature':signature(secret,t,nonce,'POST',url,body)}});
+ assert.equal((await app.inject({method:'POST',url,payload:event})).statusCode,401);
+ assert.equal((await eventReq(randomUUID(),String(Date.now()-600000))).statusCode,401);
+ assert.equal((await eventReq(randomUUID(),now,body.replace('document','contact'))).statusCode,401);
+ const nonce=randomUUID();assert.equal((await eventReq(nonce)).statusCode,200);assert.equal((await eventReq(nonce)).statusCode,401);
+ assert.equal((await eventReq('b'.repeat(48))).statusCode,200);
+ assert.equal((await db.query('SELECT * FROM notifications')).rows.length,1);
+ assert.equal((await app.inject({method:'GET',url:'/api/cms/overview'})).statusCode,401);
+ assert.equal((await app.inject({method:'GET',url:'/api/cms/overview',headers:{cookie:'session=other'}})).statusCode,403);
+ assert.equal((await app.inject({method:'POST',url:'/api/cms/requests/document/1/approve',payload:{},headers:{cookie:'session=admin',origin:'https://one.test'}})).statusCode,403);
+ assert.equal((await app.inject({method:'POST',url:'/api/cms/requests/document/1/approve',payload:{},headers:{cookie:'session=admin',origin:'https://evil.test','x-csrf-token':'csrf'}})).statusCode,403);
+ assert.equal((await app.inject({method:'POST',url:'/api/cms/requests/document/1/approve',payload:{},headers:{cookie:'session=admin',origin:'https://one.test','x-csrf-token':'csrf'}})).statusCode,400);
+ await pushKeys(db);
+ await db.query("INSERT INTO push_subscriptions(id,owner_id,endpoint,subscription,label,created_at) VALUES($1,$2,'https://web.push.apple.com/test','{}','test',now()-interval '1 day')",[randomUUID(),admin]);
+ const sent:any[]=[];await runPush(db,new Date(),(async(_s:any,p:any)=>{sent.push(JSON.parse(p));return {} as any}) as any);
+ assert.equal(sent.length,1);assert.equal(sent[0].url,'/cms/document/1');assert.equal(JSON.stringify(sent).includes('email'),false);
+ await runPush(db,new Date(),(async()=>{throw new Error('duplicate delivery')}) as any);
+ assert.equal((await db.query("SELECT * FROM push_deliveries WHERE status='sent'")).rows.length,1);
+ }finally{await app.close();await pg.close();process.env=old;}
+});
