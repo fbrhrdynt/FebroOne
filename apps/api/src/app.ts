@@ -746,7 +746,7 @@ export async function makeApp(
       return reply.code(502).send({ error: "Provider AI gagal merespons. Periksa konfigurasi dan status layanan.", code: "AI_PROVIDER_ERROR" });
     }
     const data: any = await response.json();
-    return { text: data.choices?.[0]?.message?.content || "Tidak ada respons" };
+    return { text: data.choices?.[0]?.message?.content || "Tidak ada respons", usage: { inputTokens: Number(data.usage?.prompt_tokens || 0), outputTokens: Number(data.usage?.completion_tokens || 0), model: options.ai.model } };
   });
   return app;
 }
