@@ -10,6 +10,8 @@ import {
   FileText,
   SlidersHorizontal,
   ArrowRight,
+  Sparkles,
+  Inbox,
 } from "lucide-react";
 import { localDay, occurrences, checklistItems } from "../../../packages/shared/domain";
 import * as store from "./store";
@@ -29,6 +31,12 @@ export default function Home() {
   const [kind, setKind] = useState("");
   const [custom, setCustom] = useState(false);
   const [error, setError] = useState<unknown>();
+  const [aiPrompt, setAiPrompt] = useState("");
+  const [aiConsent, setAiConsent] = useState(false);
+  const [aiAnswer, setAiAnswer] = useState("");
+  const [aiBusy, setAiBusy] = useState(false);
+  const [aiError, setAiError] = useState("");
+  const cms = useQuery({queryKey:["cms","overview"],queryFn:()=>store.api("/cms/overview"),enabled:!store.trial,retry:false,refetchInterval:60000});
   const rs = data.data || [];
   const prefs = profile.data?.user.preferences || {};
   const extraWidgets = ["reminders", "projects", "habits", "documents", "goals"];
@@ -124,6 +132,33 @@ export default function Home() {
         <QuickAction icon={<FileText size={18}/>} onClick={() => setKind("notes")}>Tangkap ide</QuickAction>
         <QuickAction icon={<CalendarDays size={18}/>} onClick={() => setKind("events")}>Buat agenda</QuickAction>
         <QuickAction icon={<Check size={18}/>} onClick={() => setKind("habits")}>Bangun kebiasaan</QuickAction>
+      </div>
+
+      <div className="dashboard-grid home-bento" aria-label="Asisten AI dan CMS">
+        <section className="panel">
+          <div className="section-heading"><h2><Sparkles size={19}/> Tanya AI</h2><Link to="/insights">Buka AI <ArrowRight size={15}/></Link></div>
+          <p className="hint">Hanya teks pertanyaan yang dikirim ke provider AI, bukan seluruh data Febro One.</p>
+          <form className="form-stack" onSubmit={async e=>{
+            e.preventDefault();
+            if(!aiConsent||!aiPrompt.trim()||aiBusy)return;
+            setAiBusy(true);setAiError("");setAiAnswer("");
+            try{const result=await store.api("/ai","POST",{prompt:aiPrompt.trim(),consent:true});setAiAnswer(String(result.text||"Tidak ada respons."));}
+            catch(err){setAiError(err instanceof Error?err.message:"Gagal menghubungi AI.");}
+            finally{setAiBusy(false);}
+          }}>
+            <textarea aria-label="Pertanyaan untuk AI" rows={3} maxLength={12000} value={aiPrompt} onChange={e=>setAiPrompt(e.target.value)} placeholder="Apa yang ingin Anda tanyakan?" style={{width:"100%",resize:"vertical"}}/>
+            <label className="hint"><input type="checkbox" checked={aiConsent} onChange={e=>setAiConsent(e.target.checked)}/> Saya setuju pertanyaan dikirim ke provider AI</label>
+            <Button type="submit" disabled={!aiConsent||!aiPrompt.trim()||aiBusy}>{aiBusy?"Mengirim…":"Tanya AI"}</Button>
+          </form>
+          {aiError&&<p role="alert" style={{color:"#b42318"}}>{aiError}</p>}
+          {aiAnswer&&<div className="panel" role="status" style={{whiteSpace:"pre-wrap",overflowWrap:"anywhere"}}>{aiAnswer}</div>}
+        </section>
+        <section className="panel">
+          <div className="section-heading"><h2><Inbox size={19}/> CMS febro.id</h2><Link to="/cms">Buka CMS <ArrowRight size={15}/></Link></div>
+          <p className="hint">Permintaan akses dokumen, CV, dan pesan kontak.</p>
+          {cms.isSuccess?<div className="stat-grid"><div className="stat"><span>Menunggu persetujuan</span><strong>{cms.data?.totals?.pending??0}</strong></div><div className="stat"><span>Pesan belum dibaca</span><strong>{cms.data?.totals?.unread??0}</strong></div></div>:<p className="hint">{cms.isPending?"Memuat ringkasan CMS…":"Ringkasan CMS belum tersedia."}</p>}
+          <Link className="text-button" to="/cms?status=pending">Lihat permintaan menunggu <ArrowRight size={15}/></Link>
+        </section>
       </div>
       <div className="dashboard-grid home-bento" aria-busy={data.isPending}>
         <ActivityCard title="Setiap langkah berarti" to="/records/tasks" className="completion-card">
