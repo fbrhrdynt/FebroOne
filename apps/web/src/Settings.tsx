@@ -1,3 +1,4 @@
+import AuditTable from "./AuditTable";
 import PushSettings from "./PushSettings";
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -249,11 +250,7 @@ export default function Settings() {
       {!store.trial && (
         <section className="panel">
           <h2>Audit log terbaru</h2>
-          {audit.data?.map((a: any, i: number) => (
-            <p key={i}>
-              {new Date(a.created_at).toLocaleString("id-ID")} · {a.action}
-            </p>
-          ))}
+          <AuditTable rows={(audit.data||[]).map((a:any,i:number)=>({id:String(a.id||i),date:new Date(a.created_at).toLocaleString("id-ID"),action:String(a.action||"Aktivitas"),detail:String(a.detail||a.entity_id||"")}))}/>
         </section>
       )}
     </>
