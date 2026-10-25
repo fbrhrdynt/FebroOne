@@ -1,0 +1,52 @@
+/* Mobile-first dashboard density. Scoped so other pages remain unchanged. */
+.home-focus-pair {
+  display:grid !important;
+  grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+  align-items:stretch;
+  gap:12px;
+  margin-top:12px;
+}
+.home-focus-pair > * { min-width:0 !important; width:100% !important; box-sizing:border-box; margin:0 !important; grid-column:auto !important; padding:14px !important; }
+.home-focus-pair .section-heading h2 {font-size:15px !important;line-height:1.25;margin:0;}
+.home-focus-pair .focus-caption {font-size:12px;line-height:1.4;gap:5px;}
+.home-focus-pair .focus-clock {font-size:clamp(23px,6vw,42px) !important;line-height:1.2;margin:14px 0 !important;letter-spacing:-1px;}
+.home-focus-pair .focus-card .hint {font-size:11px;line-height:1.3;}
+.home-focus-pair .focus-card button {font-size:12px !important;padding:10px 8px !important;max-width:100%;white-space:normal;}
+.home-focus-pair .capture-card .quick-action {min-height:42px !important;padding:8px !important;font-size:12px !important;gap:5px !important;}
+.home-focus-pair .capture-card .quick-action svg:last-child {display:none;}
+.home-focus-pair .capture-card .quick-action svg {flex-shrink:0;width:16px;height:16px;}
+.home-focus-pair .capture-card {display:flex;flex-direction:column;gap:8px;}
+.home-overview-compact {gap:12px !important;margin-top:12px;}
+.home-overview-compact > .panel,.home-overview-compact > .bento-card {padding:16px !important;min-width:0;}
+.home-overview-compact .section-heading {margin-bottom:12px !important;}
+.home-overview-compact .section-heading h2 {font-size:17px !important;}
+.home-overview-compact .quiet-empty {padding:12px 4px !important;min-height:0 !important;}
+.home-overview-compact .quiet-empty svg {width:20px;height:20px;}
+.home-overview-compact .quiet-empty h3 {font-size:15px;margin:6px 0;}
+.home-overview-compact .quiet-empty p {font-size:12px;margin:5px 0;}
+.home-overview-compact .quiet-empty button,.home-overview-compact .quiet-empty a {font-size:12px;}
+.home-overview-compact .agenda-row {padding:8px 0 !important;}
+.home-overview-compact .overview-agenda {background:#e8f2ff !important;}
+.home-overview-compact .overview-finance {background:#e5f7ef !important;}
+.home-overview-compact .overview-career {background:#f1eaff !important;}
+.home-overview-compact .cashflow-card {background:#fff0db !important;}
+.home-overview-compact .transactions-card {background:#e6f6f8 !important;}
+.home-overview-compact .overview-finance p,.home-overview-compact .overview-career p,.home-overview-compact .cashflow-card p {margin:8px 0 !important;font-size:12px;}
+.home-overview-compact .overview-career .mini-stats {margin:8px 0 !important;}
+.home-overview-compact .overview-career .mini-stats strong {font-size:24px;}
+.home-overview-compact .cashflow-bars {margin:10px 0 !important;}
+.home-overview-compact .cashflow-bars > div {margin:7px 0 !important;}
+.home-overview-compact .transactions-card .transaction-preview {padding:8px 0 !important;}
+@media (max-width:600px) {
+  .home-overview-compact > .overview-finance,
+  .home-overview-compact > .overview-career,
+  .home-overview-compact > .cashflow-card,
+  .home-overview-compact > .transactions-card {grid-column:auto !important;}
+  .home-overview-compact > .overview-agenda {grid-column:1 / -1 !important;}
+  .home-overview-compact {grid-template-columns:repeat(2,minmax(0,1fr)) !important;}
+  .home-overview-compact .overview-finance .balance {font-size:20px !important;overflow-wrap:anywhere;}
+  .home-overview-compact .cashflow-label {font-size:11px;gap:4px;}
+  .home-overview-compact .cashflow-label strong {font-size:10px;overflow-wrap:anywhere;}
+  .home-overview-compact .section-heading h2 {font-size:15px !important;}
+  .home-overview-compact .transactions-card .quiet-empty {font-size:12px;}
+}
