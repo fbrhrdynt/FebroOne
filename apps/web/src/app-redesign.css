@@ -1,0 +1,79 @@
+/* Febro One UI vNext — shared visual system for all routes */
+:root{--bg:#f4f7fc;--surface:#fff;--sidebar:#f7f9fd;--line:#e3eaf4;--text:#243149;--muted:#687c99;--blue:#2563eb;--accent:#eaf1ff;--hover:#f0f5ff;--shadow:0 6px 24px rgba(29,56,103,.055);color-scheme:light}
+html.dark{--bg:#101928;--surface:#192638;--sidebar:#142133;--line:#34445c;--text:#f0f5ff;--muted:#acbdd4;--blue:#78a6ff;--accent:#223a5c;--hover:#253751;--shadow:0 6px 24px rgba(0,0,0,.12);color-scheme:dark}
+body{background:var(--bg);color:var(--text)}
+h1,h2,h3{color:var(--text);letter-spacing:-.035em}
+p,small,.hint,.muted{color:var(--muted)}
+.panel,.stat,.account-card,.login-card,.modal,.mini-month,.kanban>section,.kanban-card,.more-grid>.panel,.category-card,.calendar-cell,.day-heading{background:var(--surface);border:1px solid var(--line);border-radius:17px;box-shadow:var(--shadow);color:var(--text)}
+.panel{padding:19px}
+.page-header{margin-bottom:22px}
+.page-header h1{font-weight:750;letter-spacing:-.045em}
+.section-heading{gap:10px}
+.section-heading h2{font-weight:730}
+.topbar{background:var(--bg);border-bottom:1px solid var(--line)}
+.sidebar{background:var(--sidebar);border-color:var(--line)}
+.sidebar nav a,.sidebar-footer>a{border-radius:11px;color:var(--muted)}
+.sidebar nav a.active{background:var(--accent);color:var(--blue)}
+.sidebar nav a:hover{background:var(--hover)}
+.button{border-radius:12px;font-weight:650;min-height:44px;transition:background .16s ease,transform .16s ease}
+.button:active,.quick-action:active{transform:scale(.985)}
+.primary{background:#2563eb!important;color:white!important;border-color:#2563eb!important}
+.primary:hover{background:#1752d4!important}
+.outline{border:1px solid var(--line);background:var(--surface);color:var(--text)}
+.ghost{color:var(--muted)}
+input,select,textarea{border-radius:12px;border:1px solid var(--line);background:var(--surface);color:var(--text);padding:12px 14px;min-height:47px}
+input::placeholder,textarea::placeholder{color:var(--muted);opacity:.75}
+input:focus,select:focus,textarea:focus{outline:2px solid #83b3ff;outline-offset:1px;border-color:#5688f5}
+.field>span{display:block;font-weight:650;color:var(--text);margin-bottom:6px}
+.form-grid{gap:16px}
+.form-footer{border-top:1px solid var(--line);background:var(--surface);padding:14px 0;z-index:3}
+.tabs{border-color:var(--line);gap:5px}
+.tabs button{border-radius:11px;font-weight:650;min-height:40px}
+.tabs button.active{background:var(--accent);color:var(--blue)}
+.badge{border-radius:999px}
+.kanban{gap:12px}
+.kanban>section{background:var(--bg);padding:12px}
+.kanban-card{background:var(--surface);border-radius:13px;padding:14px}
+.task-line,.agenda-row,.transaction-row,.list-row{border-color:var(--line)}
+.calendar-toolbar{background:var(--surface);border:1px solid var(--line);padding:12px;border-radius:16px}
+.calendar-cell{box-shadow:none;border-radius:8px}
+.calendar-cell:hover{background:var(--hover)}
+.day-number{font-weight:700}
+.calendar-event{border-radius:7px;background:var(--accent);color:var(--text)}
+.year-grid .mini-month{border-radius:15px}
+.category-toggle{min-height:64px;padding:14px 16px;font-size:16px;font-weight:750;color:var(--text)}
+.workspace-categories .panel,.workspace-categories section{border-color:var(--line)}
+.more-grid>.panel>div>a{border-color:var(--line);border-radius:10px;color:var(--text)}
+.more-grid>.panel>div>a:hover{background:var(--hover)}
+.empty,.quiet-empty{color:var(--muted)}
+.empty h3,.quiet-empty h3{color:var(--text)}
+.bottom-nav{background:var(--surface);border-top:1px solid var(--line);box-shadow:0 -8px 25px rgba(0,0,0,.025)}
+.bottom-nav a,.bottom-nav button{color:var(--muted)}
+.bottom-nav .active{color:#2563eb}
+.overlay{background:rgba(8,21,42,.5)}
+.modal{border-radius:20px}
+.modal>header{border-color:var(--line)}
+html.dark .responsive-table table,html.dark .responsive-table th,html.dark .responsive-table td{background:var(--surface);border-color:var(--line);color:var(--text)}
+html.dark .more-grid .panel>div>a,html.dark .sidebar nav a,html.dark .workspace-label{color:var(--text);border-color:var(--line)}
+html.dark .sidebar nav a.active{color:#b3d0ff;background:#233c5d}
+html.dark .category-toggle{color:var(--text)}
+html.dark .kanban>section{background:#142033}
+html.dark .calendar-event{background:#263f64;color:#e4efff}
+html.dark .day-heading{background:var(--surface);color:var(--muted)}
+html.dark .calendar-cell{background:var(--surface);color:var(--text)}
+html.dark .calendar-cell:hover{background:var(--hover)}
+html.dark .form-footer{background:var(--surface)}
+html.dark .bottom-nav{background:#192638}
+@media(max-width:700px){
+main{padding-bottom:110px}
+.page-header{margin-bottom:18px}
+.page-header h1{font-size:28px}
+.panel{padding:16px}
+.calendar-toolbar{padding:10px}
+.calendar-cell{min-height:82px}
+.form-grid{grid-template-columns:1fr}
+.form-footer{bottom:0;border-radius:12px 12px 0 0}
+.modal{max-height:calc(100dvh - 28px);border-radius:20px 20px 0 0}
+.category-toggle{min-height:62px}
+}
+@media(prefers-reduced-motion:reduce){.button{transition:none}}
