@@ -26,11 +26,11 @@
 .home-overview-compact .quiet-empty p {font-size:12px;margin:5px 0;}
 .home-overview-compact .quiet-empty button,.home-overview-compact .quiet-empty a {font-size:12px;}
 .home-overview-compact .agenda-row {padding:8px 0 !important;}
-.home-overview-compact .overview-agenda {background:#e8f2ff !important;}
-.home-overview-compact .overview-finance {background:#e5f7ef !important;}
-.home-overview-compact .overview-career {background:#f1eaff !important;}
-.home-overview-compact .cashflow-card {background:#fff0db !important;}
-.home-overview-compact .transactions-card {background:#e6f6f8 !important;}
+.home-overview-compact .overview-agenda {background:#f0f4f9 !important;}
+.home-overview-compact .overview-finance {background:#edf4f1 !important;}
+.home-overview-compact .overview-career {background:#f3f1f7 !important;}
+.home-overview-compact .cashflow-card {background:#f7f3ed !important;}
+.home-overview-compact .transactions-card {background:#edf3f5 !important;}
 .home-overview-compact .overview-finance p,.home-overview-compact .overview-career p,.home-overview-compact .cashflow-card p {margin:8px 0 !important;font-size:12px;}
 .home-overview-compact .overview-career .mini-stats {margin:8px 0 !important;}
 .home-overview-compact .overview-career .mini-stats strong {font-size:24px;}
@@ -49,4 +49,64 @@
   .home-overview-compact .cashflow-label strong {font-size:10px;overflow-wrap:anywhere;}
   .home-overview-compact .section-heading h2 {font-size:15px !important;}
   .home-overview-compact .transactions-card .quiet-empty {font-size:12px;}
+}
+
+/* Refined restrained palette: neutral surfaces, subtle tint, one clear action accent. */
+.home-focus-pair > *, .home-overview-compact > .panel, .home-overview-compact > .bento-card {
+  border:1px solid #dce4ee !important;
+  box-shadow:0 1px 2px rgba(25,42,65,.025) !important;
+}
+.home-overview-compact .overview-agenda {background:#f0f4f9 !important;}
+.home-overview-compact .overview-finance {background:#edf4f1 !important;}
+.home-overview-compact .overview-career {background:#f3f1f7 !important;}
+.home-overview-compact .cashflow-card {background:#f7f3ed !important;}
+.home-overview-compact .transactions-card {background:#edf3f5 !important;}
+.home-focus-pair .focus-card {
+  background:#f2f5fa !important;
+  display:flex;
+  flex-direction:column;
+  align-items:stretch;
+}
+.home-focus-pair .focus-card.is-running {
+  background:#eef4ff !important;
+  border-color:#a8c1e7 !important;
+}
+.home-focus-pair .focus-card .focus-clock {
+  font-variant-numeric:tabular-nums;
+  font-weight:750;
+  color:#1b2e4a;
+}
+.home-focus-pair .focus-card .focus-primary-action {
+  display:flex !important;
+  align-items:center;
+  justify-content:center;
+  width:100% !important;
+  min-height:44px;
+  border-radius:12px !important;
+  background:#225db6 !important;
+  border:1px solid #225db6 !important;
+  color:#fff !important;
+  font-weight:700 !important;
+  box-shadow:0 3px 9px rgba(34,93,182,.13) !important;
+  cursor:pointer;
+  gap:7px;
+  margin-top:auto;
+}
+.home-focus-pair .focus-card .focus-primary-action svg {width:15px;height:15px;flex-shrink:0;}
+.home-focus-pair .focus-card.is-running .focus-primary-action {
+  background:#fff !important;
+  color:#225db6 !important;
+  border-color:#b7c9e3 !important;
+  box-shadow:none !important;
+}
+.home-focus-pair .focus-card .focus-primary-action:focus-visible {
+  outline:3px solid #6c9ee5 !important;
+  outline-offset:3px;
+}
+.home-focus-pair .focus-card .hint {color:#617188;margin:9px 0 0 !important;}
+.home-focus-pair .capture-card {background:#fff !important;}
+.home-focus-pair .capture-card .quick-action {border-radius:11px !important;}
+@media(max-width:600px){
+ .home-focus-pair .focus-card .focus-caption {min-height:40px;}
+ .home-focus-pair .focus-card .focus-clock {margin:10px 0 16px !important;}
 }
