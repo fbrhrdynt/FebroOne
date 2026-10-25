@@ -679,7 +679,7 @@ export async function makeApp(
     configured: !!options.ai?.key,
     model: options.ai?.model || null,
   }));
-  app.post("/api/ai", async (req) => {
+  app.post("/api/ai", async (req, reply) => {
     if (!options.ai?.key)
       throw new Error(
         "AI belum dikonfigurasi. Atur AI_BASE_URL, AI_MODEL, AI_API_KEY di VPS.",
