@@ -233,12 +233,13 @@ export default function App() {
     (location.pathname.startsWith("/cms") ? "CMS" : nav.find((n) => n[0] === location.pathname)?.[1]) ||
     catalog[location.pathname.split("/")[2]]?.title ||
     "Workspace";
+  const searchNeedle = search.trim().toLocaleLowerCase("id");
   const matches = search.trim()
     ? rs.data
         ?.filter((r) =>
-          (r.title + " " + r.tags.join(" ") + " " + JSON.stringify(r.data))
+          (r.title + " " + (r.tags || []).join(" ") + " " + JSON.stringify(r.data))
             .toLowerCase()
-            .includes(search.toLowerCase()),
+            .includes(searchNeedle),
         )
         .slice(0, 30)
     : [];
@@ -489,8 +490,8 @@ export default function App() {
           />
         </label>
         <div className="search-results">
-          {nav.filter(([,label])=>!search || label.toLowerCase().includes(search.toLowerCase())).map(([path,label,Icon])=><button key={path} onClick={()=>{navigate(path);setSearchOpen(false);}}><Icon size={18}/><strong>{label}</strong><small>Modul</small></button>)}
-          {modules.filter(m=>search && m.title.toLowerCase().includes(search.toLowerCase())).map(m=><button key={m.key} onClick={()=>{navigate(m.key==='events'?'/calendar':'/records/'+m.key);setSearchOpen(false);}}><strong>{m.title}</strong><small>{m.group}</small></button>)}
+          {nav.filter(([,label])=>!search || (label+" "+path).toLocaleLowerCase("id").includes(searchNeedle)).map(([path,label,Icon])=><button key={path} onClick={()=>{navigate(path);setSearchOpen(false);}}><Icon size={18}/><strong>{label}</strong><small>Modul</small></button>)}
+          {modules.filter(m=>search && (m.title+" "+m.group+" "+m.key).toLocaleLowerCase("id").includes(searchNeedle)).map(m=><button key={m.key} onClick={()=>{navigate(m.key==='events'?'/calendar':'/records/'+m.key);setSearchOpen(false);}}><strong>{m.title}</strong><small>{m.group}</small></button>)}
           {matches?.map((r) => (
             <button
               key={r.id}
@@ -505,7 +506,7 @@ export default function App() {
               <small>{catalog[r.kind]?.title}</small>
             </button>
           ))}
-          {search && !matches?.length && <p>Tidak ada hasil.</p>}
+          {search && !matches?.length && !modules.some(m=>(m.title+" "+m.group+" "+m.key).toLocaleLowerCase("id").includes(searchNeedle)) && !nav.some(([path,label])=>(label+" "+path).toLocaleLowerCase("id").includes(searchNeedle)) && !rs.isFetching && <p>Tidak ada hasil.</p>}{rs.isFetching && search && <p className="hint">Mencari catatan, tugas, agenda dan data lainnya…</p>}
           {!search && (
             <p className="hint">Mulai ketik untuk mencari di seluruh modul.</p>
           )}
