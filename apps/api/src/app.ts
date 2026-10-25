@@ -713,7 +713,26 @@ export async function makeApp(
         signal: AbortSignal.timeout(30000),
       },
     );
-    if (!response.ok) throw new Error("Provider AI gagal merespons");
+    if (!response.ok) {
+      // Do not leak provider error bodies or API credentials to the browser.
+      let providerCode = "";
+      try {
+        const failure = await response.json() as any;
+        providerCode = String(failure?.error?.code || failure?.error?.type || "");
+      } catch { /* Non-JSON upstream response. */ }
+      if (response.status === 429 && ["insufficient_quota", "credit_balance_exhausted"].includes(providerCode)) {
+        // One persistent in-app + web-push notification per UTC day, not one per failed request.
+        const day = new Date().toISOString().slice(0, 10);
+        await db.query(
+          "INSERT INTO notifications(id,owner_id,title,target_url) VALUES($1,$2,$3,$4) ON CONFLICT DO NOTHING",
+          ["ai:credits-exhausted:" + day + ":" + owner(req), owner(req), "Saldo OpenAI API habis. Isi kredit untuk mengaktifkan AI.", "/insights"],
+        ).catch((error) => app.log.error({error}, "Failed to enqueue AI credit alert"));
+        return reply.code(402).send({ error: "Saldo kredit OpenAI API habis. Isi saldo pada OpenAI Platform, lalu coba lagi.", code: "AI_CREDIT_EXHAUSTED" });
+      }
+      if (response.status === 429) return reply.code(429).send({ error: "Batas permintaan AI tercapai. Coba lagi beberapa saat.", code: "AI_RATE_LIMIT" });
+      app.log.warn({status:response.status,providerCode}, "AI provider request failed");
+      return reply.code(502).send({ error: "Provider AI gagal merespons. Periksa konfigurasi dan status layanan.", code: "AI_PROVIDER_ERROR" });
+    }
     const data: any = await response.json();
     return { text: data.choices?.[0]?.message?.content || "Tidak ada respons" };
   });
