@@ -77,3 +77,58 @@ main{padding-bottom:110px}
 .category-toggle{min-height:62px}
 }
 @media(prefers-reduced-motion:reduce){.button{transition:none}}
+
+/* Density correction: mobile-first, no oversized controls or gaps */
+@media(max-width:700px){
+ main{padding-top:16px}
+ .page-header{margin-bottom:14px}
+ .page-header h1{font-size:25px;line-height:1.2}
+ .page-header p{font-size:12px}
+ .panel{padding:14px;border-radius:14px}
+ .button{min-height:38px;padding:7px 11px;font-size:12px}
+ .checklist-detail{padding:15px!important}
+ .checklist-detail h2{font-size:16px;margin-bottom:8px}
+ .checklist-detail progress{margin:7px 0 10px}
+ .checklist-detail-item{padding:10px 0!important;margin:0!important;gap:4px!important;border-bottom:1px solid var(--line)}
+ .checklist-detail-item label{display:flex;align-items:center;gap:10px;min-height:34px;font-size:14px;line-height:1.4}
+ .checklist-detail-item label span{font-size:14px}
+ .checklist-detail-item input[type=checkbox]{width:19px;height:19px;min-height:19px;flex-shrink:0}
+ .checklist-detail-item .row-actions{gap:8px;margin-left:29px;margin-top:1px}
+ .checklist-detail-item .row-actions .button{padding:3px 7px;min-height:29px;font-size:11px}
+ .category-toggle{min-height:53px;padding:10px 12px;font-size:14px}
+ .workspace-module-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+ .workspace-module-grid>.panel{padding:4px 7px;border-radius:14px}
+ .workspace-module-grid .category-toggle{min-height:70px;gap:6px;font-size:12px}
+ .workspace-module-grid .category-toggle>span:last-child{font-size:17px}
+ .workspace-category-name{display:flex;align-items:center;flex-wrap:wrap;gap:6px;text-align:left;min-width:0}
+ .workspace-category-name svg{width:18px;height:18px;color:var(--blue)}
+ .workspace-category-name small{display:block;flex-basis:100%;font-size:10px;font-weight:500}
+ .workspace-module-grid .panel>div>a{font-size:11px;padding:8px 4px;gap:6px}
+ .workspace-controls{margin-bottom:12px}
+ .workspace-controls button{font-size:12px}
+ .form-grid{gap:10px}
+ .field>span{font-size:12px}
+ input,select,textarea{min-height:42px;padding:9px 11px;font-size:16px}
+}
+.workspace-module-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.workspace-module-grid>.panel{min-width:0;overflow:hidden}
+.workspace-module-grid .category-toggle{display:flex;gap:10px;align-items:center;justify-content:space-between}
+.workspace-category-name{display:flex;gap:8px;align-items:center}
+.workspace-category-name small{font-weight:500;color:var(--muted);font-size:11px}
+.workspace-module-grid .panel>div>a{display:flex;align-items:center;gap:9px;padding:9px 7px;border-top:1px solid var(--line);font-size:12px}
+.workspace-module-grid .panel>div>a span:last-child{margin-left:auto}
+.audit-table-wrap{margin-top:12px;font-size:12px}
+.audit-toolbar{display:flex;align-items:center;gap:12px;margin-bottom:10px}
+.audit-toolbar input{max-width:300px;min-height:36px;font-size:13px}
+.audit-toolbar span{color:var(--muted);white-space:nowrap}
+.audit-scroll{max-height:360px;overflow:auto;border:1px solid var(--line);border-radius:11px}
+.audit-table{width:100%;border-collapse:collapse;table-layout:fixed;font-size:12px}
+.audit-table th{position:sticky;top:0;background:var(--surface);z-index:1;color:var(--muted);text-align:left;font-size:11px;font-weight:650}
+.audit-table th,.audit-table td{padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top;overflow-wrap:anywhere;line-height:1.4}
+.audit-table th:first-child,.audit-table td:first-child{width:29%}
+.audit-table th:nth-child(2),.audit-table td:nth-child(2){width:32%}
+.audit-table td:last-child{color:var(--muted)}
+.audit-pagination{display:flex;justify-content:flex-end;align-items:center;gap:12px;margin-top:9px;font-size:12px}
+.audit-pagination button{border:1px solid var(--line);border-radius:8px;padding:7px 9px;background:var(--surface);font-size:12px}
+.audit-pagination button:disabled{opacity:.4}
+@media(max-width:700px){.workspace-module-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.audit-table{font-size:11px}.audit-table th,.audit-table td{padding:7px 6px}.audit-scroll{max-height:300px}.audit-table th:first-child,.audit-table td:first-child{width:32%}}
