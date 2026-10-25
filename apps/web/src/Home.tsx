@@ -33,6 +33,7 @@ export default function Home() {
   const [error, setError] = useState<unknown>();
   const [aiPrompt, setAiPrompt] = useState("");
   const [aiConsent, setAiConsent] = useState(false);
+  const [includeTasks, setIncludeTasks] = useState(false);
   const [aiAnswer, setAiAnswer] = useState("");
   const [aiBusy, setAiBusy] = useState(false);
   const [aiError, setAiError] = useState("");
@@ -137,16 +138,17 @@ export default function Home() {
       <div className="dashboard-grid home-bento" aria-label="Asisten AI dan CMS">
         <section className="panel">
           <div className="section-heading"><h2><Sparkles size={19}/> Tanya AI</h2><Link to="/insights">Buka AI <ArrowRight size={15}/></Link></div>
-          <p className="hint">Hanya teks pertanyaan yang dikirim ke provider AI, bukan seluruh data Febro One.</p>
+          <p className="hint">Secara default hanya pertanyaan yang dikirim. Aktifkan izin tambahan untuk menyertakan daftar tugas belum selesai.</p>
           <form className="form-stack" onSubmit={async e=>{
             e.preventDefault();
             if(!aiConsent||!aiPrompt.trim()||aiBusy)return;
             setAiBusy(true);setAiError("");setAiAnswer("");
-            try{const result=await store.api("/ai","POST",{prompt:aiPrompt.trim(),consent:true});setAiAnswer(String(result.text||"Tidak ada respons."));}
+            try{const result=await store.api("/ai","POST",{prompt:aiPrompt.trim(),consent:true,includeTasks});setAiAnswer(String(result.text||"Tidak ada respons."));}
             catch(err){setAiError(err instanceof Error?err.message:"Gagal menghubungi AI.");}
             finally{setAiBusy(false);}
           }}>
             <textarea aria-label="Pertanyaan untuk AI" rows={3} maxLength={12000} value={aiPrompt} onChange={e=>setAiPrompt(e.target.value)} placeholder="Apa yang ingin Anda tanyakan?" style={{width:"100%",resize:"vertical"}}/>
+            <label className="hint"><input type="checkbox" checked={includeTasks} onChange={e=>setIncludeTasks(e.target.checked)}/> Sertakan daftar tugas belum selesai dari Febro One dalam pertanyaan ini</label>
             <label className="hint"><input type="checkbox" checked={aiConsent} onChange={e=>setAiConsent(e.target.checked)}/> Saya setuju pertanyaan dikirim ke provider AI</label>
             <Button type="submit" disabled={!aiConsent||!aiPrompt.trim()||aiBusy}>{aiBusy?"Mengirim…":"Tanya AI"}</Button>
           </form>
