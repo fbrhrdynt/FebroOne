@@ -32,6 +32,8 @@ export default function Home() {
   const [custom, setCustom] = useState(false);
   const [error, setError] = useState<unknown>();
   const [aiPrompt, setAiPrompt] = useState("");
+  const [aiOpen, setAiOpen] = useState(false);
+  const [aiSpent, setAiSpent] = useState(()=>{try{return Number(localStorage.getItem("febro-ai-estimated-spent-v1"))||0;}catch{return 0;}});
   const [aiConsent, setAiConsent] = useState(false);
   const [includeTasks, setIncludeTasks] = useState(false);
   const [aiAnswer, setAiAnswer] = useState("");
@@ -135,38 +137,58 @@ export default function Home() {
         <QuickAction icon={<Check size={18}/>} onClick={() => setKind("habits")}>Bangun kebiasaan</QuickAction>
       </div>
 
-      <div className="dashboard-grid home-bento" aria-label="Asisten AI dan CMS">
-        <section className="panel">
-          <div className="section-heading"><h2><Sparkles size={19}/> Tanya AI</h2><Link to="/insights">Buka AI <ArrowRight size={15}/></Link></div>
-          <p className="hint">Secara default hanya pertanyaan yang dikirim. Aktifkan izin tambahan untuk menyertakan daftar tugas belum selesai.</p>
-          <form className="form-stack" onSubmit={async e=>{
+      <section className="panel" style={{padding:"16px",marginTop:16}}>
+        <div className="section-heading" style={{marginBottom:aiOpen?12:0}}>
+          <h2 style={{display:"flex",alignItems:"center",gap:8,margin:0}}><Sparkles size={19}/> Tanya AI</h2>
+          <button type="button" className="text-button" onClick={()=>setAiOpen(v=>!v)} aria-expanded={aiOpen} aria-controls="home-ai-form">{aiOpen?"Tutup":"Tanya AI →"}</button>
+        </div>
+        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:8,flexWrap:"wrap",fontSize:12,marginTop:8}}>
+          <span className="hint">GPT-4.1 Mini · Estimasi pemakaian perangkat ini</span>
+          <span style={{fontWeight:700}}>~US$ {Math.max(0,7-aiSpent).toFixed(4)} / $7.00</span>
+        </div>
+        <div style={{height:5,borderRadius:8,background:"#e6edf7",overflow:"hidden",marginTop:6}}><div style={{height:"100%",width:(Math.max(0,7-aiSpent)/7*100)+"%",background:"#3b82f6"}}/></div>
+        <p className="hint" style={{fontSize:11,margin:"6px 0 0"}}>Bukan saldo aktual OpenAI. Menghitung hanya penggunaan AI dari browser ini sejak fitur pencatatan aktif. <a href="https://platform.openai.com/settings/organization/billing/overview" target="_blank" rel="noopener noreferrer">Cek saldo asli ↗</a></p>
+        {aiOpen&&<div id="home-ai-form" style={{marginTop:14}}>
+          <form onSubmit={async e=>{
             e.preventDefault();
             if(!aiConsent||!aiPrompt.trim()||aiBusy)return;
             setAiBusy(true);setAiError("");setAiAnswer("");
-            try{const result=await store.api("/ai","POST",{prompt:aiPrompt.trim(),consent:true,includeTasks});setAiAnswer(String(result.text||"Tidak ada respons."));}
-            catch(err){setAiError(err instanceof Error?err.message:"Gagal menghubungi AI.");}
+            try{
+              const result=await store.api("/ai","POST",{prompt:aiPrompt.trim(),consent:true,includeTasks});
+              setAiAnswer(String(result.text||"Tidak ada respons."));
+              const input=Number(result.usage?.inputTokens||0);
+              const output=Number(result.usage?.outputTokens||0);
+              if(result.usage?.model==="gpt-4.1-mini"&&(input||output)){
+                const cost=(input*0.40+output*1.60)/1000000;
+                setAiSpent(prev=>{const next=prev+cost;try{localStorage.setItem("febro-ai-estimated-spent-v1",String(next));}catch{}return next;});
+              }
+            }catch(err){setAiError(err instanceof Error?err.message:"Gagal menghubungi AI.");}
             finally{setAiBusy(false);}
           }}>
-            <textarea aria-label="Pertanyaan untuk AI" rows={3} maxLength={12000} value={aiPrompt} onChange={e=>setAiPrompt(e.target.value)} placeholder="Apa yang ingin Anda tanyakan?" style={{width:"100%",resize:"vertical"}}/>
-            <label className="hint"><input type="checkbox" checked={includeTasks} onChange={e=>setIncludeTasks(e.target.checked)}/> Sertakan daftar tugas belum selesai dari Febro One dalam pertanyaan ini</label>
-            <label className="hint"><input type="checkbox" checked={aiConsent} onChange={e=>setAiConsent(e.target.checked)}/> Saya setuju pertanyaan dikirim ke provider AI</label>
-            <Button type="submit" disabled={!aiConsent||!aiPrompt.trim()||aiBusy}>{aiBusy?"Mengirim…":"Tanya AI"}</Button>
+            <textarea aria-label="Pertanyaan untuk AI" rows={2} maxLength={12000} value={aiPrompt} onChange={e=>setAiPrompt(e.target.value)} placeholder="Tanyakan sesuatu…" style={{width:"100%",resize:"vertical",minHeight:70}}/>
+            <label className="hint" style={{display:"flex",gap:8,alignItems:"center",margin:"8px 0"}}><input type="checkbox" checked={includeTasks} onChange={e=>setIncludeTasks(e.target.checked)}/> Sertakan tugas belum selesai</label>
+            <label className="hint" style={{display:"flex",gap:8,alignItems:"center",margin:"8px 0"}}><input type="checkbox" checked={aiConsent} onChange={e=>setAiConsent(e.target.checked)}/> Izinkan mengirim teks ke AI</label>
+            <Button type="submit" disabled={!aiConsent||!aiPrompt.trim()||aiBusy}>{aiBusy?"Mengirim…":"Kirim pertanyaan"}</Button>
           </form>
           {aiError&&<p role="alert" style={{color:"#b42318"}}>{aiError}</p>}
-          {aiAnswer&&<div className="panel" role="status" style={{whiteSpace:"pre-wrap",overflowWrap:"anywhere"}}>{aiAnswer}</div>}
+          {aiAnswer&&<div role="status" style={{whiteSpace:"pre-wrap",overflowWrap:"anywhere",padding:"12px 0"}}>{aiAnswer}</div>}
+          <Link className="text-button" to="/insights">Buka AI lengkap <ArrowRight size={15}/></Link>
+        </div>}
+      </section>
+      <div className="dashboard-grid home-bento" style={{display:"grid",gridTemplateColumns:"repeat(2,minmax(0,1fr))",gap:12,marginTop:16}} aria-busy={data.isPending}>
+        <section className="panel" style={{minWidth:0,padding:14}}>
+          <div className="section-heading"><h2 style={{fontSize:16}}><Inbox size={17}/> CMS</h2><Link to="/cms" aria-label="Buka CMS"><ArrowRight size={17}/></Link></div>
+          <p className="hint" style={{fontSize:12}}>Permintaan febro.id</p>
+          {cms.isSuccess?<><strong style={{fontSize:30,display:"block"}}>{cms.data?.totals?.pending??0}</strong><small>Menunggu approval</small><p className="hint" style={{fontSize:12}}>{cms.data?.totals?.unread??0} pesan belum dibaca</p></>:<p className="hint">{cms.isPending?"Memuat…":"Tidak tersedia"}</p>}
+          <Link className="text-button" to="/cms?status=pending" style={{fontSize:12}}>Buka permintaan →</Link>
         </section>
-        <section className="panel">
-          <div className="section-heading"><h2><Inbox size={19}/> CMS febro.id</h2><Link to="/cms">Buka CMS <ArrowRight size={15}/></Link></div>
-          <p className="hint">Permintaan akses dokumen, CV, dan pesan kontak.</p>
-          {cms.isSuccess?<div className="stat-grid"><div className="stat"><span>Menunggu persetujuan</span><strong>{cms.data?.totals?.pending??0}</strong></div><div className="stat"><span>Pesan belum dibaca</span><strong>{cms.data?.totals?.unread??0}</strong></div></div>:<p className="hint">{cms.isPending?"Memuat ringkasan CMS…":"Ringkasan CMS belum tersedia."}</p>}
-          <Link className="text-button" to="/cms?status=pending">Lihat permintaan menunggu <ArrowRight size={15}/></Link>
-        </section>
+        <ActivityCard title="Setiap langkah berarti" to="/records/tasks" className="completion-card">
+          <div style={{display:"flex",alignItems:"center",gap:8,flexWrap:"wrap"}}><CompletionRing value={allTasks.length?completed/allTasks.length*100:0} label="Tugas selesai"/><strong>{completed}/{allTasks.length}</strong></div>
+          <small>{tasks.length} tugas belum selesai</small>
+          <Link className="text-button" to="/records/tasks" style={{fontSize:12}}>Lihat tugas →</Link>
+        </ActivityCard>
       </div>
       <div className="dashboard-grid home-bento" aria-busy={data.isPending}>
-        <ActivityCard title="Setiap langkah berarti" to="/records/tasks" className="completion-card">
-          <div className="completion-content"><CompletionRing value={allTasks.length ? completed / allTasks.length * 100 : 0} label="Tugas selesai"/><div><strong className="completion-total">{data.isPending ? "…" : completed}<span> / {data.isPending ? "…" : allTasks.length}</span></strong><p>tugas selesai</p><small>{allTasks.length ? `${tasks.length} tugas menunggu langkah Anda` : "Tambahkan tugas untuk mulai melacak progres."}</small></div></div>
-          <Link className="text-button" to="/records/tasks">Lihat semua tugas <ArrowRight size={15}/></Link>
-        </ActivityCard>
         <FocusTimer/>
         <ActivityCard title="Akses cepat" className="capture-card"><QuickAction icon={<Plus size={18}/>} onClick={()=>setKind("tasks")}>Tugas baru</QuickAction><QuickAction icon={<FileText size={18}/>} onClick={()=>setKind("notes")}>Catatan baru</QuickAction><QuickAction icon={<CalendarDays size={18}/>} onClick={()=>setKind("reminders")}>Pengingat baru</QuickAction></ActivityCard>
         {widgets.includes("tasks") && (
