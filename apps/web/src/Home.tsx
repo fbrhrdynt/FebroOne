@@ -182,11 +182,14 @@ export default function Home() {
           {cms.isSuccess?<><strong style={{fontSize:30,display:"block"}}>{cms.data?.totals?.pending??0}</strong><small>Menunggu approval</small><p className="hint" style={{fontSize:12}}>{cms.data?.totals?.unread??0} pesan belum dibaca</p></>:<p className="hint">{cms.isPending?"Memuat…":"Tidak tersedia"}</p>}
           <Link className="text-button" to="/cms?status=pending" style={{fontSize:12}}>Buka permintaan →</Link>
         </section>
-        <ActivityCard title="Setiap langkah berarti" to="/records/tasks" className="completion-card">
-          <div style={{display:"flex",alignItems:"center",gap:8,flexWrap:"wrap"}}><CompletionRing value={allTasks.length?completed/allTasks.length*100:0} label="Tugas selesai"/><strong>{completed}/{allTasks.length}</strong></div>
-          <small>{tasks.length} tugas belum selesai</small>
+        <section className="panel" style={{minWidth:0,padding:14}}>
+          <div className="section-heading"><h2 style={{fontSize:16}}>Progres tugas</h2><Link to="/records/tasks" aria-label="Buka tugas"><ArrowRight size={17}/></Link></div>
+          <strong style={{fontSize:30,display:"block"}}>{completed}/{allTasks.length}</strong>
+          <small>Tugas selesai</small>
+          <progress style={{width:"100%",marginTop:12}} max={Math.max(1,allTasks.length)} value={completed} aria-label="Progres tugas"/>
+          <p className="hint" style={{fontSize:12}}>{tasks.length} belum selesai</p>
           <Link className="text-button" to="/records/tasks" style={{fontSize:12}}>Lihat tugas →</Link>
-        </ActivityCard>
+        </section>
       </div>
       <div className="dashboard-grid home-bento" aria-busy={data.isPending}>
         <FocusTimer/>
