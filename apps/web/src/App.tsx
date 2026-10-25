@@ -490,7 +490,7 @@ export default function App() {
           />
         </label>
         <div className="search-results">
-          {nav.filter(([,label])=>!search || (label+" "+path).toLocaleLowerCase("id").includes(searchNeedle)).map(([path,label,Icon])=><button key={path} onClick={()=>{navigate(path);setSearchOpen(false);}}><Icon size={18}/><strong>{label}</strong><small>Modul</small></button>)}
+          {nav.filter(([path,label])=>!search || (label+" "+path).toLocaleLowerCase("id").includes(searchNeedle)).map(([path,label,Icon])=><button key={path} onClick={()=>{navigate(path);setSearchOpen(false);}}><Icon size={18}/><strong>{label}</strong><small>Modul</small></button>)}
           {modules.filter(m=>search && (m.title+" "+m.group+" "+m.key).toLocaleLowerCase("id").includes(searchNeedle)).map(m=><button key={m.key} onClick={()=>{navigate(m.key==='events'?'/calendar':'/records/'+m.key);setSearchOpen(false);}}><strong>{m.title}</strong><small>{m.group}</small></button>)}
           {matches?.map((r) => (
             <button
