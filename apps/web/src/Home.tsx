@@ -1,3 +1,4 @@
+import "./home-compact.css";
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
@@ -65,15 +66,13 @@ export default function Home() {
   const overdue = tasks.filter(
     (r) => r.data.due && new Date(r.data.due) < new Date(),
   );
+  const weekStart = new Date(today + "T00:00:00+07:00");
+  weekStart.setDate(weekStart.getDate() - ((weekStart.getDay() + 6) % 7));
+  const weekEnd = new Date(weekStart);
+  weekEnd.setDate(weekEnd.getDate() + 7);
   const events = rs
     .filter((r) => r.kind === "events")
-    .flatMap((r) =>
-      occurrences(
-        r,
-        new Date(today + "T00:00:00+07:00"),
-        new Date(today + "T23:59:59+07:00"),
-      ),
-    )
+    .flatMap((r) => occurrences(r, weekStart, weekEnd))
     .sort((a, b) => a.data.start.localeCompare(b.data.start));
   const certs = rs.filter(
     (r) =>
@@ -191,9 +190,11 @@ export default function Home() {
           <Link className="text-button" to="/records/tasks" style={{fontSize:11,margin:0}}>Lihat tugas →</Link>
         </section>
       </div>
-      <div className="dashboard-grid home-bento" aria-busy={data.isPending}>
+      <div className="home-focus-pair" aria-label="Fokus dan akses cepat">
         <FocusTimer/>
         <ActivityCard title="Akses cepat" className="capture-card"><QuickAction icon={<Plus size={18}/>} onClick={()=>setKind("tasks")}>Tugas baru</QuickAction><QuickAction icon={<FileText size={18}/>} onClick={()=>setKind("notes")}>Catatan baru</QuickAction><QuickAction icon={<CalendarDays size={18}/>} onClick={()=>setKind("reminders")}>Pengingat baru</QuickAction></ActivityCard>
+      </div>
+      <div className="dashboard-grid home-bento home-overview-compact" aria-busy={data.isPending}>
         {widgets.includes("tasks") && (
           <section className="panel dashboard-tasks">
             <div className="section-heading">
@@ -250,15 +251,15 @@ export default function Home() {
           </section>
         )}
         {widgets.includes("agenda") && (
-          <section className="panel">
+          <section className="panel overview-agenda">
             <div className="section-heading">
-              <h2>Agenda hari ini</h2>
-              <Link to="/calendar" aria-label="Buka agenda hari ini">
+              <h2>Agenda minggu ini</h2>
+              <Link to="/calendar" aria-label="Buka agenda minggu ini">
                 <ArrowUpRight size={17} />
               </Link>
             </div>
             {events.length ? (
-              events.map((e) => (
+              events.slice(0, 3).map((e) => (
                 <Link
                   to="/calendar"
                   className="agenda-row"
@@ -280,9 +281,9 @@ export default function Home() {
               ))
             ) : (
               <div className="quiet-empty">
-                <CalendarDays size={26} />
+                <CalendarDays size={20} />
                 <h3>Hari yang masih lapang</h3>
-                <p>Belum ada agenda hari ini.</p>
+                <p>Belum ada agenda minggu ini.</p>
                 <button
                   className="text-button"
                   onClick={() => setKind("events")}
@@ -294,7 +295,7 @@ export default function Home() {
           </section>
         )}
         {widgets.includes("finance") && (
-          <section className="panel">
+          <section className="panel overview-finance">
             <div className="section-heading">
               <h2>Keuangan sekilas</h2>
               <Link to="/finance" aria-label="Buka keuangan">
@@ -315,7 +316,7 @@ export default function Home() {
           </section>
         )}
         {widgets.includes("career") && (
-          <section className="panel">
+          <section className="panel overview-career">
             <div className="section-heading">
               <h2>Karier & belajar</h2>
               <Link to="/records/trainings" aria-label="Buka karier dan belajar">
@@ -352,7 +353,7 @@ export default function Home() {
           <ChartCard title="Arus kas bulan ini" description={new Date(today+"T12:00:00").toLocaleDateString("id-ID",{month:"long",year:"numeric"})}>
             <div className="cashflow-bars">{[{label:"Pemasukan",value:cashflow.income,tone:"income"},{label:"Pengeluaran",value:cashflow.expense,tone:"expense"}].map(item=><div key={item.label}><div className="cashflow-label"><span>{item.label}</span><strong>{money(item.value)}</strong></div><div className={"cashflow-track "+item.tone} aria-hidden="true"><span style={{width:prefs.maskMoney?"0%":Math.max(0,Math.min(100,item.value.div(cashflow.income.plus(cashflow.expense).isZero()?1:cashflow.income.plus(cashflow.expense)).mul(100).toNumber()))+"%"}}/></div></div>)}</div><p className="hint">Transfer dan pokok cicilan dikecualikan.</p>
           </ChartCard>
-          <ActivityCard title="Transaksi terbaru" to="/finance" className="transactions-card">{fin.isPending?<p role="status">Memuat transaksi…</p>:recentTx.length?recentTx.map((t:any)=><Link className="transaction-preview" key={t.id} to="/finance"><span className={"transaction-icon "+(t.kind==="income"?"income":"expense")}><ArrowUpRight size={17}/></span><div><strong>{t.description || t.category || t.kind}</strong><small>{new Date(t.date+"T12:00:00").toLocaleDateString("id-ID",{day:"numeric",month:"short"})} · {t.category || t.kind}</small></div><b>{money(t.amount)}</b></Link>):<div className="quiet-empty"><p>{fin.isError?"Transaksi belum dapat dimuat.":"Belum ada transaksi tersimpan."}</p><Link className="text-button" to="/finance?quick=expense">Catat transaksi →</Link></div>}</ActivityCard>
+          <ActivityCard title="Transaksi terbaru" to="/finance" className="transactions-card">{fin.isPending?<p role="status">Memuat transaksi…</p>:recentTx.length?recentTx.slice(0,2).map((t:any)=><Link className="transaction-preview" key={t.id} to="/finance"><span className={"transaction-icon "+(t.kind==="income"?"income":"expense")}><ArrowUpRight size={17}/></span><div><strong>{t.description || t.category || t.kind}</strong><small>{new Date(t.date+"T12:00:00").toLocaleDateString("id-ID",{day:"numeric",month:"short"})} · {t.category || t.kind}</small></div><b>{money(t.amount)}</b></Link>):<div className="quiet-empty"><p>{fin.isError?"Transaksi belum dapat dimuat.":"Belum ada transaksi tersimpan."}</p><Link className="text-button" to="/finance?quick=expense">Catat transaksi →</Link></div>}</ActivityCard>
         </>}
         {widgets.includes("notes") && (
           <section className="panel span-2 notes-panel">
