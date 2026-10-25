@@ -1,4 +1,5 @@
 import "./home-compact.css";
+import "./home-redesign.css";
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
@@ -114,29 +115,26 @@ export default function Home() {
       </PageHeader>
       <ErrorText error={error || data.error || fin.error} />
       {data.isLoading && <div className="skeleton" role="status" aria-label="Memuat dashboard" />}
-      <section className="day-intro">
-        <div>
-          <div className="eyebrow">
-            <Sun size={16} /> MY DAY
-          </div>
-          <h2>Apa fokus Anda hari ini?</h2>
-          <p>
-            {tasks.length
-              ? `${tasks.length} tugas terbuka${overdue.length ? `, ${overdue.length} melewati tenggat` : ""}. Ambil satu langkah berikutnya.`
-              : "Mulai dengan satu tugas, ide, atau rencana kecil."}
-          </p>
+      <section className="one-wallet-hero">
+        <div className="one-wallet-head"><span className="one-wallet-kicker"><Sun size={15}/> WORKSPACE OVERVIEW</span><span className="one-wallet-date">{new Date().toLocaleDateString("id-ID",{day:"numeric",month:"short",year:"numeric"})}</span></div>
+        <div className="one-wallet-body">
+          <div><span className="one-wallet-label">Selamat datang kembali</span><h2>{profile.data?.user.name?.split(" ")[0] || "Anda"}.</h2><p>Kelola pekerjaan, agenda, dan keuangan dari satu tempat.</p></div>
+          <button type="button" className="one-wallet-add" onClick={()=>setKind("tasks")}><Plus size={18}/> Tambah tugas</button>
         </div>
-        <Button onClick={() => setKind("tasks")}>
-          <Plus size={17} /> Tambah tugas
-        </Button>
+        <div className="one-wallet-metrics">
+          <Link to="/records/tasks"><span>Tugas aktif</span><strong>{tasks.length}</strong><small>{overdue.length ? overdue.length+" melewati tenggat" : "Lihat tugas"} <ArrowUpRight size={12}/></small></Link>
+          <Link to="/calendar"><span>Agenda minggu ini</span><strong>{events.length}</strong><small>Lihat jadwal <ArrowUpRight size={12}/></small></Link>
+          <Link to="/cms"><span>Permintaan CMS</span><strong>{cms.data?.totals?.pending??0}</strong><small>Perlu ditinjau <ArrowUpRight size={12}/></small></Link>
+        </div>
       </section>
-      <div className="quick-capture">
-        <QuickAction icon={<FileText size={18}/>} onClick={() => setKind("notes")}>Tangkap ide</QuickAction>
-        <QuickAction icon={<CalendarDays size={18}/>} onClick={() => setKind("events")}>Buat agenda</QuickAction>
-        <QuickAction icon={<Check size={18}/>} onClick={() => setKind("habits")}>Bangun kebiasaan</QuickAction>
+      <div className="one-dashboard-heading"><div><span className="one-dashboard-eyebrow">QUICK ACCESS</span><h2>Mulai dari sini</h2></div></div>
+      <div className="one-launchpad">
+        <button onClick={()=>setKind("notes")}><span className="one-launch-icon blue"><FileText size={19}/></span><span>Catatan baru</span><ArrowUpRight size={15}/></button>
+        <button onClick={()=>setKind("events")}><span className="one-launch-icon violet"><CalendarDays size={19}/></span><span>Buat agenda</span><ArrowUpRight size={15}/></button>
+        <button onClick={()=>setKind("habits")}><span className="one-launch-icon green"><Check size={19}/></span><span>Kebiasaan</span><ArrowUpRight size={15}/></button>
       </div>
-
-      <section className="panel" style={{padding:"16px",marginTop:16}}>
+      <div className="one-dashboard-heading"><div><span className="one-dashboard-eyebrow">YOUR DASHBOARD</span><h2>Ringkasan aktivitas</h2></div><Link to="/records/tasks">Lihat semua <ArrowRight size={15}/></Link></div>
+      <section className="panel one-ai-panel" style={{padding:"16px",marginTop:16}}>
         <div className="section-heading" style={{marginBottom:aiOpen?12:0}}>
           <h2 style={{display:"flex",alignItems:"center",gap:8,margin:0}}><Sparkles size={19}/> Tanya AI</h2>
           <button type="button" className="text-button" onClick={()=>setAiOpen(v=>!v)} aria-expanded={aiOpen} aria-controls="home-ai-form">{aiOpen?"Tutup":"Tanya AI →"}</button>
@@ -174,7 +172,7 @@ export default function Home() {
           <Link className="text-button" to="/insights">Buka AI lengkap <ArrowRight size={15}/></Link>
         </div>}
       </section>
-      <div className="home-compact-pair" style={{display:"grid",gridTemplateColumns:"repeat(2,minmax(0,1fr))",gap:12,marginTop:16,alignItems:"stretch"}} aria-busy={data.isPending}>
+      <div className="home-compact-pair one-kpi-pair" style={{display:"grid",gridTemplateColumns:"repeat(2,minmax(0,1fr))",gap:12,marginTop:16,alignItems:"stretch"}} aria-busy={data.isPending}>
         <section className="panel" style={{minWidth:0,width:"100%",padding:12,margin:0,boxSizing:"border-box",display:"flex",flexDirection:"column",gap:6}}>
           <div className="section-heading" style={{margin:0,display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:4}}><h2 style={{fontSize:15,lineHeight:1.2,margin:0}}><Inbox size={17}/> CMS</h2><Link to="/cms" aria-label="Buka CMS"><ArrowRight size={17}/></Link></div>
           <p className="hint" style={{fontSize:11,margin:0}}>Permintaan febro.id</p>
@@ -190,11 +188,11 @@ export default function Home() {
           <Link className="text-button" to="/records/tasks" style={{fontSize:11,margin:0}}>Lihat tugas →</Link>
         </section>
       </div>
-      <div className="home-focus-pair" aria-label="Fokus dan akses cepat">
+      <div className="home-focus-pair one-action-pair" aria-label="Fokus dan akses cepat">
         <FocusTimer/>
         <ActivityCard title="Akses cepat" className="capture-card"><QuickAction icon={<Plus size={18}/>} onClick={()=>setKind("tasks")}>Tugas baru</QuickAction><QuickAction icon={<FileText size={18}/>} onClick={()=>setKind("notes")}>Catatan baru</QuickAction><QuickAction icon={<CalendarDays size={18}/>} onClick={()=>setKind("reminders")}>Pengingat baru</QuickAction></ActivityCard>
       </div>
-      <div className="dashboard-grid home-bento home-overview-compact" aria-busy={data.isPending}>
+      <div className="dashboard-grid home-bento home-overview-compact one-dashboard-panels" aria-busy={data.isPending}>
         {widgets.includes("tasks") && (
           <section className="panel dashboard-tasks">
             <div className="section-heading">
