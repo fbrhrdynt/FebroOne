@@ -1,0 +1,73 @@
+/* Febro One — complete dashboard visual hierarchy, inspired by mobile admin / wallet interfaces.
+   Component-scoped; all values adapt to light and dark mode. */
+:root{--one-hero:#1659db;--one-hero-2:#073da8;--one-card:#fff;--one-card-border:#e6ebf3;--one-ink:#1c2a40;--one-sub:#718097;--one-soft:#f3f6fb;--one-link:#2563eb}
+html.dark{--one-hero:#174cbb;--one-hero-2:#103479;--one-card:#1b2738;--one-card-border:#34435a;--one-ink:#f1f5fb;--one-sub:#b5c3d5;--one-soft:#111e2e;--one-link:#a1c4ff}
+.one-wallet-hero{background:linear-gradient(127deg,var(--one-hero),var(--one-hero-2));border-radius:22px;color:#fff;padding:21px 20px 0;margin:16px 0 22px;box-shadow:0 12px 30px rgba(23,78,179,.16);overflow:hidden}
+.one-wallet-head,.one-wallet-body,.one-wallet-metrics{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.one-wallet-head{font-size:10px;letter-spacing:.1em;font-weight:700;color:#dce8ff}
+.one-wallet-kicker{display:inline-flex;align-items:center;gap:7px}.one-wallet-date{letter-spacing:0;font-weight:500}
+.one-wallet-body{padding:20px 0 22px;align-items:flex-end}
+.one-wallet-label{font-size:12px;color:#c4d9ff}
+.one-wallet-body h2{font-size:clamp(27px,6vw,39px);line-height:1.1;letter-spacing:-.04em;color:#fff!important;margin:4px 0 9px}
+.one-wallet-body p{font-size:12px;line-height:1.45;max-width:250px;margin:0;color:#d7e6ff!important}
+.one-wallet-add{border:1px solid rgba(255,255,255,.4);border-radius:12px;background:#fff;color:#154ab2;display:inline-flex;gap:5px;align-items:center;justify-content:center;font-size:12px;font-weight:700;min-height:38px;padding:9px 11px;flex-shrink:0}
+.one-wallet-metrics{margin:0 -20px;padding:14px 18px;background:rgba(4,30,95,.22);gap:0}
+.one-wallet-metrics a{min-width:0;flex:1;text-decoration:none!important;color:#fff!important;padding:0 11px;border-right:1px solid rgba(255,255,255,.18);display:flex;flex-direction:column;gap:5px}
+.one-wallet-metrics a:first-child{padding-left:0}.one-wallet-metrics a:last-child{border:0;padding-right:0}
+.one-wallet-metrics span{font-size:10px;color:#d1e0ff}.one-wallet-metrics strong{font-size:23px;line-height:1.1;color:#fff!important;font-weight:750}
+.one-wallet-metrics small{display:flex;gap:4px;align-items:center;font-size:10px;color:#e2edff}
+.one-dashboard-heading{display:flex;align-items:end;justify-content:space-between;gap:12px;margin:22px 0 11px}
+.one-dashboard-eyebrow{font-size:10px;font-weight:800;letter-spacing:.13em;color:var(--one-link)}
+.one-dashboard-heading h2{font-size:19px;color:var(--one-ink);letter-spacing:-.035em;margin:4px 0 0}
+.one-dashboard-heading>a{font-size:12px;display:flex;align-items:center;gap:4px;color:var(--one-link)}
+.one-launchpad{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}
+.one-launchpad button{min-width:0;min-height:88px;background:var(--one-card);color:var(--one-ink);border:1px solid var(--one-card-border);border-radius:15px;padding:11px;display:flex;flex-direction:column;align-items:flex-start;gap:9px;text-align:left;font-size:11px;font-weight:650;position:relative;box-shadow:0 2px 8px rgba(17,41,79,.03)}
+.one-launchpad button>svg:last-child{position:absolute;right:11px;top:15px;color:var(--one-sub)}
+.one-launch-icon{display:grid;place-items:center;width:31px;height:31px;border-radius:9px}
+.one-launch-icon.blue{background:#e6efff;color:#2866dc}.one-launch-icon.violet{background:#f0e8ff;color:#8051ce}.one-launch-icon.green{background:#e6f7ef;color:#16845c}
+.one-ai-panel,.one-kpi-pair>.panel,.one-action-pair>*,.one-dashboard-panels>*{background:var(--one-card)!important;color:var(--one-ink)!important;border:1px solid var(--one-card-border)!important;box-shadow:0 2px 10px rgba(12,31,58,.035)!important;border-radius:15px!important}
+.one-ai-panel{margin-top:12px!important}.one-ai-panel .hint{color:var(--one-sub)!important}
+.one-kpi-pair{margin-top:10px!important;gap:10px!important}.one-kpi-pair>.panel{padding:14px!important}
+.one-kpi-pair strong{color:var(--one-ink)!important}.one-kpi-pair .hint{color:var(--one-sub)!important}
+.one-action-pair{margin-top:10px!important;gap:10px!important}
+.one-dashboard-panels{gap:10px!important;margin-top:10px!important;grid-template-columns:repeat(2,minmax(0,1fr))!important}
+.one-dashboard-panels>*{min-width:0!important;padding:14px!important;min-height:0!important}
+.one-dashboard-panels .overview-agenda,.one-dashboard-panels .notes-panel{grid-column:1/-1!important}
+.one-dashboard-panels .section-heading h2{font-size:14px!important;line-height:1.25!important;color:var(--one-ink)!important}
+.one-dashboard-panels .section-heading a,.one-dashboard-panels .text-button{color:var(--one-link)!important}
+.one-dashboard-panels .muted,.one-dashboard-panels .hint,.one-dashboard-panels p,.one-dashboard-panels small{color:var(--one-sub)!important}
+.one-dashboard-panels .quiet-empty{min-height:0!important;padding:8px 0!important;gap:4px!important}
+.one-dashboard-panels .quiet-empty>svg{display:none!important}
+.one-dashboard-panels .quiet-empty h3{font-size:12px!important;margin:3px 0!important;color:var(--one-ink)!important}
+.one-dashboard-panels .quiet-empty p{font-size:11px!important;margin:0!important}
+.one-dashboard-panels .quiet-empty button,.one-dashboard-panels .quiet-empty a{font-size:11px!important;padding:6px 0!important;min-height:0!important}
+.one-dashboard-panels .dashboard-summary{display:flex;flex-direction:column;gap:7px}
+.one-dashboard-panels .dashboard-summary .section-heading{margin-bottom:0!important}
+.one-dashboard-panels .dashboard-summary .empty-state{min-height:0!important;padding:8px 0!important}
+.one-dashboard-panels .dashboard-summary .empty-state p{display:none!important}
+.one-dashboard-panels .dashboard-summary .empty-state svg{width:18px!important;height:18px!important}
+.one-dashboard-panels .dashboard-summary .empty-state button{font-size:11px!important;padding:7px 9px!important;min-height:34px!important}
+.one-dashboard-panels .balance{font-size:21px!important;overflow-wrap:anywhere}
+.one-dashboard-panels .mini-stats strong{font-size:23px!important}
+.one-dashboard-panels .cashflow-bars{margin:5px 0!important}
+.one-dashboard-panels .cashflow-bars>div{margin:5px 0!important}
+.one-dashboard-panels .cashflow-card p{font-size:10px!important}
+.one-dashboard-panels .notes-panel .add-note{min-height:50px!important}
+html.dark .one-wallet-hero{box-shadow:0 12px 30px rgba(0,0,0,.15)}
+html.dark .one-dashboard-panels h3,html.dark .one-dashboard-panels strong,html.dark .one-dashboard-panels .balance,html.dark .one-dashboard-panels .mini-stats strong{color:var(--one-ink)!important}
+html.dark .one-action-pair .capture-card .quick-action{background:#25374e!important;color:var(--one-ink)!important;border-color:#40516a!important}
+html.dark .one-dashboard-panels .overview-finance,html.dark .one-dashboard-panels .overview-career,html.dark .one-dashboard-panels .cashflow-card,html.dark .one-dashboard-panels .transactions-card,html.dark .one-dashboard-panels .overview-agenda{background:var(--one-card)!important}
+html.dark .one-dashboard-panels .empty-state,html.dark .one-dashboard-panels .empty-state h3{color:var(--one-ink)!important}
+@media(max-width:540px){
+.one-wallet-hero{padding:18px 16px 0;margin-top:10px;border-radius:18px}
+.one-wallet-body{align-items:flex-start;gap:9px;padding:17px 0 19px}
+.one-wallet-body p{max-width:190px}.one-wallet-add{padding:8px;min-height:36px}
+.one-wallet-metrics{margin:0 -16px;padding:13px 15px}
+.one-wallet-metrics a{padding:0 8px}.one-wallet-metrics strong{font-size:22px}
+.one-wallet-metrics span,.one-wallet-metrics small{font-size:9px}
+.one-dashboard-heading{margin-top:18px}
+.one-dashboard-panels .summary-reminders,.one-dashboard-panels .summary-projects,.one-dashboard-panels .summary-goals{grid-column:auto!important}
+.one-dashboard-panels .dashboard-summary .empty-state{padding:6px 0!important}
+.one-dashboard-panels .dashboard-summary .empty-state p{display:none!important}
+}
+@media(max-width:355px){.one-wallet-add{font-size:0}.one-wallet-add svg{width:20px}.one-wallet-metrics small{display:none}.one-launchpad{gap:6px}.one-launchpad button{padding:8px}}
