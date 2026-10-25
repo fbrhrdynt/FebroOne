@@ -6,6 +6,7 @@ import App from "./App";
 import NavigationState from "./NavigationState";
 import "./styles.css";
 import "./bento.css";
+import "./app-redesign.css";
 // The internal HTTP preview lacks randomUUID; getRandomValues remains cryptographic.
 if (!crypto.randomUUID)
   Object.defineProperty(crypto, "randomUUID", {
