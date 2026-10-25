@@ -110,3 +110,55 @@
  .home-focus-pair .focus-card .focus-caption {min-height:40px;}
  .home-focus-pair .focus-card .focus-clock {margin:10px 0 16px !important;}
 }
+
+/* Theme-aware dashboard surfaces. Avoid fixed light backgrounds and inherited
+   white-on-white text in dark mode. Both modes share one restrained accent. */
+.dark .home-focus-pair > *,
+.dark .home-overview-compact > .panel,
+.dark .home-overview-compact > .bento-card {
+  border-color:#344357 !important;
+  box-shadow:0 2px 10px rgba(0,0,0,.10) !important;
+}
+.dark .home-focus-pair .focus-card,
+.dark .home-focus-pair .capture-card {background:#202d3d !important;}
+.dark .home-focus-pair .focus-card.is-running {background:#203650 !important;border-color:#4875aa !important;}
+.dark .home-overview-compact .overview-agenda {background:#203146 !important;}
+.dark .home-overview-compact .overview-finance {background:#1d3735 !important;}
+.dark .home-overview-compact .overview-career {background:#302c43 !important;}
+.dark .home-overview-compact .cashflow-card {background:#383026 !important;}
+.dark .home-overview-compact .transactions-card {background:#20353c !important;}
+.dark .home-focus-pair .focus-card .focus-clock {color:#f2f6fc !important;}
+.dark .home-focus-pair .focus-card .hint {color:#a6b8cd !important;}
+.dark .home-focus-pair .focus-card .focus-primary-action {background:#397ce0 !important;border-color:#397ce0 !important;color:#fff !important;}
+.dark .home-focus-pair .focus-card.is-running .focus-primary-action {background:#263e5c !important;border-color:#6c98d5 !important;color:#e2efff !important;}
+.dark .home-focus-pair .capture-card .quick-action {background:#26364a !important;border-color:#42556e !important;color:#e8f0fa !important;}
+.dark .home-focus-pair .capture-card .quick-action svg {color:#86b5ff !important;}
+.dark .home-overview-compact h2,
+.dark .home-overview-compact h3,
+.dark .home-overview-compact strong,
+.dark .home-overview-compact .balance,
+.dark .home-overview-compact .quiet-empty h3,
+.dark .home-focus-pair h2,
+.dark .home-focus-pair h3 {color:#edf3fa !important;}
+.dark .home-overview-compact p,
+.dark .home-overview-compact small,
+.dark .home-overview-compact .hint,
+.dark .home-overview-compact .quiet-empty p,
+.dark .home-overview-compact .agenda-row,
+.dark .home-focus-pair .focus-caption {color:#b3c4d8 !important;}
+.dark .home-overview-compact a,
+.dark .home-overview-compact .section-heading a {color:#93bdff !important;}
+.dark .home-overview-compact .agenda-row,
+.dark .home-overview-compact .transaction-preview {border-color:#40536a !important;}
+.dark .home-overview-compact .cashflow-bars progress,
+.dark .home-overview-compact .cashflow-bars .bar-track {background:#26364a !important;}
+/* Dark cards elsewhere in Home: retain deep tonal differentiation instead of
+   harsh, saturated blocks. */
+.dark .home-bento .notes-panel {background:#3a302b !important;}
+.dark .home-bento .notes-panel h2,
+.dark .home-bento .notes-panel strong {color:#f3eee9 !important;}
+.dark .home-bento .notes-panel .add-note {border-color:#796a60 !important;color:#e6dcd1 !important;}
+@media (prefers-reduced-motion: no-preference) {
+ .home-focus-pair .focus-primary-action {transition:background .16s ease,border-color .16s ease,transform .16s ease;}
+ .home-focus-pair .focus-primary-action:active {transform:scale(.98);}
+}
