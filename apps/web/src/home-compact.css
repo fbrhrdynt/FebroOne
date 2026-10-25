@@ -262,3 +262,91 @@
 .dark .home-overview-compact .transaction-preview {border-color:#394c65 !important;}
 .dark .home-overview-compact .cashflow-bars .bar-track {background:#34465d !important;}
 .dark .home-overview-compact .quiet-empty button {color:#dbeaff !important;}
+
+/* v3 — replace oversized colorful bento tiles with a unified mobile admin dashboard.
+   Preserve all existing actions and content; change only dashboard presentation. */
+.home-bento,.home-focus-pair,.home-overview-compact {
+ --dash-surface:#fff;--dash-stroke:#e4e9f1;--dash-fg:#1e2c43;--dash-muted:#697b92;
+}
+.home-bento > *, .home-overview-compact > *, .home-focus-pair > * {
+ border-radius:15px !important;
+ background:var(--dash-surface) !important;
+ border:1px solid var(--dash-stroke) !important;
+ box-shadow:0 2px 8px rgba(25,45,75,.035) !important;
+ color:var(--dash-fg) !important;
+}
+.home-bento .notes-panel,.home-bento .reminders-card,
+.home-bento .projects-card,.home-bento .habits-card,
+.home-bento .documents-card,.home-bento .goals-card,
+.home-bento .bento-card {
+ background:var(--dash-surface) !important;
+}
+.home-bento .quiet-empty {
+ min-height:0 !important;
+ padding:12px 4px !important;
+ gap:5px !important;
+}
+.home-bento .quiet-empty svg {width:21px;height:21px;}
+.home-bento .quiet-empty h3 {font-size:13px !important;line-height:1.35;margin:5px 0 !important;}
+.home-bento .quiet-empty p {font-size:11px !important;line-height:1.4;margin:3px 0 !important;}
+.home-bento .quiet-empty button,.home-bento .quiet-empty a {
+ font-size:12px !important;min-height:34px !important;padding:7px 10px !important;
+}
+.home-bento .section-heading {margin-bottom:10px !important;}
+.home-bento .section-heading h2 {font-size:15px !important;line-height:1.3;}
+.home-bento .section-heading a {color:#2c6bde !important;}
+.home-bento .notes-panel .add-note {padding:12px !important;min-height:50px !important;}
+.home-bento .muted,.home-bento .hint {color:var(--dash-muted) !important;}
+.home-overview-compact .overview-finance,.home-overview-compact .overview-career,
+.home-overview-compact .cashflow-card,.home-overview-compact .transactions-card,
+.home-overview-compact .overview-agenda {
+ border-top:1px solid var(--dash-stroke) !important;
+ background:var(--dash-surface) !important;
+}
+.home-focus-pair .focus-card,.home-focus-pair .capture-card {
+ background:var(--dash-surface) !important;
+}
+.home-focus-pair .focus-card.is-running {background:#f5f8ff !important;}
+.home-focus-pair .focus-card .focus-clock {font-size:clamp(25px,6vw,37px) !important;}
+.home-focus-pair .capture-card .quick-action {background:#f8faff !important;}
+@media(max-width:600px){
+ .home-bento,.home-overview-compact {gap:10px !important;grid-template-columns:repeat(2,minmax(0,1fr)) !important;}
+ .home-bento > *,.home-overview-compact > * {min-width:0 !important;padding:13px !important;}
+ .home-bento .quiet-empty {padding:9px 0 !important;}
+ .home-bento .quiet-empty svg {width:18px;height:18px;}
+ .home-bento .quiet-empty p {display:none;}
+ .home-bento .quiet-empty button,.home-bento .quiet-empty a {font-size:11px !important;}
+ .home-bento .section-heading h2 {font-size:14px !important;}
+ .home-bento .notes-panel {grid-column:1 / -1 !important;}
+ .home-bento .reminders-card,.home-bento .projects-card,
+ .home-bento .goals-card {grid-column:auto !important;}
+ .home-bento .panel {min-height:0 !important;}
+}
+.dark .home-bento,.dark .home-focus-pair,.dark .home-overview-compact {
+ --dash-surface:#1c293a;--dash-stroke:#344359;--dash-fg:#f0f4fa;--dash-muted:#b2c0d1;
+}
+.dark .home-bento > *,.dark .home-overview-compact > *,
+.dark .home-focus-pair > *,
+.dark .home-bento .notes-panel,.dark .home-bento .reminders-card,
+.dark .home-bento .projects-card,.dark .home-bento .habits-card,
+.dark .home-bento .documents-card,.dark .home-bento .goals-card,
+.dark .home-bento .bento-card,
+.dark .home-overview-compact .overview-finance,
+.dark .home-overview-compact .overview-career,
+.dark .home-overview-compact .cashflow-card,
+.dark .home-overview-compact .transactions-card,
+.dark .home-overview-compact .overview-agenda,
+.dark .home-focus-pair .focus-card,.dark .home-focus-pair .capture-card {
+ background:var(--dash-surface) !important;border-color:var(--dash-stroke) !important;
+ color:var(--dash-fg) !important;
+}
+.dark .home-bento h2,.dark .home-bento h3,.dark .home-bento strong,
+.dark .home-bento .balance,.dark .home-focus-pair h2,
+.dark .home-overview-compact h2 {color:var(--dash-fg) !important;}
+.dark .home-bento p,.dark .home-bento small,.dark .home-bento .muted,
+.dark .home-bento .hint,.dark .home-bento .quiet-empty p,
+.dark .home-focus-pair p {color:var(--dash-muted) !important;}
+.dark .home-bento .section-heading a,.dark .home-bento .section-heading a svg {color:#8eb8ff !important;}
+.dark .home-bento .notes-panel .add-note {border-color:#465872 !important;color:#d6e3f5 !important;}
+.dark .home-focus-pair .focus-card.is-running {background:#233852 !important;}
+.dark .home-focus-pair .capture-card .quick-action {background:#28394f !important;color:#e8f0fb !important;}
