@@ -447,8 +447,7 @@ export const modules: Module[] = [
     description: "Rencanakan beberapa sumber pemasukan dan alokasikan pengeluaran bulanan dengan checklist.",
     fields: [
       f("month", "Bulan (YYYY-MM)", "text", undefined, true),
-      f("incomeSources", "Sumber pemasukan (JSON)", "textarea"),
-      f("plannedItems", "Rencana pengeluaran (JSON)", "textarea"),
+      f("payload", "Data rencana", "textarea"),
     ],
   },
   {

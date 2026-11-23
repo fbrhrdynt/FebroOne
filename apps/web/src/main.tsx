@@ -19,7 +19,7 @@ if (!crypto.randomUUID)
   });
 const query = new QueryClient({
   defaultOptions: {
-    queries: { staleTime: 15000, retry: 1, refetchOnWindowFocus: false },
+    queries: { staleTime: 60_000, gcTime: 10 * 60_000, retry: 1, refetchOnWindowFocus: false },
   },
 });
 class Boundary extends React.Component<
