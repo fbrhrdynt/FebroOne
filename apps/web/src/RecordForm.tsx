@@ -276,7 +276,7 @@ export function RecordFormPage({
                       }
                     >
                       {f.options?.map((o) => (
-                        <option key={o}>{o}</option>
+                        <option key={o}>{tr(o)}</option>
                       ))}
                     </select>
                   ) : f.type === "checkbox" ? (
