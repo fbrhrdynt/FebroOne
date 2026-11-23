@@ -258,8 +258,8 @@ export async function runDebtReminders(db: DB) {
       AND d.direction='borrowed'
       AND COALESCE(NULLIF(d.details->>'monthlyPayment','')::numeric,0)>0
       AND NULLIF(d.details->>'dueDay','') IS NOT NULL
-      AND (d.details->>'repaymentStart' IS NULL OR m.period >= (d.details->>'repaymentStart')::date)
-      AND (d.details->>'installmentCount' IS NULL OR m.period < ((d.details->>'repaymentStart')::date + ((d.details->>'installmentCount')::int * interval '1 month')))
+      AND (NULLIF(d.details->>'repaymentStart','') IS NOT NULL AND m.period >= date_trunc('month',(d.details->>'repaymentStart')::date)::date)
+      AND (d.details->>'installmentCount' IS NULL OR m.period < (date_trunc('month',(d.details->>'repaymentStart')::date) + ((d.details->>'installmentCount')::int * interval '1 month'))::date)
       AND (due.due_date BETWEEN CURRENT_DATE AND CURRENT_DATE + COALESCE((d.details->>'reminderDays')::int,7) OR due.due_date < CURRENT_DATE)
       AND NOT EXISTS (
         SELECT 1 FROM debt_installments i
