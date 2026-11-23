@@ -19,6 +19,7 @@ import { amortize, localDay } from "../../../packages/shared/domain";
 import * as store from "./store";
 import { Button, PageHeader, Modal, Field, Empty, ErrorText } from "./ui";
 import { rp, total } from "./money";
+import DebtCenter from "./DebtCenter";
 export { rp, total } from "./money";
 export default function FinancePage() {
   const location = useLocation();
@@ -33,7 +34,7 @@ export default function FinancePage() {
     queryKey: ["records"],
     queryFn: () => store.records(),
   });
-  const s = state || { accounts: [], transactions: [], debts: [] };
+  const s = state || { accounts: [], transactions: [], debts: [], installments: [] };
   const modal=action||"";
   const setModal=(value:string)=>navigate(value?`${base}/new/${value}`:base);
   const [reverseId,setReverseId]=useState("");
@@ -216,6 +217,7 @@ export default function FinancePage() {
         )
       : null;
   if (!state) return <><PageHeader title={tr(debtPage ? "Debt & receivables" : "Finance")} description={loadError ? "Data keuangan belum dapat dimuat." : "Memuat data keuangan…"}/>{loadError ? <><ErrorText error={loadError}/><Button onClick={()=>q.invalidateQueries({queryKey:["finance"]})}>{tr("Coba lagi")}</Button></> : <div className="skeleton dashboard-loading" role="status" aria-label={tr("Memuat keuangan")}/>}</>;
+  if(debtPage&&!modal)return <DebtCenter/>;
   if(["pay","schedule","reconcile"].includes(modal)&&!selected)return <><Button onClick={()=>setModal("")}>{tr("← Kembali")}</Button><Empty title={tr("Pilih akun atau utang terlebih dahulu")}/></>;
   return (
     <>

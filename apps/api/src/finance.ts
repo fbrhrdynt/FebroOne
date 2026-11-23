@@ -22,7 +22,11 @@ export async function financialState(db: DB, owner: string) {
     [owner],
   );
   const d = await db.query(
-    `SELECT d.*,d.start::text start,COALESCE((SELECT sum(p.principal) FROM debt_payments p WHERE p.debt_id=d.id AND NOT EXISTS(SELECT 1 FROM ledger_transactions t WHERE t.reversal_of=p.transaction_id)),0)::text paid FROM debts d WHERE owner_id=$1 AND archived_at IS NULL ORDER BY created_at DESC`,
+    `SELECT d.*,d.start::text start,(COALESCE((SELECT sum(p.principal) FROM debt_payments p WHERE p.debt_id=d.id AND NOT EXISTS(SELECT 1 FROM ledger_transactions t WHERE t.reversal_of=p.transaction_id)),0)+COALESCE((SELECT sum(i.amount) FROM debt_installments i WHERE i.debt_id=d.id AND i.status='paid'),0))::text paid FROM debts d WHERE owner_id=$1 AND archived_at IS NULL ORDER BY created_at DESC`,
+    [owner],
+  );
+  const installments = await db.query(
+    `SELECT id,debt_id,period::text period,due_date::text due_date,amount::text amount,status,paid_at,notes FROM debt_installments WHERE owner_id=$1 ORDER BY period`,
     [owner],
   );
   return {
@@ -55,11 +59,9 @@ export async function financialState(db: DB, owner: string) {
       principal: major(d.principal),
       paid: major(d.paid),
       apr: Number(d.apr),
-      start:
-        typeof d.start === "string"
-          ? d.start
-          : d.start.toISOString().slice(0, 10),
+      start: d.start ? (typeof d.start === "string" ? d.start : d.start.toISOString().slice(0, 10)) : null,
     })),
+    installments: installments.rows.map((item) => ({...item,amount:item.amount===null?null:major(item.amount)})),
   };
 }
 export async function createAccount(db: DB, owner: string, raw: any) {
@@ -188,11 +190,11 @@ export async function createDebt(db: DB, owner: string, raw: any) {
       minor(d.principal).toString(),
       d.apr,
       d.months,
-      d.start,
+      d.start || null,
       d.direction,
       d.model,
       JSON.stringify(d.rates),
-      JSON.stringify({dueDate:d.dueDate||null,repaymentMode:d.repaymentMode||null,monthlyPayment:d.monthlyPayment||null,paymentBank:d.paymentBank||"",paymentAccount:d.paymentAccount||"",paymentType:d.paymentType||"",notes:d.notes||"",reminderDays:d.reminderDays??3}),
+      JSON.stringify({dueDate:d.dueDate||null,repaymentMode:d.repaymentMode||"installment",monthlyPayment:d.monthlyPayment||null,paymentBank:d.paymentBank||"",paymentAccount:d.paymentAccount||"",paymentType:d.paymentType||"",creditorType:d.creditorType||"other",agreementDate:d.agreementDate||null,repaymentStart:d.repaymentStart||null,dueDay:d.dueDay||null,notes:d.notes||"",reminderDays:d.reminderDays??7}),
     ],
   );
   return { id: did };
@@ -202,15 +204,74 @@ export async function updateDebt(db: DB, owner: string, did: string, raw: any) {
   const d = debtSchema.parse(raw);
   const result = await db.query(
     "UPDATE debts SET name=$1,principal=$2,apr=$3,months=$4,start=$5,direction=$6,model=$7,rates=$8,details=$9 WHERE id=$10 AND owner_id=$11 AND archived_at IS NULL RETURNING id",
-    [d.name,minor(d.principal).toString(),d.apr,d.months,d.start,d.direction,d.model,JSON.stringify(d.rates),JSON.stringify({dueDate:d.dueDate||null,repaymentMode:d.repaymentMode||null,monthlyPayment:d.monthlyPayment||null,paymentBank:d.paymentBank||"",paymentAccount:d.paymentAccount||"",paymentType:d.paymentType||"",notes:d.notes||"",reminderDays:d.reminderDays??3}),did,owner]
+    [d.name,minor(d.principal).toString(),d.apr,d.months,d.start||null,d.direction,d.model,JSON.stringify(d.rates),JSON.stringify({dueDate:d.dueDate||null,repaymentMode:d.repaymentMode||"installment",monthlyPayment:d.monthlyPayment||null,paymentBank:d.paymentBank||"",paymentAccount:d.paymentAccount||"",paymentType:d.paymentType||"",creditorType:d.creditorType||"other",agreementDate:d.agreementDate||null,repaymentStart:d.repaymentStart||null,dueDay:d.dueDay||null,notes:d.notes||"",reminderDays:d.reminderDays??7}),did,owner]
   );
   if (!result.rows.length) throw new Error("Utang tidak ditemukan");
   return {id:did};
 }
+export async function setDebtInstallmentPaid(db: DB, owner: string, raw: any) {
+  const input=z.object({debtId:id,periods:z.array(z.string().regex(/^\d{4}-(0[1-9]|1[0-2])$/)).min(1).max(24),amount:money.optional(),dueDate:z.iso.date().optional(),notes:z.string().max(1000).optional(),paid:z.boolean().default(true)}).parse(raw);
+  if(new Set(input.periods).size!==input.periods.length)throw new Error("Periode pembayaran duplikat");
+  return db.transaction(async tx=>{
+    await tx.query("SELECT id FROM users WHERE id=$1 FOR UPDATE",[owner]);
+    const debt=(await tx.query("SELECT id FROM debts WHERE id=$1 AND owner_id=$2 AND archived_at IS NULL FOR UPDATE",[input.debtId,owner])).rows[0];
+    if(!debt)throw new Error("Utang tidak ditemukan");
+    const result=[];
+    for(const period of input.periods){
+      const saved=await tx.query(
+        `INSERT INTO debt_installments(id,owner_id,debt_id,period,due_date,amount,status,paid_at,notes)
+         VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9)
+         ON CONFLICT(debt_id,period) DO UPDATE SET due_date=EXCLUDED.due_date,amount=EXCLUDED.amount,status=EXCLUDED.status,paid_at=EXCLUDED.paid_at,notes=EXCLUDED.notes
+         RETURNING id,status,period::text period`,
+        [randomUUID(),owner,input.debtId,period+"-01",input.dueDate||null,input.amount?minor(input.amount).toString():null,input.paid?"paid":"scheduled",input.paid?new Date().toISOString():null,input.notes||""]
+      );
+      result.push(saved.rows[0]);
+    }
+    await tx.query("INSERT INTO audit_logs(owner_id,action,entity_id) VALUES($1,$2,$3)",[owner,input.paid?"debt.installments_paid":"debt.installments_scheduled",input.debtId]);
+    return {items:result};
+  });
+}
 export async function runDebtReminders(db: DB) {
-  await db.query(
-    "INSERT INTO notifications(id,owner_id,title,record_id) SELECT 'debt-due:'||d.id::text||':'||(d.details->>'dueDate'),d.owner_id,CASE WHEN (d.details->>'dueDate')::date < CURRENT_DATE THEN 'Pembayaran terlambat: '||d.name ELSE 'Jadwal pembayaran: '||d.name END,NULL FROM debts d WHERE d.archived_at IS NULL AND d.direction='borrowed' AND NULLIF(d.details->>'dueDate','') IS NOT NULL AND (d.details->>'dueDate')::date <= CURRENT_DATE + COALESCE((d.details->>'reminderDays')::int,3) AND COALESCE((SELECT sum(p.principal) FROM debt_payments p WHERE p.debt_id=d.id),0) < d.principal ON CONFLICT(id) DO NOTHING"
-  );
+  await db.query(`
+    INSERT INTO notifications(id,owner_id,title,record_id)
+    SELECT
+      'debt-due:'||d.id::text||':'||to_char(m.period,'YYYY-MM'),
+      d.owner_id,
+      CASE WHEN due.due_date < CURRENT_DATE THEN 'Pembayaran terlambat: '||d.name ELSE 'Jadwal pembayaran: '||d.name END,
+      NULL
+    FROM debts d
+    CROSS JOIN LATERAL generate_series(
+      date_trunc('month',CURRENT_DATE - interval '1 month')::date,
+      date_trunc('month',CURRENT_DATE + interval '2 months')::date,
+      interval '1 month'
+    ) AS m(period)
+    CROSS JOIN LATERAL (
+      SELECT (m.period + (LEAST(
+        COALESCE(NULLIF(d.details->>'dueDay','')::int,1),
+        EXTRACT(day FROM (m.period + interval '1 month - 1 day'))::int
+      ) - 1) * interval '1 day')::date AS due_date
+    ) due
+    WHERE d.owner_id IS NOT NULL
+      AND d.archived_at IS NULL
+      AND d.settled_at IS NULL
+      AND d.direction='borrowed'
+      AND COALESCE(NULLIF(d.details->>'monthlyPayment','')::numeric,0)>0
+      AND NULLIF(d.details->>'dueDay','') IS NOT NULL
+      AND (d.details->>'repaymentStart' IS NULL OR m.period >= (d.details->>'repaymentStart')::date)
+      AND due.due_date <= CURRENT_DATE + COALESCE((d.details->>'reminderDays')::int,7)
+      AND NOT EXISTS (
+        SELECT 1 FROM debt_installments i
+        WHERE i.debt_id=d.id AND i.period=m.period AND i.status='paid'
+      )
+    ON CONFLICT(id) DO NOTHING
+  `);
+}
+export async function settleDebt(db: DB, owner: string, did: string) {
+  id.parse(did);
+  const result=await db.query("UPDATE debts SET settled_at=now() WHERE id=$1 AND owner_id=$2 AND archived_at IS NULL AND settled_at IS NULL RETURNING id",[did,owner]);
+  if(!result.rows.length)throw new Error("Utang tidak ditemukan atau sudah lunas");
+  await db.query("INSERT INTO audit_logs(owner_id,action,entity_id) VALUES($1,'debt.settled',$2)",[owner,did]);
+  return {ok:true};
 }
 export async function archiveDebt(db: DB, owner: string, did: string) {
   id.parse(did);
