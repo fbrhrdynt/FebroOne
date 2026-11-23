@@ -167,7 +167,7 @@ export async function makeApp(
       userDisplayName: user.name,
       attestationType: "none",
       excludeCredentials: existing.map((item: any) => ({ id: item.credential_id, transports: item.transports })),
-      authenticatorSelection: { residentKey: "preferred", userVerification: "required" },
+      authenticatorSelection: { residentKey: "required", userVerification: "required" },
       timeout: 60000,
     });
     const challengeId = randomBytes(24).toString("hex");
