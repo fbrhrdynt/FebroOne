@@ -423,6 +423,24 @@ test("debt payments exactly once, interest, overpayment and reversal", async () 
   await req("POST", "/api/transactions/" + r.json().id + "/reverse");
   assert.equal((await req("GET", "/api/finance")).json().debts[0].paid, "0.00");
 });
+test("optional debt intake, bulk historical installments and settlement lifecycle", async () => {
+  const created=await req("POST","/api/debts",{});
+  assert.equal(created.statusCode,200,created.body);
+  const id=created.json().id;
+  const state=(await req("GET","/api/finance")).json();
+  const item=state.debts.find((d:any)=>d.id===id);
+  assert.equal(item.name,"Utang tanpa nama");
+  assert.equal(item.principal,"0.00");
+  assert.equal(item.start,null);
+  const paid=await req("POST","/api/debt-installments",{debtId:id,periods:["2026-01","2026-02"],amount:"250",paid:true});
+  assert.equal(paid.statusCode,200,paid.body);
+  assert.equal(paid.json().items.length,2);
+  const refreshed=(await req("GET","/api/finance")).json();
+  assert.equal(refreshed.installments.filter((x:any)=>x.debt_id===id&&x.status==="paid").length,2);
+  assert.equal(refreshed.debts.find((d:any)=>d.id===id).paid,"500.00");
+  assert.equal((await req("POST","/api/debts/"+id+"/settle",{})).statusCode,200);
+  assert.ok((await req("GET","/api/finance")).json().debts.find((d:any)=>d.id===id).settled_at);
+});
 test("financial ownership and API validation", async () => {
   assert.equal(
     (
