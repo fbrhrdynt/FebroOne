@@ -22,7 +22,7 @@ export async function financialState(db: DB, owner: string) {
     [owner],
   );
   const d = await db.query(
-    `SELECT d.*,d.start::text start,COALESCE((SELECT sum(p.principal) FROM debt_payments p WHERE p.debt_id=d.id AND NOT EXISTS(SELECT 1 FROM ledger_transactions t WHERE t.reversal_of=p.transaction_id)),0)::text paid FROM debts d WHERE owner_id=$1 AND archived_at IS NULL ORDER BY created_at DESC`,
+    `SELECT d.*,d.start::text start,(COALESCE((SELECT sum(p.principal) FROM debt_payments p WHERE p.debt_id=d.id AND NOT EXISTS(SELECT 1 FROM ledger_transactions t WHERE t.reversal_of=p.transaction_id)),0)+COALESCE((SELECT sum(i.amount) FROM debt_installments i WHERE i.debt_id=d.id AND i.status='paid'),0))::text paid FROM debts d WHERE owner_id=$1 AND archived_at IS NULL ORDER BY created_at DESC`,
     [owner],
   );
   const installments = await db.query(
