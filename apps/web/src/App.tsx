@@ -88,6 +88,7 @@ function Login({ onDone, language, setLanguage }: { onDone: () => void; language
   const [error, setError] = useState<unknown>();
   const [busy, setBusy] = useState(false);
   const [showPassword,setShowPassword]=useState(false);
+  const [passwordMode,setPasswordMode]=useState(false);
   const t=copy[language];
   return (
     <div className="login-page">
@@ -120,40 +121,33 @@ function Login({ onDone, language, setLanguage }: { onDone: () => void; language
             }
           }}
         >
-          <Field label={t.email}>
+          {(recovery || passwordMode) && <Field label={t.email}>
             <input name="email" type="email" autoComplete="username" required />
-          </Field>
+          </Field>}
           {recovery && (
             <Field label={t.recovery}>
               <input name="recovery" autoComplete="off" required />
             </Field>
           )}
-          <Field
-            label={
-              recovery ? t.newPassword : t.password
-            }
-          >
+          {(recovery || passwordMode) && <Field label={recovery ? t.newPassword : t.password}>
             <div className="password-input-wrap"><input name="password" type={showPassword ? "text" : "password"} autoComplete={recovery ? "new-password" : "current-password"} minLength={recovery ? 12 : 1} required/><button className="password-visibility" type="button" onClick={()=>setShowPassword(v=>!v)} aria-label={showPassword?t.hide:t.show} title={showPassword?t.hide:t.show}>{showPassword?<EyeOff size={18}/>:<Eye size={18}/>}</button></div>
-          </Field>
+          </Field>}
           <ErrorText error={error} />
-          <Button disabled={busy} type="submit">
+          {(recovery || passwordMode) && <Button disabled={busy} type="submit">
             {busy ? t.working : recovery ? (language==="id"?"Ganti kata sandi":"Reset password") : t.login}
-          </Button>
-          {!recovery && (
-            <Button variant="outline" type="button" disabled={busy} onClick={async()=>{
+          </Button>}
+          {!recovery && <>
+            {!passwordMode && <Button className="passkey-primary" type="button" disabled={busy} onClick={async()=>{
               setBusy(true);setError(undefined);
               try{await store.passkeyLogin();onDone();}
               catch(e){setError(e);}
               finally{setBusy(false);}
-            }}>
-              <Fingerprint size={17}/>{language==="id"?"Masuk dengan passkey":"Sign in with passkey"}
+            }}><Fingerprint size={18}/>{busy ? t.working : language==="id"?"Lanjutkan dengan Passkey":"Continue with Passkey"}</Button>}
+            <Button variant="ghost" type="button" onClick={()=>{setPasswordMode(v=>!v);setError(undefined);}}>
+              {passwordMode ? (language==="id"?"Kembali ke Passkey":"Back to Passkey") : (language==="id"?"Masuk dengan email dan kata sandi":"Use email and password")}
             </Button>
-          )}
-          <Button
-            variant="ghost"
-            type="button"
-            onClick={() => setRecovery(!recovery)}
-          >
+          </>}
+          <Button variant="ghost" type="button" onClick={() => {setRecovery(!recovery);setPasswordMode(false);setError(undefined);}}>
             {recovery ? t.back : t.recover}
           </Button>
         </form>
