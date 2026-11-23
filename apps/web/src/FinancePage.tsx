@@ -194,7 +194,7 @@ export default function FinancePage() {
           selected.rates,
         )
       : null;
-  if (!state) return <><PageHeader title={debtPage ? "Debt & receivables" : "Finance"} description={loadError ? "Data keuangan belum dapat dimuat." : "Memuat data keuangan…"}/>{loadError ? <><ErrorText error={loadError}/><Button onClick={()=>q.invalidateQueries({queryKey:["finance"]})}>{tr("Coba lagi")}</Button></> : <div className="skeleton dashboard-loading" role="status" aria-label={tr("Memuat keuangan")}/>}</>;
+  if (!state) return <><PageHeader title={tr(debtPage ? "Debt & receivables" : "Finance")} description={loadError ? "Data keuangan belum dapat dimuat." : "Memuat data keuangan…"}/>{loadError ? <><ErrorText error={loadError}/><Button onClick={()=>q.invalidateQueries({queryKey:["finance"]})}>{tr("Coba lagi")}</Button></> : <div className="skeleton dashboard-loading" role="status" aria-label={tr("Memuat keuangan")}/>}</>;
   if(["pay","schedule","reconcile"].includes(modal)&&!selected)return <><Button onClick={()=>setModal("")}>{tr("← Kembali")}</Button><Empty title={tr("Pilih akun atau utang terlebih dahulu")}/></>;
   return (
     <>
