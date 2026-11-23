@@ -54,6 +54,8 @@ const Finance = lazy(() => import("./FinancePage"));
 const Tools = lazy(() => import("./ToolsPage"));
 const Insights = lazy(() => import("./Insights"));
 const Settings = lazy(() => import("./Settings"));
+const Cms = lazy(() => import("./CmsPage"));
+const CmsRequest = lazy(() => import("./CmsPage").then(module => ({ default: module.CmsRequestPage })));
 const languageStorageKey = "febro-one-language";
 type Language = "id" | "en";
 const copy = {
@@ -79,6 +81,7 @@ const nav = [
   ["/records/documents", "Documents", FolderLock],
   ["/tools", "Tools", Calculator],
   ["/insights", "Insights", ChartNoAxesCombined],
+  ["/cms", "CMS", Inbox],
 ] as const;
 function Login({ onDone, language, setLanguage }: { onDone: () => void; language: Language; setLanguage:(v:Language)=>void }) {
   const [recovery, setRecovery] = useState(false);
@@ -428,6 +431,8 @@ export default function App() {
               <Route path="/tools" element={<Tools />} />
               <Route path="/insights" element={<Insights />} />
               <Route path="/settings" element={<Settings />} />
+              <Route path="/cms" element={<Cms />} />
+              <Route path="/cms/:kind/:id" element={<CmsRequest />} />
               <Route
                 path="/more"
                 element={
