@@ -67,79 +67,22 @@ const nav = [
   ["/cms", "CMS", Inbox],
 ] as const;
 function Login({ onDone }: { onDone: () => void }) {
-  const [recovery, setRecovery] = useState(false);
-  const [error, setError] = useState<unknown>();
-  const [busy, setBusy] = useState(false);
-  return (
-    <div className="login-page">
-      <div className="login-card">
-        <div className="brand">
-          <span className="brand-mark">f.</span>
-          <strong>Febro One</strong>
-        </div>
-        <h1>{recovery ? "Pulihkan akun" : "Selamat datang kembali."}</h1>
-        <p>Your Entire Life. One Workspace.</p>
-        <form
-          className="form-stack"
-          onSubmit={async (e) => {
-            e.preventDefault();
-            setBusy(true);
-            const d = Object.fromEntries(new FormData(e.currentTarget)) as any;
-            try {
-              if (recovery) {
-                await store.api("/auth/recover", "POST", d);
-                setRecovery(false);
-                setError("Password diganti. Silakan masuk.");
-              } else {
-                await store.login(d.email, d.password);
-                onDone();
-              }
-            } catch (e) {
-              setError(e);
-            } finally {
-              setBusy(false);
-            }
-          }}
-        >
-          <Field label="Email">
-            <input name="email" type="email" autoComplete="username" required />
-          </Field>
-          {recovery && (
-            <Field label="Kode pemulihan">
-              <input name="recovery" autoComplete="off" required />
-            </Field>
-          )}
-          <Field
-            label={
-              recovery ? "Password baru (minimal 12 karakter)" : "Password"
-            }
-          >
-            <input
-              name="password"
-              type="password"
-              autoComplete={recovery ? "new-password" : "current-password"}
-              minLength={recovery ? 12 : 1}
-              required
-            />
-          </Field>
-          <ErrorText error={error} />
-          <Button disabled={busy} type="submit">
-            {busy ? "Memproses…" : recovery ? "Ganti password" : "Masuk"}
-          </Button>
-          <Button
-            variant="ghost"
-            type="button"
-            onClick={() => setRecovery(!recovery)}
-          >
-            {recovery ? "Kembali ke login" : "Pulihkan akun"}
-          </Button>
-        </form>
-        <small>Akun pertama dibuat melalui perintah admin di VPS.</small>
-      </div>
-    </div>
-  );
+ const [recovery,setRecovery]=useState(false),[showPassword,setShowPassword]=useState(false),[error,setError]=useState<unknown>(),[busy,setBusy]=useState(false);
+ const [language,setLanguage]=useState<"id"|"en">(()=>localStorage.getItem("febro-language")==="en"?"en":"id");
+ const tr=(id:string,en:string)=>language==="id"?id:en;
+ return <div className="login-page"><div className="login-card login-card-premium">
+ <div className="login-language"><button type="button" className={language==="id"?"active":""} onClick={()=>{localStorage.setItem("febro-language","id");setLanguage("id")}}>ID</button><button type="button" className={language==="en"?"active":""} onClick={()=>{localStorage.setItem("febro-language","en");setLanguage("en")}}>EN</button></div>
+ <div className="brand"><span className="brand-mark">f.</span><strong>Febro One</strong></div>
+ <h1>{recovery?tr("Pulihkan akun","Recover your account"):tr("Selamat datang kembali.","Welcome back.")}</h1><p>Your Entire Life. One Workspace.</p>
+ <form className="form-stack" onSubmit={async e=>{e.preventDefault();setBusy(true);setError(undefined);const d=Object.fromEntries(new FormData(e.currentTarget)) as any;try{if(recovery){await store.api("/auth/recover","POST",d);setRecovery(false);setError(tr("Password berhasil diganti. Silakan masuk.","Password updated. Please sign in."));}else{await store.login(d.email,d.password);onDone();}}catch(e){setError(e);}finally{setBusy(false);}}}>
+ <Field label={tr("Email","Email")}><input name="email" type="email" autoComplete="username" required/></Field>
+ {recovery&&<Field label={tr("Kode pemulihan","Recovery code")}><input name="recovery" autoComplete="off" required/></Field>}
+ <Field label={recovery?tr("Password baru (minimal 12 karakter)","New password (at least 12 characters)"):tr("Password","Password")}><div className="password-control"><input name="password" type={showPassword?"text":"password"} autoComplete={recovery?"new-password":"current-password"} minLength={recovery?12:1} required/><button type="button" onClick={()=>setShowPassword(v=>!v)}>{showPassword?tr("Sembunyikan","Hide"):tr("Tampilkan","Show")}</button></div></Field>
+ <ErrorText error={error}/><Button disabled={busy} type="submit">{busy?tr("Memproses…","Processing…"):recovery?tr("Ganti password","Change password"):tr("Masuk","Sign in")}</Button>
+ <Button variant="ghost" type="button" onClick={()=>{setRecovery(v=>!v);setError(undefined);setShowPassword(false);}}>{recovery?tr("Kembali ke login","Back to sign in"):tr("Pulihkan akun","Recover account")}</Button></form>
+ <small>{tr("Akun pertama dibuat melalui perintah admin di VPS.","The first account is created with the VPS admin command.")}</small></div></div>;
 }
-export default function App() {
+export default function App() {\n const [language,setLanguageState]=useState<"id"|"en">(()=>localStorage.getItem("febro-language")==="en"?"en":"id");\n const setLanguage=(v:"id"|"en")=>{localStorage.setItem("febro-language",v);setLanguageState(v);};
   const identity = useQuery({
     queryKey: ["identity"],
     queryFn: store.identity,
