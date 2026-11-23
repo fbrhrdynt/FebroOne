@@ -33,7 +33,7 @@ export default function FinancePage() {
     queryKey: ["records"],
     queryFn: () => store.records(),
   });
-  const s = state || { accounts: [], transactions: [], debts: [] };
+  const s = state || { accounts: [], transactions: [], debts: [], installments: [] };
   const modal=action||"";
   const setModal=(value:string)=>navigate(value?`${base}/new/${value}`:base);
   const [reverseId,setReverseId]=useState("");
