@@ -733,6 +733,7 @@ export default function FinancePage() {
                     type="number"
                     step="0.01"
                     min="0.01"
+                    defaultValue={paymentDraft?.debtId===selected.id?paymentDraft.amount:""}
                     required
                   />
                 </Field>
@@ -750,7 +751,7 @@ export default function FinancePage() {
                   <input
                     name="date"
                     type="date"
-                    defaultValue={localDay()}
+                    defaultValue={paymentDraft?.debtId===selected.id?paymentDraft.date:localDay()}
                     required
                   />
                 </Field>
