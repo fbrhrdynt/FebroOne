@@ -200,3 +200,23 @@ main{max-width:1600px;width:100%;padding:30px 32px 80px}.panel,.stat{border-radi
 @media(max-width:1100px){.dark .sidebar{width:204px;padding-inline:10px}.dark .main-shell,.dark .collapsed .main-shell{margin-left:204px}.dark .home-bento>.completion-card,.dark .home-bento>.focus-card{grid-column:span 6}.dark .home-bento>.dashboard-tasks,.dark .home-bento>section:not(.dashboard-tasks):not(.dashboard-summary){grid-column:span 12}}
 @media(max-width:800px){.dark .sidebar{display:none}.dark .main-shell,.dark .collapsed .main-shell{margin-left:0;padding-top:0}.dark .topbar{height:58px;padding:7px 12px}.dark main{padding:16px 14px calc(100px + env(safe-area-inset-bottom))}.dark .home-bento>.completion-card,.dark .home-bento>.focus-card{grid-column:span 6}.dark .home-bento>.dashboard-tasks,.dark .home-bento>section:not(.dashboard-tasks):not(.dashboard-summary),.dark .home-bento>.transactions-card,.dark .home-bento>.notes-panel,.dark .home-bento>.dashboard-summary{grid-column:span 12}}
 @media(max-width:390px){.dark .home-bento>.completion-card,.dark .home-bento>.focus-card{grid-column:span 12}}
+
+/* Financial planner */
+.finance-plan{display:grid;gap:14px;max-width:980px}
+.finance-plan .panel{padding:16px}
+.finance-plan h1{font-size:clamp(20px,3vw,26px);margin:0}
+.finance-plan h2{font-size:15px;margin:0}
+.finance-plan p,.finance-plan label,.finance-plan small{font-size:12px}
+.finance-plan .plan-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}
+.finance-plan .plan-stat{padding:13px;border:1px solid var(--line);border-radius:12px;background:var(--surface)}
+.finance-plan .plan-stat span{display:block;color:var(--muted);font-size:11px;margin-bottom:5px}
+.finance-plan .plan-stat strong{font-size:16px;font-variant-numeric:tabular-nums}
+.finance-plan .plan-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(110px,160px) auto;gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line)}
+.finance-plan input{min-width:0}
+.finance-plan .plan-row input{font-size:12px;min-height:36px}
+.finance-plan .plan-check{display:flex;align-items:center;gap:9px;min-width:0}
+.finance-plan .plan-check input{width:16px;height:16px;flex:none}
+.finance-plan .plan-check.done span{text-decoration:line-through;color:var(--muted)}
+.finance-plan .plan-actions{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.finance-plan .plan-actions button,.finance-plan .plan-row button{font-size:12px}
+@media(max-width:560px){.finance-plan .plan-summary{grid-template-columns:1fr 1fr}.finance-plan .plan-summary .plan-stat:first-child{grid-column:span 2}.finance-plan .plan-row{grid-template-columns:minmax(0,1fr) 112px auto;gap:6px}.finance-plan .panel{padding:13px}}
