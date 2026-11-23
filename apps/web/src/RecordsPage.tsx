@@ -56,6 +56,7 @@ export default function RecordsPage() {
   }, [timer]);
   const result = useQuery({
     queryKey: ["records", kind, archived, trash, search, filter, priority, related, sort, page, view],
+    staleTime: 60_000,
     queryFn: async () => {
       if(store.trial) return {items:await store.records(kind,archived),total:0};
       const params=new URLSearchParams({kind,archived:String(archived),trash:String(trash),q:search,sort,limit:"30",offset:String(page*30)});
@@ -68,6 +69,7 @@ export default function RecordsPage() {
   });
   const all = useQuery({
     queryKey: ["records", "references", kind,referenceSearch],
+    staleTime: 5 * 60_000,
     queryFn: async () => (await Promise.all(["companies","categories","projects",...(kind==="habits"?["habitEntries"]:[])].map(async k=>store.trial||k==="habitEntries"?store.records(k):(await store.api("/records?limit=100&kind="+k+"&q="+encodeURIComponent(referenceSearch))).items))).flat(),
   });
   useEffect(()=>{setUrl({search,view,filter,priority,related,sort,page:String(page),archived:String(archived),trash:String(trash)},{replace:true});},[search,view,filter,priority,related,sort,page,archived,trash]);
