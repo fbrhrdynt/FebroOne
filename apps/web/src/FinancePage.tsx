@@ -649,28 +649,28 @@ export default function FinancePage() {
                   </select>
                 </Field>
                 <Field label={debtDirection==="borrowed"?"Nama pemberi pinjaman / platform":"Nama peminjam / pihak yang berutang"}>
-                  <input name="name" required placeholder={debtDirection==="borrowed"?"Contoh: Bank, kartu kredit, pinjol":"Nama orang atau perusahaan"}/>
+                  <input name="name" required defaultValue={selected?.name||""} placeholder={debtDirection==="borrowed"?"Contoh: Bank, kartu kredit, pinjol":"Nama orang atau perusahaan"}/>
                 </Field>
                 {debtDirection==="borrowed" ? <>
-                  <Field label="Total pokok utang (IDR)"><input name="principal" type="number" min="0.01" step="0.01" required placeholder="Total kewajiban saat ini"/></Field>
-                  <Field label="Skema pembayaran"><select name="repaymentMode" defaultValue="flexible"><option value="flexible">Manual / nominal belum pasti</option><option value="installment">Cicilan bulanan</option></select></Field>
-                  <Field label="Cicilan per bulan (IDR) — opsional"><input name="monthlyPayment" type="number" min="0" step="0.01" placeholder="Isi jika nominal sudah diketahui"/></Field>
-                  <Field label="Batas waktu pembayaran terakhir"><input name="dueDate" type="date"/></Field>
+                  <Field label="Total pokok utang (IDR)"><input name="principal" type="number" min="0.01" step="0.01" required defaultValue={selected?.principal||""} placeholder="Total kewajiban saat ini"/></Field>
+                  <Field label="Skema pembayaran"><select name="repaymentMode" defaultValue={selected?.repaymentMode||"flexible"}><option value="flexible">Manual / nominal belum pasti</option><option value="installment">Cicilan bulanan</option></select></Field>
+                  <Field label="Cicilan per bulan (IDR) — opsional"><input name="monthlyPayment" type="number" min="0" step="0.01" defaultValue={selected?.monthlyPayment||""} placeholder="Isi jika nominal sudah diketahui"/></Field>
+                  <Field label="Batas waktu pembayaran terakhir"><input name="dueDate" type="date" defaultValue={selected?.dueDate||""}/></Field>\n                  <Field label="Pengingat sebelum jatuh tempo"><select name="reminderDays" defaultValue={String(selected?.reminderDays??3)}><option value="0">Hari H saja</option><option value="1">1 hari sebelumnya</option><option value="3">3 hari sebelumnya</option><option value="7">7 hari sebelumnya</option><option value="14">14 hari sebelumnya</option><option value="30">30 hari sebelumnya</option></select></Field>
                   <Field label="Jenis pembayaran / aktivitas">
-                    <input name="paymentType" list="debt-payment-types" placeholder="Ketik: Cicilan, Keringanan, Pelunasan..."/>
+                    <input name="paymentType" list="debt-payment-types" defaultValue={selected?.paymentType||""} placeholder="Ketik: Cicilan, Keringanan, Pelunasan..."/>
                     <datalist id="debt-payment-types">
                       {Array.from(new Set(s.debts.map((d:any)=>d.paymentType).filter(Boolean))).map((v:any)=><option key={v} value={v}/>)}
                       <option value="Cicilan"/><option value="Keringanan"/><option value="Pelunasan"/>
                     </datalist>
                   </Field>
                   <div className="form-grid">
-                    <Field label="Bank tujuan pembayaran"><input name="paymentBank" placeholder="Nama bank"/></Field>
-                    <Field label="Nomor rekening / VA"><input name="paymentAccount" inputMode="numeric" placeholder="Nomor rekening atau virtual account"/></Field>
+                    <Field label="Bank tujuan pembayaran"><input name="paymentBank" defaultValue={selected?.paymentBank||""} placeholder="Nama bank"/></Field>
+                    <Field label="Nomor rekening / VA"><input name="paymentAccount" inputMode="numeric" defaultValue={selected?.paymentAccount||""} placeholder="Nomor rekening atau virtual account"/></Field>
                   </div>
-                  <Field label="Bunga tahunan (%) — jika diketahui"><input name="apr" type="number" step="0.01" min="0" max="100" defaultValue="0"/></Field>
-                  <Field label="Tenor (bulan) — perkiraan"><input name="months" type="number" min="1" max="600" defaultValue="12"/></Field>
-                  <Field label="Tanggal mulai"><input type="date" name="start" defaultValue={localDay()}/></Field>
-                  <Field label="Model bunga"><select name="model"><option value="reducing">Saldo menurun / anuitas</option><option value="flat">Flat atas pokok awal</option></select></Field>
+                  <Field label="Bunga tahunan (%) — jika diketahui"><input name="apr" type="number" step="0.01" min="0" max="100" defaultValue={selected?.apr??0}/></Field>
+                  <Field label="Tenor (bulan) — perkiraan"><input name="months" type="number" min="1" max="600" defaultValue={selected?.months??12}/></Field>
+                  <Field label="Tanggal mulai"><input type="date" name="start" defaultValue={selected?.start||localDay()}/></Field>
+                  <Field label="Model bunga"><select name="model" defaultValue={selected?.model||"reducing"}><option value="reducing">Saldo menurun / anuitas</option><option value="flat">Flat atas pokok awal</option></select></Field>
                   <details><summary>Perubahan bunga terjadwal (opsional)</summary><Field label='JSON, contoh: [{"month":7,"apr":9}]'><textarea name="rates" defaultValue="[]"/></Field></details>
                 </> : <>
                   <Field label="Total pokok piutang (IDR)"><input type="number" step="0.01" min="0.01" name="principal" required/></Field>
@@ -683,7 +683,7 @@ export default function FinancePage() {
                   <details><summary>Perubahan bunga terjadwal</summary><Field label='JSON, contoh: [{"month":7,"apr":9}]'><textarea name="rates" defaultValue="[]"/></Field></details>
                 </>}
                 <Field label="Dokumen pendukung (PDF, PNG, JPG, WebP · maks. 10 MB/file)"><input type="file" name="documents" accept=".pdf,.png,.jpg,.jpeg,.webp" multiple/></Field>
-                <Field label="Catatan"><textarea name="notes" rows={4} placeholder="Nomor kontrak, tanggal jatuh tempo, ketentuan, atau informasi lainnya."/></Field>
+                <Field label="Catatan"><textarea name="notes" rows={4} defaultValue={selected?.notes||""} placeholder="Nomor kontrak, tanggal jatuh tempo, ketentuan, atau informasi lainnya."/></Field>
                 <p className="hint">Pencatatan utang/piutang tidak otomatis mengubah saldo rekening. Catat transaksi pembayaran secara terpisah agar saldo tetap akurat.</p>
               </>
             )}
