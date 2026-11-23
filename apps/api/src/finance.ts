@@ -210,7 +210,7 @@ export async function updateDebt(db: DB, owner: string, did: string, raw: any) {
   return {id:did};
 }
 export async function setDebtInstallmentPaid(db: DB, owner: string, raw: any) {
-  const input=z.object({debtId:id,periods:z.array(z.string().regex(/^\\d{4}-(0[1-9]|1[0-2])$/)).min(1).max(24),amount:money.optional(),dueDate:z.iso.date().optional(),notes:z.string().max(1000).optional(),paid:z.boolean().default(true)}).parse(raw);
+  const input=z.object({debtId:id,periods:z.array(z.string().regex(/^\d{4}-(0[1-9]|1[0-2])$/)).min(1).max(24),amount:money.optional(),dueDate:z.iso.date().optional(),notes:z.string().max(1000).optional(),paid:z.boolean().default(true)}).parse(raw);
   if(new Set(input.periods).size!==input.periods.length)throw new Error("Periode pembayaran duplikat");
   return db.transaction(async tx=>{
     await tx.query("SELECT id FROM users WHERE id=$1 FOR UPDATE",[owner]);
