@@ -228,9 +228,39 @@ export async function setDebtInstallmentPaid(db: DB, owner: string, raw: any) {
   });
 }
 export async function runDebtReminders(db: DB) {
-  await db.query(
-    "INSERT INTO notifications(id,owner_id,title,record_id) SELECT 'debt-due:'||d.id::text||':'||(d.details->>'dueDate'),d.owner_id,CASE WHEN (d.details->>'dueDate')::date < CURRENT_DATE THEN 'Pembayaran terlambat: '||d.name ELSE 'Jadwal pembayaran: '||d.name END,NULL FROM debts d WHERE d.archived_at IS NULL AND d.direction='borrowed' AND NULLIF(d.details->>'dueDate','') IS NOT NULL AND (d.details->>'dueDate')::date <= CURRENT_DATE + COALESCE((d.details->>'reminderDays')::int,3) AND COALESCE((SELECT sum(p.principal) FROM debt_payments p WHERE p.debt_id=d.id),0) < d.principal ON CONFLICT(id) DO NOTHING"
-  );
+  await db.query(`
+    INSERT INTO notifications(id,owner_id,title,record_id)
+    SELECT
+      'debt-due:'||d.id::text||':'||to_char(m.period,'YYYY-MM'),
+      d.owner_id,
+      CASE WHEN m.due_date < CURRENT_DATE THEN 'Pembayaran terlambat: '||d.name ELSE 'Jadwal pembayaran: '||d.name END,
+      NULL
+    FROM debts d
+    CROSS JOIN LATERAL generate_series(
+      date_trunc('month',CURRENT_DATE - interval '1 month')::date,
+      date_trunc('month',CURRENT_DATE + interval '2 months')::date,
+      interval '1 month'
+    ) AS m(period)
+    CROSS JOIN LATERAL (
+      SELECT (m.period + (LEAST(
+        COALESCE(NULLIF(d.details->>'dueDay','')::int,1),
+        EXTRACT(day FROM (m.period + interval '1 month - 1 day'))::int
+      ) - 1) * interval '1 day')::date AS due_date
+    ) due
+    WHERE d.owner_id IS NOT NULL
+      AND d.archived_at IS NULL
+      AND d.settled_at IS NULL
+      AND d.direction='borrowed'
+      AND COALESCE(NULLIF(d.details->>'monthlyPayment','')::numeric,0)>0
+      AND NULLIF(d.details->>'dueDay','') IS NOT NULL
+      AND (d.details->>'repaymentStart' IS NULL OR m.period >= (d.details->>'repaymentStart')::date)
+      AND due.due_date <= CURRENT_DATE + COALESCE((d.details->>'reminderDays')::int,7)
+      AND NOT EXISTS (
+        SELECT 1 FROM debt_installments i
+        WHERE i.debt_id=d.id AND i.period=m.period AND i.status='paid'
+      )
+    ON CONFLICT(id) DO NOTHING
+  `);
 }
 export async function settleDebt(db: DB, owner: string, did: string) {
   id.parse(did);
