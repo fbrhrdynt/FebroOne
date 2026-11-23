@@ -250,7 +250,7 @@ export default function RecordsPage() {
   }
   return (
     <>
-      <PageHeader eyebrow={m.group} title={m.title} description={m.description}>
+      <PageHeader eyebrow={tr(m.group)} title={tr(m.title)} description={tr(m.description)}>
         <Button onClick={() => edit()}>
           <Plus size={17} />
           Tambah
