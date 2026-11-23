@@ -144,29 +144,26 @@ export function postings(t: {
   ];
 }
 export const debtSchema = z.object({
-  name: z.string().trim().min(1).max(200),
-  principal: money.refine((v) => minor(v) > 0n),
-  apr: z.coerce.number().min(0).max(100),
-  months: z.coerce.number().int().min(1).max(600),
-  start: z.iso.date(),
-  direction: z.enum(["borrowed", "lent"]),
-  model: z.enum(["reducing", "flat"]),
+  name: z.string().trim().max(200).default("Utang tanpa nama"),
+  principal: money.default("0.00"),
+  apr: z.coerce.number().min(0).max(100).default(0),
+  months: z.coerce.number().int().min(1).max(600).default(1),
+  start: z.iso.date().optional(),
+  direction: z.literal("borrowed").default("borrowed"),
+  model: z.enum(["reducing", "flat"]).default("reducing"),
   dueDate: z.iso.date().optional(),
-  reminderDays: z.coerce.number().int().min(0).max(30).optional(),
-  repaymentMode: z.enum(["installment", "flexible"]).optional(),
+  reminderDays: z.coerce.number().int().min(3).max(14).default(7),
+  repaymentMode: z.enum(["installment", "flexible"]).default("installment"),
   monthlyPayment: money.optional(),
   paymentBank: z.string().max(120).optional(),
   paymentAccount: z.string().max(80).optional(),
   paymentType: z.string().trim().max(80).optional(),
+  creditorType: z.enum(["bank","credit-card","paylater","pinjol","koperasi","personal","other"]).default("other"),
+  agreementDate: z.iso.date().optional(),
+  repaymentStart: z.string().regex(/^\\d{4}-(0[1-9]|1[0-2])$/).optional(),
+  dueDay: z.coerce.number().int().min(1).max(31).optional(),
   notes: z.string().max(10000).optional(),
-  rates: z
-    .array(
-      z.object({
-        month: z.number().int().min(1).max(600),
-        apr: z.number().min(0).max(100),
-      }),
-    )
-    .default([]),
+  rates: z.array(z.object({month:z.number().int().min(1).max(600),apr:z.number().min(0).max(100)})).default([]),
 });
 export type Debt = z.infer<typeof debtSchema> & { id: string; paid: string };
 export function amortize(
