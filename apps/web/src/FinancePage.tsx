@@ -270,21 +270,34 @@ export default function FinancePage() {
           <small>{tr("Rekening + aset + piutang − kewajiban")}</small>
         </div>
       </div>
-      <div className="tabs page-tabs">
-        <Link className={!debtPage ? "active" : ""} to="/finance">
-          Overview
-        </Link>
-        <Link className={debtPage ? "active" : ""} to="/debts">
-          Debt
-        </Link>
+      {!debtPage&&<div className="tabs page-tabs">
+        <Link className="active" to="/finance">Overview</Link>
+        <Link to="/debts">Debt</Link>
         <Link to="/records/budgets">{tr("Budgets")}</Link>
         <Link to="/records/bills">{tr("Bills")}</Link>
         <Link to="/records/savings">{tr("Savings")}</Link>
         <Link to="/records/assets">{tr("Assets")}</Link>
         <Link to="/records/categories">{tr("Categories")}</Link>
-      </div>
+      </div>}
       {debtPage ? (
         <>
+          <section className="panel debt-overview">
+            <div className="section-heading"><h2>Ringkasan pembayaran</h2><span className="badge">Aktif</span></div>
+            <div className="debt-overview-grid">
+              <div><small>Total kewajiban tersisa</small><strong>{money(liability)}</strong></div>
+              <div><small>Total piutang belum diterima</small><strong>{money(receivable)}</strong></div>
+              <div><small>Jadwal pembayaran terdekat</small><strong>{s.debts.filter((d:any)=>d.direction==="borrowed"&&d.dueDate).sort((a:any,b:any)=>String(a.dueDate).localeCompare(String(b.dueDate)))[0]?.dueDate||"Belum diatur"}</strong></div>
+            </div>
+          </section>
+          <section className="panel debt-reminders">
+            <div className="section-heading"><h2>Pengingat pembayaran</h2><span className="hint">Berdasarkan tanggal jatuh tempo</span></div>
+            {s.debts.filter((d:any)=>d.direction==="borrowed"&&d.dueDate&&Number(d.principal)>Number(d.paid)).sort((a:any,b:any)=>String(a.dueDate).localeCompare(String(b.dueDate))).slice(0,5).map((d:any)=>{
+              const days=Math.ceil((new Date(d.dueDate+"T00:00:00").getTime()-new Date(localDay()+"T00:00:00").getTime())/86400000);
+              const amount=d.monthlyPayment||new Decimal(d.principal).minus(d.paid).toFixed(2);
+              return <div className="debt-due-row" key={d.id}><div><strong>{d.name}</strong><small>{d.dueDate} · {days<0?"Terlambat "+Math.abs(days)+" hari":days===0?"Jatuh tempo hari ini":"Dalam "+days+" hari"} · Pengingat "+(d.reminderDays??3)+" hari sebelumnya</small></div><strong>{money(amount)}</strong><Button onClick={()=>show("pay",d)}>Bayar</Button></div>;
+            })}
+            {!s.debts.some((d:any)=>d.direction==="borrowed"&&d.dueDate)&&<p className="hint">Belum ada jadwal jatuh tempo. Tambahkan tanggal pembayaran pada data utang.</p>}
+          </section>
           <div className="section-heading">
             <h2>{tr("Daftar utang & piutang")}</h2>
             <select
