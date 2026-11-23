@@ -42,7 +42,7 @@ export default function Settings() {
         <section className="panel">
           <h2>{en?"Language":"Bahasa"}</h2>
           <p>{en?"Choose the interface language. Your choice is saved on this device.":"Pilih bahasa antarmuka aplikasi. Pilihan tersimpan pada perangkat ini."}</p>
-          <div className="row"><Globe2 size={18}/><Button variant="outline" onClick={()=>{localStorage.setItem("febro-one-language","id");location.reload();}}>{tr("Bahasa Indonesia")}</Button><Button variant="outline" onClick={()=>{localStorage.setItem("febro-one-language","en");location.reload();}}>{tr("English")}</Button></div>
+          <div className="row"><Globe2 size={18}/><Button variant="outline" onClick={()=>{localStorage.setItem("febro-one-language","id");window.dispatchEvent(new Event("febro-language-change"));}}>{tr("Bahasa Indonesia")}</Button><Button variant="outline" onClick={()=>{localStorage.setItem("febro-one-language","en");window.dispatchEvent(new Event("febro-language-change"));}}>{tr("English")}</Button></div>
         </section>
         <section className="panel">
           <h2>{tr("Profil & tampilan")}</h2>
