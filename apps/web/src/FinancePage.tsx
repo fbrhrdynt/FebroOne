@@ -350,6 +350,8 @@ export default function FinancePage() {
                     {d.direction === "borrowed" && <p className="hint">{d.repaymentMode==="installment"?"Cicilan bulanan":"Pembayaran fleksibel"}{d.monthlyPayment ? " · "+money(d.monthlyPayment)+"/bulan" : " · Nominal cicilan belum ditentukan"}{d.dueDate ? " · Jatuh tempo "+d.dueDate : ""}</p>}
                     <progress max={d.principal} value={d.paid} />
                     <div className="row-actions">
+                      <Button variant="ghost" onClick={()=>show("debt",d)}>Edit</Button>
+                      <Button variant="ghost" onClick={async()=>{if(!window.confirm("Pindahkan "+d.name+" ke arsip? Data pembayaran tetap tersimpan."))return;try{await store.archiveDebt(d.id);await q.invalidateQueries({queryKey:["finance"]});}catch(e){setError(e);}}}>Arsipkan</Button>
                       <Button
                         variant="outline"
                         onClick={() => show("schedule", d)}
@@ -538,7 +540,7 @@ export default function FinancePage() {
         )}
       </div>
       </>}
-      {modal&&<section className="panel record-form-page"><Button variant="ghost" onClick={()=>setModal("")}>{tr("← Kembali / Batal")}</Button><h1>{({account:"Tambah akun",transaction:"Catat transaksi",debt:"Tambah utang / piutang",pay:"Catat pembayaran",schedule:"Jadwal & simulasi",import:"Preview impor CSV / Excel",reconcile:"Rekonsiliasi saldo"} as any)[modal]||"Keuangan"}</h1>
+      {modal&&<section className="panel record-form-page"><Button variant="ghost" onClick={()=>setModal("")}>{tr("← Kembali / Batal")}</Button><h1>{({account:"Tambah akun",transaction:"Catat transaksi",debt:selectedId?"Edit utang / piutang":"Tambah utang / piutang",pay:"Catat pembayaran",schedule:"Jadwal & simulasi",import:"Preview impor CSV / Excel",reconcile:"Rekonsiliasi saldo"} as any)[modal]||"Keuangan"}</h1>
         <ErrorText error={error} />
         {["account", "transaction", "debt", "pay"].includes(modal) && (
           <form className="form-stack" onSubmit={submit}>
@@ -729,6 +731,9 @@ export default function FinancePage() {
                     defaultValue={localDay()}
                     required
                   />
+                </Field>
+                <Field label="Bukti pembayaran (PDF, PNG, JPG, WebP · maks. 10 MB/file)">
+                  <input type="file" name="paymentFiles" accept=".pdf,.png,.jpg,.jpeg,.webp" multiple/>
                 </Field>
                 <p className="hint">
                   Saldo berubah sebesar pokok + bunga. Hanya bunga dihitung
