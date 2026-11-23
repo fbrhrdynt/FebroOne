@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useState } from "react";
+import { lazy, Suspense, useEffect, useState, useRef } from "react";
 import {
   Routes,
   Route,
@@ -37,6 +37,7 @@ import {
   Eye,
   EyeOff,
   Globe2,
+  Fingerprint,
 } from "lucide-react";
 import { catalog, modules, groupNames } from "../../../packages/shared/catalog";
 import * as store from "./store";
@@ -83,6 +84,7 @@ function Login({ onDone, language, setLanguage }: { onDone: () => void; language
   const [error, setError] = useState<unknown>();
   const [busy, setBusy] = useState(false);
   const [showPassword,setShowPassword]=useState(false);
+  const emailRef=useRef<HTMLInputElement>(null);
   const t=copy[language];
   return (
     <div className="login-page">
@@ -116,7 +118,7 @@ function Login({ onDone, language, setLanguage }: { onDone: () => void; language
           }}
         >
           <Field label={t.email}>
-            <input name="email" type="email" autoComplete="username" required />
+            <input ref={emailRef} name="email" type="email" autoComplete="username" required />
           </Field>
           {recovery && (
             <Field label="Kode pemulihan">
@@ -134,6 +136,18 @@ function Login({ onDone, language, setLanguage }: { onDone: () => void; language
           <Button disabled={busy} type="submit">
             {busy ? t.working : recovery ? (language==="id"?"Ganti kata sandi":"Reset password") : t.login}
           </Button>
+          {!recovery && (
+            <Button variant="outline" type="button" disabled={busy} onClick={async()=>{
+              const email=emailRef.current?.value.trim();
+              if(!email){setError(language==="id"?"Masukkan email terlebih dahulu.":"Enter your email first.");return;}
+              setBusy(true);setError(undefined);
+              try{await store.passkeyLogin(email);onDone();}
+              catch(e){setError(e);}
+              finally{setBusy(false);}
+            }}>
+              <Fingerprint size={17}/>{language==="id"?"Masuk dengan passkey":"Sign in with passkey"}
+            </Button>
+          )}
           <Button
             variant="ghost"
             type="button"
