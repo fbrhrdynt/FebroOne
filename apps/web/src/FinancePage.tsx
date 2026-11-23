@@ -55,6 +55,9 @@ export default function FinancePage() {
   const [csv, setCsv] = useState<any[] | null>(null);
   const [key, setKey] = useState(crypto.randomUUID());
   const [debtDirection,setDebtDirection]=useState<"borrowed"|"lent">(selected?.direction||"borrowed");
+  const [remindersExpanded,setRemindersExpanded]=useState(false);
+  const [historySelection,setHistorySelection]=useState<Record<string,string>>({});
+  const [paymentDraft,setPaymentDraft]=useState<{debtId:string;date:string;amount:string}|null>(null);
   useEffect(()=>{if(modal==="debt")setDebtDirection(selected?.direction||"borrowed");},[modal,selectedId]);
   const financeDraftKey=`finance-draft:${profile.data?.user.id||""}:${modal}:${selectedId||"new"}`;
   const draftCommitted=useRef(false);
@@ -263,13 +266,7 @@ export default function FinancePage() {
               : "Termasuk bunga, tanpa pokok utang"}
           </small>
         </div>
-        <div className="stat">
-          <span>{tr("Net worth")}</span>
-          <strong>
-            {money(cash.plus(receivable).plus(assets).minus(liability))}
-          </strong>
-          <small>{tr("Rekening + aset + piutang − kewajiban")}</small>
-        </div>
+
       </div>
       {!debtPage&&<div className="tabs page-tabs">
         <Link className="active" to="/finance">Overview</Link>
@@ -282,22 +279,24 @@ export default function FinancePage() {
       </div>}
       {debtPage ? (
         <>
-          <section className="panel debt-overview">
-            <div className="section-heading"><h2>Ringkasan pembayaran</h2><span className="badge">Aktif</span></div>
-            <div className="debt-overview-grid">
-              <div><small>Total kewajiban tersisa</small><strong>{money(liability)}</strong></div>
-              <div><small>Total piutang belum diterima</small><strong>{money(receivable)}</strong></div>
-              <div><small>Jadwal pembayaran terdekat</small><strong>{s.debts.filter((d:any)=>d.direction==="borrowed"&&d.dueDate).sort((a:any,b:any)=>String(a.dueDate).localeCompare(String(b.dueDate)))[0]?.dueDate||"Belum diatur"}</strong></div>
-            </div>
+          <section className="debt-summary-strip">
+            <div><small>Sisa utang</small><strong>{money(liability)}</strong></div>
+            <div><small>Piutang</small><strong>{money(receivable)}</strong></div>
+            <div><small>Jatuh tempo terdekat</small><strong>{s.debts.filter((d:any)=>d.direction==="borrowed"&&d.dueDate).sort((a:any,b:any)=>String(a.dueDate).localeCompare(String(b.dueDate)))[0]?.dueDate||"—"}</strong></div>
           </section>
-          <section className="panel debt-reminders">
-            <div className="section-heading"><h2>Pengingat pembayaran</h2><span className="hint">Berdasarkan tanggal jatuh tempo</span></div>
-            {s.debts.filter((d:any)=>d.direction==="borrowed"&&d.dueDate&&Number(d.principal)>Number(d.paid)).sort((a:any,b:any)=>String(a.dueDate).localeCompare(String(b.dueDate))).slice(0,5).map((d:any)=>{
-              const days=Math.ceil((new Date(d.dueDate+"T00:00:00").getTime()-new Date(localDay()+"T00:00:00").getTime())/86400000);
-              const amount=d.monthlyPayment||new Decimal(d.principal).minus(d.paid).toFixed(2);
-              return <div className="debt-due-row" key={d.id}><div><strong>{d.name}</strong><small>{d.dueDate} · {days<0?"Terlambat "+Math.abs(days)+" hari":days===0?"Jatuh tempo hari ini":"Dalam "+days+" hari"} · Pengingat "+(d.reminderDays??3)+" hari sebelumnya</small></div><strong>{money(amount)}</strong><Button onClick={()=>show("pay",d)}>Bayar</Button></div>;
-            })}
-            {!s.debts.some((d:any)=>d.direction==="borrowed"&&d.dueDate)&&<p className="hint">Belum ada jadwal jatuh tempo. Tambahkan tanggal pembayaran pada data utang.</p>}
+          <section className="panel debt-reminders debt-reminders-compact">
+            <button type="button" className="debt-reminder-toggle" aria-expanded={remindersExpanded} onClick={()=>setRemindersExpanded(v=>!v)}>
+              <span>Pengingat pembayaran <small>{s.debts.filter((d:any)=>d.direction==="borrowed"&&d.dueDate&&Number(d.principal)>Number(d.paid)).length} jadwal aktif</small></span>
+              <span>{remindersExpanded?"Tutup −":"Lihat jadwal +"}</span>
+            </button>
+            {remindersExpanded&&<div className="debt-reminder-list">
+              {s.debts.filter((d:any)=>d.direction==="borrowed"&&d.dueDate&&Number(d.principal)>Number(d.paid)).sort((a:any,b:any)=>String(a.dueDate).localeCompare(String(b.dueDate))).map((d:any)=>{
+                const days=Math.ceil((new Date(d.dueDate+"T00:00:00").getTime()-new Date(localDay()+"T00:00:00").getTime())/86400000);
+                const amount=d.monthlyPayment||new Decimal(d.principal).minus(d.paid).toFixed(2);
+                return <div className="debt-due-row" key={d.id}><div><strong>{d.name}</strong><small>{d.dueDate} · {days<0?"Terlambat "+Math.abs(days)+" hari":days===0?"Hari ini":"Dalam "+days+" hari"} · Pengingat {d.reminderDays??3} hari sebelumnya</small></div><strong>{money(amount)}</strong><Button onClick={()=>show("pay",d)}>Bayar</Button></div>;
+              })}
+              {!s.debts.some((d:any)=>d.direction==="borrowed"&&d.dueDate&&Number(d.principal)>Number(d.paid))&&<p className="hint">Belum ada jadwal pembayaran aktif.</p>}
+            </div>}
           </section>
           <div className="section-heading">
             <h2>{tr("Daftar utang & piutang")}</h2>
@@ -330,8 +329,20 @@ export default function FinancePage() {
                         .minus(new Decimal(b.principal).minus(b.paid))
                         .toNumber(),
                 )
-                .map((d: any, i: number) => (
-                  <article className="panel" key={d.id}>
+                .map((d: any, i: number) => {
+                  const remaining=new Decimal(d.principal).minus(d.paid);
+                  const paymentMonths:string[]=[];
+                  if(d.direction==="borrowed"&&d.start){
+                    const first=new Date(d.start+"T00:00:00");
+                    const today=new Date(localDay()+"T00:00:00");
+                    for(let cursor=new Date(first.getFullYear(),first.getMonth(),1),n=0;cursor<new Date(today.getFullYear(),today.getMonth(),1)&&n<240;cursor.setMonth(cursor.getMonth()+1),n++){
+                      const ym=cursor.toISOString().slice(0,7);
+                      if(!s.transactions.some((t:any)=>t.debtId===d.id&&t.kind==="debt_payment"&&String(t.date).slice(0,7)===ym))paymentMonths.push(ym);
+                    }
+                  }
+                  const selectedMonth=historySelection[d.id]||"";
+                  return (
+                  <article className="panel debt-compact-card" key={d.id}>
                     <div className="section-heading">
                       <span className="eyebrow">
                         {d.direction === "lent"
@@ -341,15 +352,21 @@ export default function FinancePage() {
                       <span className="badge">{d.apr}% APR</span>
                     </div>
                     <h2>{d.name}</h2>
-                    <strong className="balance">
-                      {money(new Decimal(d.principal).minus(d.paid))}
-                    </strong>
+                    <strong className="balance">{money(remaining)}</strong>
                     <p>
                       dari {money(d.principal)} ·{tr(" ")}
                       {d.direction === "borrowed" ? "Saya berutang" : "Piutang saya"}
                     </p>
                     {d.direction === "borrowed" && <p className="hint">{d.repaymentMode==="installment"?"Cicilan bulanan":"Pembayaran fleksibel"}{d.monthlyPayment ? " · "+money(d.monthlyPayment)+"/bulan" : " · Nominal cicilan belum ditentukan"}{d.dueDate ? " · Jatuh tempo "+d.dueDate : ""}</p>}
                     <progress max={d.principal} value={d.paid} />
+                    {paymentMonths.length>0&&<details className="debt-history-checklist">
+                      <summary>Pembayaran lampau <span>{paymentMonths.length} periode belum tercatat</span></summary>
+                      <div className="debt-history-action">
+                        <div className="debt-history-months">{paymentMonths.map(m=><label key={m}><input type="checkbox" checked={selectedMonth===m} onChange={e=>setHistorySelection(v=>({...v,[d.id]:e.target.checked?m:""}))}/><span>{new Date(m+"-01T00:00:00").toLocaleDateString("id-ID",{month:"long",year:"numeric"})}</span></label>)}</div>
+                        <Button disabled={!selectedMonth} onClick={()=>{setPaymentDraft({debtId:d.id,date:selectedMonth+"-01",amount:d.monthlyPayment||""});show("pay",d);}}>Paid / Catat</Button>
+                      </div>
+                      <small className="hint">Pilih periode yang sudah dibayar. Tanggal dan nominal dapat disesuaikan sebelum disimpan.</small>
+                    </details>}
                     <div className="row-actions">
                       <Button variant="ghost" onClick={()=>show("debt",d)}>Edit</Button>
                       <Button variant="ghost" onClick={async()=>{if(!window.confirm("Pindahkan "+d.name+" ke arsip? Data pembayaran tetap tersimpan."))return;try{await store.archiveDebt(d.id);await q.invalidateQueries({queryKey:["finance"]});}catch(e){setError(e);}}}>Arsipkan</Button>
@@ -367,7 +384,7 @@ export default function FinancePage() {
                       </Button>
                     </div>
                   </article>
-                ))}
+                )})}
             </div>
           )}
         </>
@@ -713,6 +730,7 @@ export default function FinancePage() {
                     type="number"
                     step="0.01"
                     min="0.01"
+                    defaultValue={paymentDraft?.debtId===selected.id?(paymentDraft?.amount??""):""}
                     required
                   />
                 </Field>
@@ -730,7 +748,7 @@ export default function FinancePage() {
                   <input
                     name="date"
                     type="date"
-                    defaultValue={localDay()}
+                    defaultValue={paymentDraft?.debtId===selected.id?(paymentDraft?.date??localDay()):localDay()}
                     required
                   />
                 </Field>
