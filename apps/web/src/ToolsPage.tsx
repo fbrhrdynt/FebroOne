@@ -187,7 +187,7 @@ export default function ToolsPage() {
             <div className="calculation-result">
               <span>{tr("Hasil konversi")}</span>
               <strong>
-                {((Number(value) * units[from]) / units[to]).toPrecision(9)}{" "}
+                {((Number(value) * units[from]) / units[to]).toPrecision(9)}{tr(" ")}
                 <small>{to}</small>
               </strong>
               <p>
