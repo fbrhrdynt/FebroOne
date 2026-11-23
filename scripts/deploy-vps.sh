@@ -95,7 +95,7 @@ fi
 
 log "Restart hanya service Febro One."
 systemctl restart "$SERVICE" || {
-  tar -xzf "$SOURCE_BACKUP" -C "$APP_DIR"
+  restore_source
   systemctl restart "$SERVICE" || true
   die "Restart gagal; source dipulihkan."
 }
@@ -112,7 +112,7 @@ done
 if [[ "$HEALTH_OK" -ne 1 ]]; then
   log "Health check gagal. Memulihkan source release sebelumnya."
   journalctl -u "$SERVICE" -n 80 --no-pager >&2 || true
-  tar -xzf "$SOURCE_BACKUP" -C "$APP_DIR"
+  restore_source
   systemctl restart "$SERVICE" || true
   die "Production belum sehat. Source lama dipulihkan. Backup: $SOURCE_BACKUP"
 fi
