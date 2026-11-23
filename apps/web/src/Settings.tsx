@@ -24,6 +24,7 @@ export default function Settings() {
     queryFn: () => (store.trial ? Promise.resolve([]) : store.api("/audit")),
   });
   const sessions = useQuery({queryKey:["sessions"],queryFn:()=>store.api("/auth/sessions"),enabled:!store.trial});
+  const passkeys = useQuery({queryKey:["passkeys"],queryFn:()=>store.api("/auth/passkeys"),enabled:!store.trial});
   const [error, setError] = useState<unknown>();
   const [message, setMessage] = useState("");
   return (
@@ -247,6 +248,15 @@ export default function Settings() {
           )}
         </section>
       </div>
+      {!store.trial && <section className="panel">
+        <h2>Passkey & biometrik</h2>
+        <p>Gunakan Face ID, Touch ID, Windows Hello, atau security key untuk masuk tanpa kata sandi. Perangkat harus mendukung WebAuthn dan menggunakan koneksi HTTPS.</p>
+        <div className="form-stack">
+          {(passkeys.data?.items || []).map((item:any)=><div className="row" key={item.id}><div><strong>{item.name}</strong><small>{item.device_type==="multiDevice"?"Passkey tersinkron":"Passkey perangkat"} · Dibuat {new Date(item.created_at).toLocaleDateString()}</small></div><Button variant="ghost" onClick={async()=>{if(!confirm("Hapus passkey ini?"))return;try{await store.api("/auth/passkeys/"+item.id,"DELETE");await q.invalidateQueries({queryKey:["passkeys"]});setMessage("Passkey dihapus.");}catch(e){setError(e);}}}>Hapus</Button></div>)}
+          {!passkeys.data?.items?.length && <p>Belum ada passkey terdaftar.</p>}
+          <Button onClick={async()=>{try{await store.registerPasskey("Febro One · "+new Date().toLocaleDateString());await q.invalidateQueries({queryKey:["passkeys"]});setMessage("Passkey berhasil ditambahkan.");}catch(e){setError(e);}}}>Daftarkan passkey</Button>
+        </div>
+      </section>}
       <div className="settings-security-grid">
       <PushSettings />
       {!store.trial && <section className="panel"><h2>Sesi aktif</h2><p>Kelola akses akun Anda pada perangkat lain.</p><ErrorText error={sessions.error}/>{sessions.data?.items.map((s:any,i:number)=><div className="row" key={i}><div><strong>{s.current?"Perangkat ini":"Sesi lainnya"}</strong><small>Dibuka {new Date(s.created_at).toLocaleString("id-ID")} · Berakhir {new Date(s.expires_at).toLocaleDateString("id-ID")}</small></div></div>)}<Button variant="outline" onClick={async()=>{try{await store.api("/auth/sessions/revoke-others","POST",{});await q.invalidateQueries({queryKey:["sessions"]});setMessage("Sesi perangkat lain telah diakhiri.");}catch(e){setError(e)}}}>Akhiri sesi perangkat lain</Button></section>}
