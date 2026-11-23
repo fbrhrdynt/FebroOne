@@ -142,6 +142,8 @@ export default function FinancePage() {
       if (modal === "debt") {
         const documents = Array.from((e.currentTarget.elements.namedItem("documents") as HTMLInputElement | null)?.files || []);
         delete d.documents;
+        d.monthlyPayment = d.monthlyPayment || undefined;
+        d.dueDate = d.dueDate || undefined;
         d.rates = d.rates ? JSON.parse(d.rates) : [];
         const debt = await store.addDebt(d);
         if (documents.length) {
@@ -322,8 +324,9 @@ export default function FinancePage() {
                     </strong>
                     <p>
                       dari {money(d.principal)} ·{tr(" ")}
-                      {d.model === "flat" ? "Flat" : "Saldo menurun"}
+                      {d.direction === "borrowed" ? "Saya berutang" : "Piutang saya"}
                     </p>
+                    {d.direction === "borrowed" && <p className="hint">{d.repaymentMode==="installment"?"Cicilan bulanan":"Pembayaran fleksibel"}{d.monthlyPayment ? " · "+money(d.monthlyPayment)+"/bulan" : " · Nominal cicilan belum ditentukan"}{d.dueDate ? " · Jatuh tempo "+d.dueDate : ""}</p>}
                     <progress max={d.principal} value={d.paid} />
                     <div className="row-actions">
                       <Button
