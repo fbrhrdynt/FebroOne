@@ -293,7 +293,7 @@ export default function FinancePage() {
               {s.debts.filter((d:any)=>d.direction==="borrowed"&&d.dueDate&&Number(d.principal)>Number(d.paid)).sort((a:any,b:any)=>String(a.dueDate).localeCompare(String(b.dueDate))).map((d:any)=>{
                 const days=Math.ceil((new Date(d.dueDate+"T00:00:00").getTime()-new Date(localDay()+"T00:00:00").getTime())/86400000);
                 const amount=d.monthlyPayment||new Decimal(d.principal).minus(d.paid).toFixed(2);
-                return <div className="debt-due-row" key={d.id}><div><strong>{d.name}</strong><small>{d.dueDate} · {days<0?"Terlambat "+Math.abs(days)+" hari":days===0?"Hari ini":"Dalam "+days+" hari"} · Pengingat {d.reminderDays??3} hari sebelumnya</small></div><strong>{money(amount)}</strong><Button size="sm" onClick={()=>show("pay",d)}>Bayar</Button></div>;
+                return <div className="debt-due-row" key={d.id}><div><strong>{d.name}</strong><small>{d.dueDate} · {days<0?"Terlambat "+Math.abs(days)+" hari":days===0?"Hari ini":"Dalam "+days+" hari"} · Pengingat {d.reminderDays??3} hari sebelumnya</small></div><strong>{money(amount)}</strong><Button onClick={()=>show("pay",d)}>Bayar</Button></div>;
               })}
               {!s.debts.some((d:any)=>d.direction==="borrowed"&&d.dueDate&&Number(d.principal)>Number(d.paid))&&<p className="hint">Belum ada jadwal pembayaran aktif.</p>}
             </div>}
@@ -363,7 +363,7 @@ export default function FinancePage() {
                       <summary>Pembayaran lampau <span>{paymentMonths.length} periode belum tercatat</span></summary>
                       <div className="debt-history-action">
                         <div className="debt-history-months">{paymentMonths.map(m=><label key={m}><input type="checkbox" checked={selectedMonth===m} onChange={e=>setHistorySelection(v=>({...v,[d.id]:e.target.checked?m:""}))}/><span>{new Date(m+"-01T00:00:00").toLocaleDateString("id-ID",{month:"long",year:"numeric"})}</span></label>)}</div>
-                        <Button size="sm" disabled={!selectedMonth} onClick={()=>{setPaymentDraft({debtId:d.id,date:selectedMonth+"-01",amount:d.monthlyPayment||""});show("pay",d);}}>Paid / Catat</Button>
+                        <Button disabled={!selectedMonth} onClick={()=>{setPaymentDraft({debtId:d.id,date:selectedMonth+"-01",amount:d.monthlyPayment||""});show("pay",d);}}>Paid / Catat</Button>
                       </div>
                       <small className="hint">Pilih periode yang sudah dibayar. Tanggal dan nominal dapat disesuaikan sebelum disimpan.</small>
                     </details>}
@@ -730,7 +730,7 @@ export default function FinancePage() {
                     type="number"
                     step="0.01"
                     min="0.01"
-                    defaultValue={paymentDraft?.debtId===selected.id?paymentDraft.amount:""}
+                    defaultValue={paymentDraft?.debtId===selected.id?(paymentDraft?.amount??""):""}
                     required
                   />
                 </Field>
@@ -748,7 +748,7 @@ export default function FinancePage() {
                   <input
                     name="date"
                     type="date"
-                    defaultValue={paymentDraft?.debtId===selected.id?paymentDraft.date:localDay()}
+                    defaultValue={paymentDraft?.debtId===selected.id?(paymentDraft?.date??localDay()):localDay()}
                     required
                   />
                 </Field>
