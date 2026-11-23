@@ -9,7 +9,7 @@ export default function WorkspaceCategories(){
  const expanded:string[]=identity.data?.user.preferences?.expandedCategories ?? [];
  async function save(value:string[]){setBusy(true);try{if(store.trial){const u=(await store.identity()).user;await store.preferences({...u.preferences,name:u.name,expandedCategories:value});}else await store.api('/preferences/workspace','PATCH',{expandedCategories:value});await q.invalidateQueries({queryKey:['identity']});setError('');}catch(e:any){setError(e.message);}finally{setBusy(false);}}
  return <div className="workspace-compact">
-  <div className="workspace-toolbar"><span>{modules.length + 4} fitur</span><div><button disabled={busy} onClick={()=>save(groupNames)}>Buka semua</button><button disabled={busy} onClick={()=>save([])}>Tutup semua</button></div></div>
+  <div className="workspace-toolbar"><span>{modules.length} fitur</span><div><button disabled={busy} onClick={()=>save(groupNames)}>Buka semua</button><button disabled={busy} onClick={()=>save([])}>Tutup semua</button></div></div>
   {error&&<p role="alert">{error}</p>}
   <div className="workspace-compact-grid">{groupNames.map(g=>{const items=modules.filter(m=>m.group===g);const isOpen=expanded.includes(g);return <section className="workspace-group" key={g}>
     <button className="workspace-group-toggle" aria-expanded={isOpen} disabled={busy} onClick={()=>save(isOpen?expanded.filter(v=>v!==g):[...expanded,g])}>
