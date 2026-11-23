@@ -26,6 +26,7 @@ import {
 } from "./finance";
 import type { DB } from "./db";
 import { registerPush } from "./push";
+import { registerCms } from "./cms";
 import {
   generateAuthenticationOptions,
   generateRegistrationOptions,
@@ -305,6 +306,7 @@ export async function makeApp(
     return {ok:true};
   });
   await registerPush(app, db);
+  await registerCms(app, db);
   app.patch("/api/preferences/workspace", async (req) => {
     const p=z.object({expandedCategories:z.array(z.string().max(100)).max(40)}).parse(req.body);
     await db.query("UPDATE users SET preferences=preferences || $1::jsonb WHERE id=$2",[JSON.stringify(p),owner(req)]); return p;
