@@ -1,3 +1,4 @@
+import { tr } from "./i18n";
 import PushSettings from "./PushSettings";
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -31,9 +32,9 @@ export default function Settings() {
   return (
     <>
       <PageHeader
-        eyebrow="Workspace"
-        title="Settings"
-        description="Tampilan, privasi, dan data Anda."
+        eyebrow={tr("Workspace")}
+        title={tr("Settings")}
+        description={tr("Tampilan, privasi, dan data Anda.")}
       />
       <ErrorText error={error} />
       {message && <div className="notice">{message}</div>}
@@ -41,10 +42,10 @@ export default function Settings() {
         <section className="panel">
           <h2>{en?"Language":"Bahasa"}</h2>
           <p>{en?"Choose the interface language. Your choice is saved on this device.":"Pilih bahasa antarmuka aplikasi. Pilihan tersimpan pada perangkat ini."}</p>
-          <div className="row"><Globe2 size={18}/><Button variant="outline" onClick={()=>{localStorage.setItem("febro-one-language","id");location.reload();}}>Bahasa Indonesia</Button><Button variant="outline" onClick={()=>{localStorage.setItem("febro-one-language","en");location.reload();}}>English</Button></div>
+          <div className="row"><Globe2 size={18}/><Button variant="outline" onClick={()=>{localStorage.setItem("febro-one-language","id");location.reload();}}>{tr("Bahasa Indonesia")}</Button><Button variant="outline" onClick={()=>{localStorage.setItem("febro-one-language","en");location.reload();}}>{tr("English")}</Button></div>
         </section>
         <section className="panel">
-          <h2>Profil & tampilan</h2>
+          <h2>{tr("Profil & tampilan")}</h2>
           {data && (
             <form
               className="form-stack"
@@ -77,10 +78,10 @@ export default function Settings() {
                 }
               }}
             >
-              <Field label="Nama">
+              <Field label={tr("Nama")}>
                 <input name="name" required defaultValue={data.user.name} />
               </Field>
-              <Field label="Zona waktu">
+              <Field label={tr("Zona waktu")}>
                 <select
                   name="timezone"
                   defaultValue={
@@ -97,29 +98,29 @@ export default function Settings() {
                   ))}
                 </select>
               </Field>
-              <Field label="Tema">
+              <Field label={tr("Tema")}>
                 <select
                   name="theme"
                   defaultValue={data.user.preferences.theme || "light"}
                 >
-                  <option value="light">Light</option>
-                  <option value="dark">Dark</option>
-                  <option value="system">System</option>
+                  <option value="light">{tr("Light")}</option>
+                  <option value="dark">{tr("Dark")}</option>
+                  <option value="system">{tr("System")}</option>
                 </select>
               </Field>
-              <Field label="Sembunyikan saldo pada dashboard">
+              <Field label={tr("Sembunyikan saldo pada dashboard")}>
                 <input
                   type="checkbox"
                   name="maskMoney"
                   defaultChecked={data.user.preferences.maskMoney}
                 />
               </Field>
-              <Button type="submit">Simpan pengaturan</Button>
+              <Button type="submit">{tr("Simpan pengaturan")}</Button>
             </form>
           )}
         </section>
         <section className="panel">
-          <h2>Data & backup</h2>
+          <h2>{tr("Data & backup")}</h2>
           <p>
             {store.trial
               ? "Trial menyimpan data hanya di browser ini. Hapus data browser akan menghapus workspace trial."
@@ -167,7 +168,7 @@ export default function Settings() {
           </div>
         </section>
         <section className="panel">
-          <h2>Sinkronisasi offline</h2>
+          <h2>{tr("Sinkronisasi offline")}</h2>
           <p>
             {store.trial
               ? "Semua perubahan trial disimpan secara lokal; tidak disinkronkan ke VPS."
@@ -226,7 +227,7 @@ export default function Settings() {
           ))}
         </section>
         <section className="panel">
-          <h2>Keamanan & integrasi</h2>
+          <h2>{tr("Keamanan & integrasi")}</h2>
           <p>
             SSO: belum diaktifkan. Endpoint Febro Ecosystem belum diverifikasi.
             Gunakan login lokal pada instalasi VPS.
@@ -260,11 +261,11 @@ export default function Settings() {
       </section>}
       <div className="settings-security-grid">
       <PushSettings />
-      {!store.trial && <section className="panel"><h2>Sesi aktif</h2><p>Kelola akses akun Anda pada perangkat lain.</p><ErrorText error={sessions.error}/>{sessions.data?.items.map((s:any,i:number)=><div className="row" key={i}><div><strong>{s.current?"Perangkat ini":"Sesi lainnya"}</strong><small>Dibuka {new Date(s.created_at).toLocaleString("id-ID")} · Berakhir {new Date(s.expires_at).toLocaleDateString("id-ID")}</small></div></div>)}<Button variant="outline" onClick={async()=>{try{await store.api("/auth/sessions/revoke-others","POST",{});await q.invalidateQueries({queryKey:["sessions"]});setMessage("Sesi perangkat lain telah diakhiri.");}catch(e){setError(e)}}}>Akhiri sesi perangkat lain</Button></section>}
+      {!store.trial && <section className="panel"><h2>{tr("Sesi aktif")}</h2><p>{tr("Kelola akses akun Anda pada perangkat lain.")}</p><ErrorText error={sessions.error}/>{sessions.data?.items.map((s:any,i:number)=><div className="row" key={i}><div><strong>{s.current?"Perangkat ini":"Sesi lainnya"}</strong><small>Dibuka {new Date(s.created_at).toLocaleString("id-ID")} · Berakhir {new Date(s.expires_at).toLocaleDateString("id-ID")}</small></div></div>)}<Button variant="outline" onClick={async()=>{try{await store.api("/auth/sessions/revoke-others","POST",{});await q.invalidateQueries({queryKey:["sessions"]});setMessage("Sesi perangkat lain telah diakhiri.");}catch(e){setError(e)}}}>{tr("Akhiri sesi perangkat lain")}</Button></section>}
       </div>
       {!store.trial && (
         <section className="panel">
-          <h2>Audit log terbaru</h2>
+          <h2>{tr("Audit log terbaru")}</h2>
           {audit.data?.map((a: any, i: number) => (
             <p key={i}>
               {new Date(a.created_at).toLocaleString("id-ID")} · {a.action}
