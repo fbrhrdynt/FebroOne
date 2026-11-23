@@ -113,3 +113,22 @@ main{max-width:1600px;width:100%;padding:30px 32px 80px}.panel,.stat{border-radi
 .dark .dashboard-compact>.panel,.dark .dashboard-compact>.bento-card{background:rgba(15,19,29,.88);border-color:var(--line)}
 @media(max-width:800px){.workspace-compact-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.workspace-group-toggle{min-height:52px;padding:8px 10px}.workspace-group-toggle strong{font-size:12px}.workspace-group-items{grid-template-columns:1fr;padding:0 8px 8px}.workspace-group-items a{min-height:34px;font-size:11px}.dashboard-compact{gap:10px}.dashboard-compact>.panel,.dashboard-compact>.bento-card{grid-column:span 2!important;padding:15px}.dashboard-compact .day-intro{padding:16px}.dashboard-compact .quick-capture{gap:6px}.dashboard-compact .quick-capture .quick-action{padding:9px 7px;justify-content:center}.dashboard-compact .quick-capture .quick-action>span{font-size:10px;line-height:1.25}.dashboard-compact .quick-capture .quick-action>svg:last-child{display:none}.dashboard-compact .focus-card,.dashboard-compact .capture-card{grid-column:span 1!important}.dashboard-compact .transactions-card,.dashboard-compact .notes-panel{grid-column:span 2!important}}
 @media(max-width:390px){.workspace-compact-grid{grid-template-columns:1fr}.dashboard-compact .focus-card,.dashboard-compact .capture-card{grid-column:span 2!important}}
+
+/* Dashboard header and capture actions sit above the data grid */
+.dashboard-day-intro{padding:18px 20px!important;margin-bottom:12px!important;border-radius:18px!important}
+.dashboard-day-intro h2{font-size:19px!important;margin:7px 0!important}
+.dashboard-day-intro p{font-size:13px!important;margin:0 0 12px!important}
+.dashboard-quick-actions{display:flex;gap:8px;margin:0 0 12px!important}
+.dashboard-quick-actions .quick-action{flex:1;min-width:0;min-height:42px;display:flex;flex-direction:row;align-items:center;padding:9px 11px;border-radius:12px}
+.dashboard-quick-actions .quick-action>span{font-size:11px}
+.dashboard-compact>.transactions-card,.dashboard-compact>.notes-panel{grid-column:span 6}
+.dashboard-compact>.summary-reminders,.dashboard-compact>.summary-projects,.dashboard-compact>.summary-documents,.dashboard-compact>.summary-goals{padding:13px}
+.dashboard-compact+.section-heading,.dashboard-compact~.activity-list{display:none}
+@media(max-width:800px){
+ .dashboard-day-intro{padding:16px!important}
+ .dashboard-quick-actions{gap:6px}
+ .dashboard-quick-actions .quick-action{padding:9px 7px;justify-content:center}
+ .dashboard-quick-actions .quick-action>span{font-size:10px;line-height:1.25}
+ .dashboard-quick-actions .quick-action>svg:last-child{display:none}
+ .dashboard-compact>.transactions-card,.dashboard-compact>.notes-panel{grid-column:span 2!important}
+}
