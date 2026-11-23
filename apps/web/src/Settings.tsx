@@ -2,6 +2,7 @@ import PushSettings from "./PushSettings";
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button, PageHeader, Field, ErrorText } from "./ui";
+import { Globe2 } from "lucide-react";
 import * as store from "./store";
 export default function Settings() {
   const q = useQueryClient();
@@ -35,6 +36,11 @@ export default function Settings() {
       <ErrorText error={error} />
       {message && <div className="notice">{message}</div>}
       <div className="dashboard-grid">
+        <section className="panel">
+          <h2>Bahasa / Language</h2>
+          <p>Pilih bahasa antarmuka aplikasi. Pilihan tersimpan pada perangkat ini.</p>
+          <div className="row"><Globe2 size={18}/><Button variant="outline" onClick={()=>{localStorage.setItem("febro-one-language","id");location.reload();}}>Bahasa Indonesia</Button><Button variant="outline" onClick={()=>{localStorage.setItem("febro-one-language","en");location.reload();}}>English</Button></div>
+        </section>
         <section className="panel">
           <h2>Profil & tampilan</h2>
           {data && (
@@ -218,14 +224,13 @@ export default function Settings() {
           ))}
         </section>
         <section className="panel">
-          <h2>Security & integrations</h2>
+          <h2>Keamanan & integrasi</h2>
           <p>
             SSO: belum diaktifkan. Endpoint Febro Ecosystem belum diverifikasi.
             Gunakan login lokal pada instalasi VPS.
           </p>
           <p>
-            MFA: belum tersedia pada rilis ini. Pemulihan akun memakai kode
-            sekali pakai yang diberikan saat membuat admin.
+            Passkey belum tersedia pada layanan autentikasi production saat ini. Gunakan kata sandi sampai registrasi dan verifikasi WebAuthn selesai diuji.
           </p>
           <p>
             {store.trial
