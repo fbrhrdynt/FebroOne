@@ -3,7 +3,7 @@ set -Eeuo pipefail
 
 APP_DIR="/opt/febro-one"
 REPO_URL="https://github.com/fbrhrdynt/FebroOne.git"
-BRANCH="feat/dashboard-bilingual-passkeys"
+BRANCH="main"
 NODE_BIN="$APP_DIR/runtime/node/bin"
 BACKUP_DIR="/var/backups/febro-one/deploy"
 HEALTH_URL="http://127.0.0.1:3471/api/health"
