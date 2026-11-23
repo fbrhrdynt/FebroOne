@@ -282,6 +282,9 @@ export async function payDebt(db: DB, owner: string, did: string, raw: any) {
         minor(p.interest).toString(),
       ],
     );
+    if(d.direction==="borrowed" && d.details?.repaymentMode==="installment" && d.details?.dueDate){
+      await tx.query("UPDATE debts SET details=jsonb_set(details,'{dueDate}',to_jsonb(((details->>'dueDate')::date + interval '1 month')::date::text)) WHERE id=$1 AND owner_id=$2",[did,owner]);
+    }
     return result;
   });
 }
