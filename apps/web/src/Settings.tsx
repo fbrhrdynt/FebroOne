@@ -261,7 +261,7 @@ export default function Settings() {
       </section>}
       <div className="settings-security-grid">
       <PushSettings />
-      {!store.trial && <section className="panel"><h2>{tr("Sesi aktif")}</h2><p>{tr("Kelola akses akun Anda pada perangkat lain.")}</p><ErrorText error={sessions.error}/>{sessions.data?.items.map((s:any,i:number)=><div className="row" key={i}><div><strong>{s.current?"Perangkat ini":"Sesi lainnya"}</strong><small>Dibuka {new Date(s.created_at).toLocaleString("id-ID")} · Berakhir {new Date(s.expires_at).toLocaleDateString("id-ID")}</small></div></div>)}<Button variant="outline" onClick={async()=>{try{await store.api("/auth/sessions/revoke-others","POST",{});await q.invalidateQueries({queryKey:["sessions"]});setMessage("Sesi perangkat lain telah diakhiri.");}catch(e){setError(e)}}}>{tr("Akhiri sesi perangkat lain")}</Button></section>}
+      {!store.trial && <section className="panel"><h2>{tr("Sesi aktif")}</h2><p>{tr("Kelola akses akun Anda pada perangkat lain.")}</p><ErrorText error={sessions.error}/>{sessions.data?.items.map((s:any,i:number)=><div className="row" key={i}><div><strong>{s.current?"Perangkat ini":"Sesi lainnya"}</strong><small>Dibuka {new Date(s.created_at).toLocaleString(en?"en-GB":"id-ID")} · Berakhir {new Date(s.expires_at).toLocaleDateString(en?"en-GB":"id-ID")}</small></div></div>)}<Button variant="outline" onClick={async()=>{try{await store.api("/auth/sessions/revoke-others","POST",{});await q.invalidateQueries({queryKey:["sessions"]});setMessage("Sesi perangkat lain telah diakhiri.");}catch(e){setError(e)}}}>{tr("Akhiri sesi perangkat lain")}</Button></section>}
       </div>
       {!store.trial && (
         <section className="panel">
