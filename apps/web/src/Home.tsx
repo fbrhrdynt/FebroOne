@@ -167,7 +167,7 @@ export default function Home() {
                             day: "numeric",
                             month: "short",
                           })
-                        : "Tanpa tenggat"}{" "}
+                        : "Tanpa tenggat"}{tr(" ")}
                       · {t.data.priority || "Medium"}
                     </small>
                   </Link>
@@ -240,7 +240,7 @@ export default function Home() {
               {money(total(fin.data?.accounts || [], "balance"))}
             </strong>
             <p>
-              {fin.data?.accounts.length || 0} akun ·{" "}
+              {fin.data?.accounts.length || 0} akun ·{tr(" ")}
               {(fin.data?.debts || []).length} utang / piutang
             </p>
             <Link className="text-button" to="/finance">
