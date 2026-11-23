@@ -207,6 +207,96 @@ export async function updateDebt(db: DB, owner: string, did: string, raw: any) {
   if (!result.rows.length) throw new Error("Utang tidak ditemukan");
   return {id:did};
 }
+export async function runDebtReminders(db: DB) {
+  await db.query(`
+    INSERT INTO notifications(id,owner_id,title,record_id)
+    SELECT 'debt-due:'||d.id::text||':'||(d.details->>'dueDate'),d.owner_id,
+      CASE WHEN (d.details->>'dueDate')::date < CURRENT_DATE
+        THEN 'Pembayaran terlambat: '||d.name
+        ELSE 'Jadwal pembayaran: '||d.name END,
+      NULL
+    FROM debts d
+    WHERE d.archived_at IS NULL
+      AND d.direction='borrowed'
+      AND COALESCE(d.details->>'dueDate','') ~ '^\\d{4}-\\d{2}-\\d{2}
+  id.parse(did);
+  const result=await db.query("UPDATE debts SET archived_at=now() WHERE id=$1 AND owner_id=$2 AND archived_at IS NULL RETURNING id",[did,owner]);
+  if(!result.rows.length)throw new Error("Utang tidak ditemukan");
+  await db.query("INSERT INTO audit_logs(owner_id,action,entity_id) VALUES($1,'debt.archive',$2)",[owner,did]);
+  return {ok:true};
+}
+export async function payDebt(db: DB, owner: string, did: string, raw: any) {
+  id.parse(did);
+  const p = z
+    .object({
+      accountId: id,
+      principal: money.refine((v) => minor(v) > 0n),
+      interest: money,
+      date: z.iso.date(),
+      key: id,
+    })
+    .parse(raw);
+  return db.transaction(async (tx) => {
+    await tx.query("SELECT id FROM users WHERE id=$1 FOR UPDATE", [owner]);
+    const old = (
+      await tx.query(
+        "SELECT t.id,t.request_hash FROM ledger_transactions t WHERE owner_id=$1 AND idempotency_key=$2",
+        [owner, p.key],
+      )
+    ).rows[0];
+    const d = (
+      await tx.query(
+        "SELECT * FROM debts WHERE id=$1 AND owner_id=$2 FOR UPDATE",
+        [did, owner],
+      )
+    ).rows[0];
+    if (!d) throw new Error("Utang tidak ditemukan");
+    const t = {
+      kind: d.direction === "lent" ? "debt_receipt" : "debt_payment",
+      accountId: p.accountId,
+      amount: major(minor(p.principal) + minor(p.interest)),
+      category: "Debt payment",
+      date: p.date,
+      description: d.name,
+      key: p.key,
+      debtId: did,
+      principal: p.principal,
+      interest: p.interest,
+    };
+    if (old) {
+      if (old.request_hash !== hash(t))
+        throw new Error("Idempotency key berbeda");
+      return { id: old.id };
+    }
+    const paid = (
+      await tx.query(
+        "SELECT COALESCE(sum(principal),0)::text paid FROM debt_payments p WHERE debt_id=$1 AND NOT EXISTS(SELECT 1 FROM ledger_transactions t WHERE t.reversal_of=p.transaction_id)",
+        [did],
+      )
+    ).rows[0].paid;
+    if (BigInt(paid) + minor(p.principal) > BigInt(d.principal))
+      throw new Error("Pembayaran melebihi sisa pokok");
+    const result = await book(tx, owner, t);
+    await tx.query(
+      "INSERT INTO debt_payments(id,owner_id,debt_id,transaction_id,principal,interest) VALUES($1,$2,$3,$4,$5,$6)",
+      [
+        randomUUID(),
+        owner,
+        did,
+        result.id,
+        minor(p.principal).toString(),
+        minor(p.interest).toString(),
+      ],
+    );
+    return result;
+  });
+}
+
+      AND (d.details->>'dueDate')::date <= CURRENT_DATE + make_interval(days=>COALESCE((d.details->>'reminderDays')::int,3))
+      AND COALESCE((SELECT sum(p.principal) FROM debt_payments p WHERE p.debt_id=d.id),0) < d.principal
+    ON CONFLICT(id) DO NOTHING
+  `);
+}
 export async function archiveDebt(db: DB, owner: string, did: string) {
   id.parse(did);
   const result=await db.query("UPDATE debts SET archived_at=now() WHERE id=$1 AND owner_id=$2 AND archived_at IS NULL RETURNING id",[did,owner]);
