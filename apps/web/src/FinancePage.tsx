@@ -55,6 +55,9 @@ export default function FinancePage() {
   const [csv, setCsv] = useState<any[] | null>(null);
   const [key, setKey] = useState(crypto.randomUUID());
   const [debtDirection,setDebtDirection]=useState<"borrowed"|"lent">(selected?.direction||"borrowed");
+  const [remindersExpanded,setRemindersExpanded]=useState(false);
+  const [historySelection,setHistorySelection]=useState<Record<string,string>>({});
+  const [paymentDraft,setPaymentDraft]=useState<{debtId:string;date:string;amount:string}|null>(null);
   useEffect(()=>{if(modal==="debt")setDebtDirection(selected?.direction||"borrowed");},[modal,selectedId]);
   const financeDraftKey=`finance-draft:${profile.data?.user.id||""}:${modal}:${selectedId||"new"}`;
   const draftCommitted=useRef(false);
@@ -263,13 +266,7 @@ export default function FinancePage() {
               : "Termasuk bunga, tanpa pokok utang"}
           </small>
         </div>
-        <div className="stat">
-          <span>{tr("Net worth")}</span>
-          <strong>
-            {money(cash.plus(receivable).plus(assets).minus(liability))}
-          </strong>
-          <small>{tr("Rekening + aset + piutang − kewajiban")}</small>
-        </div>
+
       </div>
       {!debtPage&&<div className="tabs page-tabs">
         <Link className="active" to="/finance">Overview</Link>
