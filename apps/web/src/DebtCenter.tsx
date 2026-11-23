@@ -13,7 +13,7 @@ const monthLabel=(value:string)=>new Date(value+"-01T00:00:00").toLocaleDateStri
 const monthDate=(value:string,day?:number)=>{const [y,m]=value.split("-").map(Number);const last=new Date(y,m,0).getDate();return new Date(y,m-1,Math.min(day||1,last)).toISOString().slice(0,10)};
 const money=(value:any)=>value===null||value===undefined||value===""?"Belum diisi":rp(value);
 const formatThousands=(value:any)=>{const whole=String(value??"").split(".")[0];const digits=whole.replace(/\\D/g,"");return digits?new Intl.NumberFormat("id-ID",{maximumFractionDigits:0}).format(Number(digits)):"";};
-const rawMoney=(value:any)=>String(value??"").replace(/\\./g,"").replace(/[^0-9]/g,"");
+const rawMoney=(value:any)=>String(value??"").replace(/[^0-9]/g,"");
 const creditorLabel:Record<string,string>={bank:"Pinjaman bank","credit-card":"Kartu kredit",paylater:"PayLater",pinjol:"Pinjaman online",koperasi:"Koperasi",personal:"Pribadi",other:"Lainnya"};
 export default function DebtCenter(){
  const qc=useQueryClient();
@@ -35,7 +35,7 @@ export default function DebtCenter(){
  const active=debts.filter(d=>!d.settledAt);
  const settled=debts.filter(d=>!!d.settledAt);
  const visible=(tab==="active"?active:settled).filter(d=>(d.name+" "+(d.paymentType||"")+" "+(creditorLabel[d.creditorType]||"")).toLowerCase().includes(query.toLowerCase()));
- const isInTerm=(d:Debt,period:string)=>{const start=d.repaymentStart||currentMonth;if(period<start)return false;if(!d.installmentCount)return true;const [sy,sm]=start.split("-").map(Number);const [py,pm]=period.split("-").map(Number);return (py-sy)*12+(pm-sm)<Number(d.installmentCount);};
+ const isInTerm=(d:Debt,period:string)=>{if(!d.repaymentStart||period<d.repaymentStart)return false;if(!d.installmentCount)return true;const [sy,sm]=d.repaymentStart.split("-").map(Number);const [py,pm]=period.split("-").map(Number);return (py-sy)*12+(pm-sm)<Number(d.installmentCount);};
  const isPaid=(debtId:string,period:string)=>installments.some(x=>x.debtId===debtId&&String(x.period).slice(0,7)===period&&x.status==="paid");
  const expected=active.reduce((n,d)=>n+(isInTerm(d,currentMonth)&&!isPaid(d.id,currentMonth)?Number(d.monthlyPayment||0):0),0);
  const monthPeriods=useMemo(()=>Array.from({length:6},(_,i)=>{const [y,m]=currentMonth.split("-").map(Number);const dt=new Date(y,m-1+i,1);return dt.getFullYear()+"-"+String(dt.getMonth()+1).padStart(2,"0");}),[currentMonth]);
