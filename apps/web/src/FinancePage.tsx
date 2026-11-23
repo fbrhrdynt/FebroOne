@@ -314,7 +314,7 @@ export default function FinancePage() {
                       {money(new Decimal(d.principal).minus(d.paid))}
                     </strong>
                     <p>
-                      dari {money(d.principal)} ·{" "}
+                      dari {money(d.principal)} ·{tr(" ")}
                       {d.model === "flat" ? "Flat" : "Saldo menurun"}
                     </p>
                     <progress max={d.principal} value={d.paid} />
@@ -472,8 +472,8 @@ export default function FinancePage() {
               <div className="grow">
                 <strong>{t.description || t.category}</strong>
                 <p>
-                  {t.date} ·{" "}
-                  {s.accounts.find((a: any) => a.id === t.accountId)?.name} ·{" "}
+                  {t.date} ·{tr(" ")}
+                  {s.accounts.find((a: any) => a.id === t.accountId)?.name} ·{tr(" ")}
                   {t.category}
                   {t.reversed ? " · Dibatalkan" : ""}
                 </p>
@@ -682,7 +682,7 @@ export default function FinancePage() {
             {modal === "pay" && (
               <>
                 <p>
-                  Sisa pokok:{" "}
+                  Sisa pokok:{tr(" ")}
                   {money(new Decimal(selected.principal).minus(selected.paid))}
                 </p>
                 <Field label={tr("Akun pembayaran")}>
@@ -744,7 +744,7 @@ export default function FinancePage() {
               />
             </Field>
             <p>
-              Estimasi {schedule.months} bulan · total bunga{" "}
+              Estimasi {schedule.months} bulan · total bunga{tr(" ")}
               {rp(schedule.totalInterest)}. Simulasi dimulai dari sisa pokok
               dengan tenor yang tercatat; bukan jadwal kontrak aktual.
             </p>
