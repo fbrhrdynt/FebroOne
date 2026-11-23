@@ -132,3 +132,34 @@ main{max-width:1600px;width:100%;padding:30px 32px 80px}.panel,.stat{border-radi
  .dashboard-quick-actions .quick-action>svg:last-child{display:none}
  .dashboard-compact>.transactions-card,.dashboard-compact>.notes-panel{grid-column:span 2!important}
 }
+
+/* Workspace and dashboard: readable light theme, compact hierarchy */
+.workspace-finance-shortcuts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin:2px 0 4px}
+.workspace-finance-shortcuts>a{display:flex;align-items:center;gap:11px;min-height:64px;padding:11px 13px;border:1px solid var(--line);border-radius:13px;background:var(--surface);color:var(--text);text-decoration:none}
+.workspace-finance-shortcuts>a>span:nth-child(2){display:grid;gap:3px;min-width:0;flex:1}
+.workspace-finance-shortcuts strong{font-size:13px}.workspace-finance-shortcuts small{font-size:10px;color:var(--muted);line-height:1.35}.workspace-finance-shortcuts>a>span:last-child{color:var(--blue)}
+:root:not(.dark) .workspace-group{background:#fff;border-color:#dce4ef;box-shadow:0 2px 8px rgba(30,50,80,.035)}
+:root:not(.dark) .workspace-group-toggle{color:#24334b}
+:root:not(.dark) .workspace-group-toggle strong{color:#24334b}
+:root:not(.dark) .workspace-group-toggle small,:root:not(.dark) .workspace-chevron{color:#71819a}
+:root:not(.dark) .workspace-group-items a{background:#f8faff;border-color:#e1e8f2;color:#53657f}
+:root:not(.dark) .workspace-group-items a:hover{background:#edf4ff;border-color:#c9dcfb;color:#245ebd}
+:root:not(.dark) .workspace-finance-shortcuts>a{background:#fff;border-color:#dce4ef;color:#24334b;box-shadow:0 2px 8px rgba(30,50,80,.035)}
+:root:not(.dark) .workspace-finance-shortcuts small{color:#71819a}
+:root:not(.dark) .workspace-toolbar{color:#667891}
+:root:not(.dark) .workspace-toolbar button{color:#315f9e}
+:root:not(.dark) .dashboard-compact>.panel,:root:not(.dark) .dashboard-compact>.bento-card{background:#fff;border:1px solid #dfe7f1;color:#26354c}
+:root:not(.dark) .dashboard-day-intro{background:#f0f5fc;border:1px solid #dce6f3;color:#26354c}
+:root:not(.dark) .dashboard-day-intro p,:root:not(.dark) .dashboard-compact .muted,:root:not(.dark) .dashboard-compact small{color:#687b96}
+:root:not(.dark) .dashboard-quick-actions .quick-action{background:#fff;border:1px solid #dce5f0;color:#435875}
+:root:not(.dark) .dashboard-compact .task-line,:root:not(.dark) .dashboard-compact .agenda-row,:root:not(.dark) .dashboard-compact .transaction-preview{border-color:#e6ecf4}
+:root:not(.dark) .dashboard-compact .section-heading a,:root:not(.dark) .dashboard-compact .text-button{color:#2563c9}
+:root:not(.dark) .dashboard-compact .completion-card{background:#fff}
+:root:not(.dark) .dashboard-compact .completion-ring{background:#f1f7f4}
+.calendar-toolbar{align-items:center}
+@media(max-width:800px){
+ .workspace-finance-shortcuts{grid-template-columns:1fr;gap:7px}
+ .workspace-finance-shortcuts>a{min-height:56px}
+ .workspace-compact-grid{align-items:start}
+ .workspace-group{height:max-content}
+}
