@@ -388,7 +388,7 @@ export async function updateDebt(id: string, raw: any) {
   if(!trial)return api("/debts/"+id,"PUT",p);
   return financeMutation(s=>{const d=s.debts.find((x:any)=>x.id===id);if(!d)throw new Error("Utang tidak ditemukan");Object.assign(d,p);return d;});
 }
-export async function markDebtInstallmentPaid(input: {debtId:string;periods:string[];amount?:string;dueDate?:string;notes?:string;paid?:boolean}) {
+export async function markDebtInstallmentPaid(input: {debtId:string;periods:string[];amount?:string;dueDate?:string;paidAt?:string;notes?:string;paid?:boolean}) {
   if(!trial)return api("/debt-installments","POST",input);
   return financeMutation((s:any)=>{
     s.installments ||= [];
@@ -401,6 +401,7 @@ export async function markDebtInstallmentPaid(input: {debtId:string;periods:stri
     return {items};
   });
 }
+export async function deleteDebtInstallment(id:string) { if(!trial)return api("/debt-installments/"+id,"DELETE"); return financeMutation((s:any)=>{const i=(s.installments||[]).findIndex((x:any)=>x.id===id);if(i<0)throw new Error("Pembayaran tidak ditemukan");s.installments.splice(i,1);return {ok:true};}); }
 export async function settleDebt(id:string) { if(!trial)return api("/debts/"+id+"/settle","POST",{}); return financeMutation((s:any)=>{const d=s.debts.find((x:any)=>x.id===id);if(!d)throw new Error("Utang tidak ditemukan");d.settledAt=new Date().toISOString();return {ok:true};}); }
 export async function archiveDebt(id: string) {
   if(!trial)return api("/debts/"+id,"DELETE");
