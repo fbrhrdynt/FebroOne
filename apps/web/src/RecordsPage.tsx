@@ -278,7 +278,7 @@ export default function RecordsPage() {
               }
             }}
           >
-            {timer ? <Square size={14} /> : <Play size={14} />}{" "}
+            {timer ? <Square size={14} /> : <Play size={14} />}{tr(" ")}
             {timer ? "Simpan sesi" : "Mulai fokus"}
           </Button>
         </div>
@@ -365,7 +365,7 @@ export default function RecordsPage() {
       <ErrorText error={error || result.error} />
       {undo && (
         <div className="notice">
-          Record diarsipkan.{" "}
+          Record diarsipkan.{tr(" ")}
           <button
             onClick={async () => {
               await store.restoreRecord(undo);
