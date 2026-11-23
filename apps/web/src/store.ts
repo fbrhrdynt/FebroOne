@@ -388,14 +388,17 @@ export async function updateDebt(id: string, raw: any) {
   if(!trial)return api("/debts/"+id,"PUT",p);
   return financeMutation(s=>{const d=s.debts.find((x:any)=>x.id===id);if(!d)throw new Error("Utang tidak ditemukan");Object.assign(d,p);return d;});
 }
-export async function markDebtInstallmentPaid(input: {debtId:string;period:string;amount?:string;dueDate?:string;notes?:string;paid?:boolean}) {
+export async function markDebtInstallmentPaid(input: {debtId:string;periods:string[];amount?:string;dueDate?:string;notes?:string;paid?:boolean}) {
   if(!trial)return api("/debt-installments","POST",input);
   return financeMutation((s:any)=>{
     s.installments ||= [];
-    const old=s.installments.find((x:any)=>x.debtId===input.debtId&&x.period===input.period);
-    const next={...old,...input,id:old?.id||crypto.randomUUID(),status:input.paid===false?"scheduled":"paid",paidAt:input.paid===false?null:new Date().toISOString()};
-    if(old)Object.assign(old,next);else s.installments.push(next);
-    return next;
+    const items=input.periods.map(period=>{
+      const old=s.installments.find((x:any)=>x.debtId===input.debtId&&x.period===period);
+      const next={...old,...input,period,id:old?.id||crypto.randomUUID(),status:input.paid===false?"scheduled":"paid",paidAt:input.paid===false?null:new Date().toISOString()};
+      if(old)Object.assign(old,next);else s.installments.push(next);
+      return next;
+    });
+    return {items};
   });
 }
 export async function settleDebt(id:string) { if(!trial)return api("/debts/"+id+"/settle","POST",{}); return financeMutation((s:any)=>{const d=s.debts.find((x:any)=>x.id===id);if(!d)throw new Error("Utang tidak ditemukan");d.settledAt=new Date().toISOString();return {ok:true};}); }
