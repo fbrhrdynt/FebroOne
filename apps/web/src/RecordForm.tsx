@@ -159,7 +159,7 @@ export function RecordFormPage({
         <form onSubmit={save} className="form-stack">
           {draft && (draft.title !== title || draft.tags !== tags || JSON.stringify(draft.data)!==JSON.stringify(data)) && (
             <div className="notice">
-              Draft lokal tersedia.{" "}
+              Draft lokal tersedia.{tr(" ")}
               <button
                 type="button"
                 onClick={() => {
@@ -428,7 +428,7 @@ export function RecordFormPage({
           </Button>
           {connected.map((l: any, i: number) => (
             <div className="row" key={i}>
-              {l.relation} ·{" "}
+              {l.relation} ·{tr(" ")}
               {all.data?.find(
                 (r) =>
                   r.id ===
