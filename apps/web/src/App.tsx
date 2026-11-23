@@ -205,13 +205,36 @@ export default function App() {
     } catch(e) { setShellError(e); } finally { setThemeBusy(false); }
   }
   useEffect(() => {
-    const theme = identity.data?.user.preferences?.theme || localStorage.getItem("theme") || "light";
+    if (!identity.data?.user) {
+      document.documentElement.classList.add("dark");
+      return;
+    }
+    const user = identity.data.user;
+    const migrationKey = "febro-observatory-theme-restored-v1";
+    let theme = user.preferences?.theme || localStorage.getItem("theme") || "dark";
+    if (!localStorage.getItem(migrationKey)) {
+      localStorage.setItem(migrationKey, "1");
+      if (theme === "light") {
+        theme = "dark";
+        localStorage.setItem("theme", "dark");
+        void store.preferences({
+          timezone: "Asia/Jakarta",
+          widgets: ["tasks", "agenda", "finance", "career", "notes"],
+          maskMoney: false,
+          ...user.preferences,
+          name: user.name,
+          theme: "dark",
+        }).then(() => q.invalidateQueries({ queryKey: ["identity"] })).catch(() => {
+          // Keep the restored dark appearance locally if preference sync is unavailable.
+        });
+      }
+    }
     const media = matchMedia("(prefers-color-scheme: dark)");
     const apply = () => document.documentElement.classList.toggle("dark", theme === "dark" || (theme === "system" && media.matches));
     apply();
     media.addEventListener("change", apply);
     return () => media.removeEventListener("change", apply);
-  }, [identity.data?.user.preferences?.theme]);
+  }, [identity.data?.user.preferences?.theme, identity.data?.user.id]);
   const rs = useQuery({
     queryKey: ["records", "global-search",search],
     queryFn: async ():Promise<import("../../../packages/shared/catalog").RecordItem[]> => store.trial ? store.records() : (await store.api("/records?limit=30&q="+encodeURIComponent(search))).items,
