@@ -1,6 +1,7 @@
 import { runPush } from "./push";
 import { database } from "./db";
 import { makeApp, runAutomation } from "./app";
+import { runDebtReminders } from "./finance";
 const origin = process.env.APP_ORIGIN || "http://localhost:4173";
 if (process.env.NODE_ENV === "production" && !origin.startsWith("https://"))
   throw new Error("APP_ORIGIN must use HTTPS in production");
@@ -25,6 +26,7 @@ const timer = setInterval(async () => {
   running = true;
   try {
     await runAutomation(db);
+    await runDebtReminders(db);
     await runPush(db);
   } catch {
     console.error("Scheduled rules failed; retry next minute");

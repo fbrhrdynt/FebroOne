@@ -22,7 +22,7 @@ export async function financialState(db: DB, owner: string) {
     [owner],
   );
   const d = await db.query(
-    `SELECT d.*,d.start::text start,COALESCE((SELECT sum(p.principal) FROM debt_payments p WHERE p.debt_id=d.id AND NOT EXISTS(SELECT 1 FROM ledger_transactions t WHERE t.reversal_of=p.transaction_id)),0)::text paid FROM debts d WHERE owner_id=$1 ORDER BY created_at DESC`,
+    `SELECT d.*,d.start::text start,COALESCE((SELECT sum(p.principal) FROM debt_payments p WHERE p.debt_id=d.id AND NOT EXISTS(SELECT 1 FROM ledger_transactions t WHERE t.reversal_of=p.transaction_id)),0)::text paid FROM debts d WHERE owner_id=$1 AND archived_at IS NULL ORDER BY created_at DESC`,
     [owner],
   );
   return {
@@ -192,10 +192,32 @@ export async function createDebt(db: DB, owner: string, raw: any) {
       d.direction,
       d.model,
       JSON.stringify(d.rates),
-      JSON.stringify({dueDate:d.dueDate||null,repaymentMode:d.repaymentMode||null,monthlyPayment:d.monthlyPayment||null,paymentBank:d.paymentBank||"",paymentAccount:d.paymentAccount||"",paymentType:d.paymentType||"",notes:d.notes||""}),
+      JSON.stringify({dueDate:d.dueDate||null,repaymentMode:d.repaymentMode||null,monthlyPayment:d.monthlyPayment||null,paymentBank:d.paymentBank||"",paymentAccount:d.paymentAccount||"",paymentType:d.paymentType||"",notes:d.notes||"",reminderDays:d.reminderDays??3}),
     ],
   );
   return { id: did };
+}
+export async function updateDebt(db: DB, owner: string, did: string, raw: any) {
+  id.parse(did);
+  const d = debtSchema.parse(raw);
+  const result = await db.query(
+    "UPDATE debts SET name=$1,principal=$2,apr=$3,months=$4,start=$5,direction=$6,model=$7,rates=$8,details=$9 WHERE id=$10 AND owner_id=$11 AND archived_at IS NULL RETURNING id",
+    [d.name,minor(d.principal).toString(),d.apr,d.months,d.start,d.direction,d.model,JSON.stringify(d.rates),JSON.stringify({dueDate:d.dueDate||null,repaymentMode:d.repaymentMode||null,monthlyPayment:d.monthlyPayment||null,paymentBank:d.paymentBank||"",paymentAccount:d.paymentAccount||"",paymentType:d.paymentType||"",notes:d.notes||"",reminderDays:d.reminderDays??3}),did,owner]
+  );
+  if (!result.rows.length) throw new Error("Utang tidak ditemukan");
+  return {id:did};
+}
+export async function runDebtReminders(db: DB) {
+  await db.query(
+    "INSERT INTO notifications(id,owner_id,title,record_id) SELECT 'debt-due:'||d.id::text||':'||(d.details->>'dueDate'),d.owner_id,CASE WHEN (d.details->>'dueDate')::date < CURRENT_DATE THEN 'Pembayaran terlambat: '||d.name ELSE 'Jadwal pembayaran: '||d.name END,NULL FROM debts d WHERE d.archived_at IS NULL AND d.direction='borrowed' AND NULLIF(d.details->>'dueDate','') IS NOT NULL AND (d.details->>'dueDate')::date <= CURRENT_DATE + COALESCE((d.details->>'reminderDays')::int,3) AND COALESCE((SELECT sum(p.principal) FROM debt_payments p WHERE p.debt_id=d.id),0) < d.principal ON CONFLICT(id) DO NOTHING"
+  );
+}
+export async function archiveDebt(db: DB, owner: string, did: string) {
+  id.parse(did);
+  const result=await db.query("UPDATE debts SET archived_at=now() WHERE id=$1 AND owner_id=$2 AND archived_at IS NULL RETURNING id",[did,owner]);
+  if(!result.rows.length)throw new Error("Utang tidak ditemukan");
+  await db.query("INSERT INTO audit_logs(owner_id,action,entity_id) VALUES($1,'debt.archive',$2)",[owner,did]);
+  return {ok:true};
 }
 export async function payDebt(db: DB, owner: string, did: string, raw: any) {
   id.parse(did);
@@ -260,6 +282,9 @@ export async function payDebt(db: DB, owner: string, did: string, raw: any) {
         minor(p.interest).toString(),
       ],
     );
+    if(d.direction==="borrowed" && d.details?.repaymentMode==="installment" && d.details?.dueDate){
+      await tx.query("UPDATE debts SET details=jsonb_set(details,'{dueDate}',to_jsonb(((details->>'dueDate')::date + interval '1 month')::date::text)) WHERE id=$1 AND owner_id=$2",[did,owner]);
+    }
     return result;
   });
 }

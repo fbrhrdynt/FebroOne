@@ -54,7 +54,8 @@ export default function FinancePage() {
   const [strategy, setStrategy] = useState("avalanche");
   const [csv, setCsv] = useState<any[] | null>(null);
   const [key, setKey] = useState(crypto.randomUUID());
-  const [debtDirection,setDebtDirection]=useState<"borrowed"|"lent">("borrowed");
+  const [debtDirection,setDebtDirection]=useState<"borrowed"|"lent">(selected?.direction||"borrowed");
+  useEffect(()=>{if(modal==="debt")setDebtDirection(selected?.direction||"borrowed");},[modal,selectedId]);
   const financeDraftKey=`finance-draft:${profile.data?.user.id||""}:${modal}:${selectedId||"new"}`;
   const draftCommitted=useRef(false);
   useEffect(()=>{
@@ -145,13 +146,21 @@ export default function FinancePage() {
         d.monthlyPayment = d.monthlyPayment || undefined;
         d.dueDate = d.dueDate || undefined;
         d.rates = d.rates ? JSON.parse(d.rates) : [];
-        const debt = await store.addDebt(d);
+        const debt = selectedId ? await store.updateDebt(selectedId,d) : await store.addDebt(d);
         if (documents.length) {
           const documentRecord = await store.saveRecord({kind:"notes",title:"Dokumen utang - "+d.name,tags:["finance","debt-document",debt.id],data:{folder:"Keuangan/Utang",kind:"Knowledge",content:"Dokumen pendukung untuk "+d.name+" (ID: "+debt.id+")",pinned:false,favorite:false}});
           for (const file of documents) await store.uploadFile(documentRecord.id,file);
         }
       }
-      if (modal === "pay") await store.payDebt(selected.id, { ...d, key });
+      if (modal === "pay") {
+        const paymentFiles=Array.from((e.currentTarget.elements.namedItem("paymentFiles") as HTMLInputElement | null)?.files||[]);
+        delete d.paymentFiles;
+        const payment=await store.payDebt(selected.id,{...d,key});
+        if(paymentFiles.length){
+          const paymentRecord=await store.saveRecord({kind:"notes",title:"Bukti pembayaran - "+selected.name+" - "+d.date,tags:["finance","debt-payment",selected.id,payment.id||key],data:{folder:"Keuangan/Bukti Pembayaran",kind:"Knowledge",content:"Bukti pembayaran utang "+selected.name+" tanggal "+d.date+". Pokok: "+d.principal+". Bunga: "+d.interest+".",pinned:false,favorite:false}});
+          for(const file of paymentFiles)await store.uploadFile(paymentRecord.id,file);
+        }
+      }
       draftCommitted.current=true;sessionStorage.removeItem(financeDraftKey);
       await q.invalidateQueries();
       setModal("");
@@ -262,21 +271,34 @@ export default function FinancePage() {
           <small>{tr("Rekening + aset + piutang − kewajiban")}</small>
         </div>
       </div>
-      <div className="tabs page-tabs">
-        <Link className={!debtPage ? "active" : ""} to="/finance">
-          Overview
-        </Link>
-        <Link className={debtPage ? "active" : ""} to="/debts">
-          Debt
-        </Link>
+      {!debtPage&&<div className="tabs page-tabs">
+        <Link className="active" to="/finance">Overview</Link>
+        <Link to="/debts">Debt</Link>
         <Link to="/records/budgets">{tr("Budgets")}</Link>
         <Link to="/records/bills">{tr("Bills")}</Link>
         <Link to="/records/savings">{tr("Savings")}</Link>
         <Link to="/records/assets">{tr("Assets")}</Link>
         <Link to="/records/categories">{tr("Categories")}</Link>
-      </div>
+      </div>}
       {debtPage ? (
         <>
+          <section className="panel debt-overview">
+            <div className="section-heading"><h2>Ringkasan pembayaran</h2><span className="badge">Aktif</span></div>
+            <div className="debt-overview-grid">
+              <div><small>Total kewajiban tersisa</small><strong>{money(liability)}</strong></div>
+              <div><small>Total piutang belum diterima</small><strong>{money(receivable)}</strong></div>
+              <div><small>Jadwal pembayaran terdekat</small><strong>{s.debts.filter((d:any)=>d.direction==="borrowed"&&d.dueDate).sort((a:any,b:any)=>String(a.dueDate).localeCompare(String(b.dueDate)))[0]?.dueDate||"Belum diatur"}</strong></div>
+            </div>
+          </section>
+          <section className="panel debt-reminders">
+            <div className="section-heading"><h2>Pengingat pembayaran</h2><span className="hint">Berdasarkan tanggal jatuh tempo</span></div>
+            {s.debts.filter((d:any)=>d.direction==="borrowed"&&d.dueDate&&Number(d.principal)>Number(d.paid)).sort((a:any,b:any)=>String(a.dueDate).localeCompare(String(b.dueDate))).slice(0,5).map((d:any)=>{
+              const days=Math.ceil((new Date(d.dueDate+"T00:00:00").getTime()-new Date(localDay()+"T00:00:00").getTime())/86400000);
+              const amount=d.monthlyPayment||new Decimal(d.principal).minus(d.paid).toFixed(2);
+              return <div className="debt-due-row" key={d.id}><div><strong>{d.name}</strong><small>{d.dueDate} · {days<0?"Terlambat "+Math.abs(days)+" hari":days===0?"Jatuh tempo hari ini":"Dalam "+days+" hari"} · Pengingat "+(d.reminderDays??3)+" hari sebelumnya</small></div><strong>{money(amount)}</strong><Button onClick={()=>show("pay",d)}>Bayar</Button></div>;
+            })}
+            {!s.debts.some((d:any)=>d.direction==="borrowed"&&d.dueDate)&&<p className="hint">Belum ada jadwal jatuh tempo. Tambahkan tanggal pembayaran pada data utang.</p>}
+          </section>
           <div className="section-heading">
             <h2>{tr("Daftar utang & piutang")}</h2>
             <select
@@ -329,6 +351,8 @@ export default function FinancePage() {
                     {d.direction === "borrowed" && <p className="hint">{d.repaymentMode==="installment"?"Cicilan bulanan":"Pembayaran fleksibel"}{d.monthlyPayment ? " · "+money(d.monthlyPayment)+"/bulan" : " · Nominal cicilan belum ditentukan"}{d.dueDate ? " · Jatuh tempo "+d.dueDate : ""}</p>}
                     <progress max={d.principal} value={d.paid} />
                     <div className="row-actions">
+                      <Button variant="ghost" onClick={()=>show("debt",d)}>Edit</Button>
+                      <Button variant="ghost" onClick={async()=>{if(!window.confirm("Pindahkan "+d.name+" ke arsip? Data pembayaran tetap tersimpan."))return;try{await store.archiveDebt(d.id);await q.invalidateQueries({queryKey:["finance"]});}catch(e){setError(e);}}}>Arsipkan</Button>
                       <Button
                         variant="outline"
                         onClick={() => show("schedule", d)}
@@ -517,7 +541,7 @@ export default function FinancePage() {
         )}
       </div>
       </>}
-      {modal&&<section className="panel record-form-page"><Button variant="ghost" onClick={()=>setModal("")}>{tr("← Kembali / Batal")}</Button><h1>{({account:"Tambah akun",transaction:"Catat transaksi",debt:"Tambah utang / piutang",pay:"Catat pembayaran",schedule:"Jadwal & simulasi",import:"Preview impor CSV / Excel",reconcile:"Rekonsiliasi saldo"} as any)[modal]||"Keuangan"}</h1>
+      {modal&&<section className="panel record-form-page"><Button variant="ghost" onClick={()=>setModal("")}>{tr("← Kembali / Batal")}</Button><h1>{({account:"Tambah akun",transaction:"Catat transaksi",debt:selectedId?"Edit utang / piutang":"Tambah utang / piutang",pay:"Catat pembayaran",schedule:"Jadwal & simulasi",import:"Preview impor CSV / Excel",reconcile:"Rekonsiliasi saldo"} as any)[modal]||"Keuangan"}</h1>
         <ErrorText error={error} />
         {["account", "transaction", "debt", "pay"].includes(modal) && (
           <form className="form-stack" onSubmit={submit}>
@@ -628,29 +652,30 @@ export default function FinancePage() {
                   </select>
                 </Field>
                 <Field label={debtDirection==="borrowed"?"Nama pemberi pinjaman / platform":"Nama peminjam / pihak yang berutang"}>
-                  <input name="name" required placeholder={debtDirection==="borrowed"?"Contoh: Bank, kartu kredit, pinjol":"Nama orang atau perusahaan"}/>
+                  <input name="name" required defaultValue={selected?.name||""} placeholder={debtDirection==="borrowed"?"Contoh: Bank, kartu kredit, pinjol":"Nama orang atau perusahaan"}/>
                 </Field>
                 {debtDirection==="borrowed" ? <>
-                  <Field label="Total pokok utang (IDR)"><input name="principal" type="number" min="0.01" step="0.01" required placeholder="Total kewajiban saat ini"/></Field>
-                  <Field label="Skema pembayaran"><select name="repaymentMode" defaultValue="flexible"><option value="flexible">Manual / nominal belum pasti</option><option value="installment">Cicilan bulanan</option></select></Field>
-                  <Field label="Cicilan per bulan (IDR) — opsional"><input name="monthlyPayment" type="number" min="0" step="0.01" placeholder="Isi jika nominal sudah diketahui"/></Field>
-                  <Field label="Batas waktu pembayaran terakhir"><input name="dueDate" type="date"/></Field>
+                  <Field label="Total pokok utang (IDR)"><input name="principal" type="number" min="0.01" step="0.01" required defaultValue={selected?.principal||""} placeholder="Total kewajiban saat ini"/></Field>
+                  <Field label="Skema pembayaran"><select name="repaymentMode" defaultValue={selected?.repaymentMode||"flexible"}><option value="flexible">Manual / nominal belum pasti</option><option value="installment">Cicilan bulanan</option></select></Field>
+                  <Field label="Cicilan per bulan (IDR) — opsional"><input name="monthlyPayment" type="number" min="0" step="0.01" defaultValue={selected?.monthlyPayment||""} placeholder="Isi jika nominal sudah diketahui"/></Field>
+                  <Field label="Batas waktu pembayaran terakhir"><input name="dueDate" type="date" defaultValue={selected?.dueDate||""}/></Field>
+                  <Field label="Pengingat sebelum jatuh tempo"><select name="reminderDays" defaultValue={String(selected?.reminderDays??3)}><option value="0">Hari H saja</option><option value="1">1 hari sebelumnya</option><option value="3">3 hari sebelumnya</option><option value="7">7 hari sebelumnya</option><option value="14">14 hari sebelumnya</option><option value="30">30 hari sebelumnya</option></select></Field>
                   <Field label="Jenis pembayaran / aktivitas">
-                    <input name="paymentType" list="debt-payment-types" placeholder="Ketik: Cicilan, Keringanan, Pelunasan..."/>
+                    <input name="paymentType" list="debt-payment-types" defaultValue={selected?.paymentType||""} placeholder="Ketik: Cicilan, Keringanan, Pelunasan..."/>
                     <datalist id="debt-payment-types">
                       {Array.from(new Set(s.debts.map((d:any)=>d.paymentType).filter(Boolean))).map((v:any)=><option key={v} value={v}/>)}
                       <option value="Cicilan"/><option value="Keringanan"/><option value="Pelunasan"/>
                     </datalist>
                   </Field>
                   <div className="form-grid">
-                    <Field label="Bank tujuan pembayaran"><input name="paymentBank" placeholder="Nama bank"/></Field>
-                    <Field label="Nomor rekening / VA"><input name="paymentAccount" inputMode="numeric" placeholder="Nomor rekening atau virtual account"/></Field>
+                    <Field label="Bank tujuan pembayaran"><input name="paymentBank" defaultValue={selected?.paymentBank||""} placeholder="Nama bank"/></Field>
+                    <Field label="Nomor rekening / VA"><input name="paymentAccount" inputMode="numeric" defaultValue={selected?.paymentAccount||""} placeholder="Nomor rekening atau virtual account"/></Field>
                   </div>
-                  <Field label="Bunga tahunan (%) — jika diketahui"><input name="apr" type="number" step="0.01" min="0" max="100" defaultValue="0"/></Field>
-                  <Field label="Tenor (bulan) — perkiraan"><input name="months" type="number" min="1" max="600" defaultValue="12"/></Field>
-                  <Field label="Tanggal mulai"><input type="date" name="start" defaultValue={localDay()}/></Field>
-                  <Field label="Model bunga"><select name="model"><option value="reducing">Saldo menurun / anuitas</option><option value="flat">Flat atas pokok awal</option></select></Field>
-                  <details><summary>Perubahan bunga terjadwal (opsional)</summary><Field label='JSON, contoh: [{"month":7,"apr":9}]'><textarea name="rates" defaultValue="[]"/></Field></details>
+                  <Field label="Bunga tahunan (%) — jika diketahui"><input name="apr" type="number" step="0.01" min="0" max="100" defaultValue={selected?.apr??0}/></Field>
+                  <Field label="Tenor (bulan) — perkiraan"><input name="months" type="number" min="1" max="600" defaultValue={selected?.months??12}/></Field>
+                  <Field label="Tanggal mulai"><input type="date" name="start" defaultValue={selected?.start||localDay()}/></Field>
+                  <Field label="Model bunga"><select name="model" defaultValue={selected?.model||"reducing"}><option value="reducing">Saldo menurun / anuitas</option><option value="flat">Flat atas pokok awal</option></select></Field>
+                  <details><summary>Perubahan bunga terjadwal (opsional)</summary><Field label='JSON, contoh: [{"month":7,"apr":9}]'><textarea name="rates" defaultValue={JSON.stringify(selected?.rates||[])}/></Field></details>
                 </> : <>
                   <Field label="Total pokok piutang (IDR)"><input type="number" step="0.01" min="0.01" name="principal" required/></Field>
                   <div className="form-grid">
@@ -662,7 +687,7 @@ export default function FinancePage() {
                   <details><summary>Perubahan bunga terjadwal</summary><Field label='JSON, contoh: [{"month":7,"apr":9}]'><textarea name="rates" defaultValue="[]"/></Field></details>
                 </>}
                 <Field label="Dokumen pendukung (PDF, PNG, JPG, WebP · maks. 10 MB/file)"><input type="file" name="documents" accept=".pdf,.png,.jpg,.jpeg,.webp" multiple/></Field>
-                <Field label="Catatan"><textarea name="notes" rows={4} placeholder="Nomor kontrak, tanggal jatuh tempo, ketentuan, atau informasi lainnya."/></Field>
+                <Field label="Catatan"><textarea name="notes" rows={4} defaultValue={selected?.notes||""} placeholder="Nomor kontrak, tanggal jatuh tempo, ketentuan, atau informasi lainnya."/></Field>
                 <p className="hint">Pencatatan utang/piutang tidak otomatis mengubah saldo rekening. Catat transaksi pembayaran secara terpisah agar saldo tetap akurat.</p>
               </>
             )}
@@ -708,6 +733,9 @@ export default function FinancePage() {
                     defaultValue={localDay()}
                     required
                   />
+                </Field>
+                <Field label="Bukti pembayaran (PDF, PNG, JPG, WebP · maks. 10 MB/file)">
+                  <input type="file" name="paymentFiles" accept=".pdf,.png,.jpg,.jpeg,.webp" multiple/>
                 </Field>
                 <p className="hint">
                   Saldo berubah sebesar pokok + bunga. Hanya bunga dihitung
