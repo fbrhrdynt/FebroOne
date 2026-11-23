@@ -162,6 +162,7 @@ export const debtSchema = z.object({
   agreementDate: z.iso.date().optional(),
   repaymentStart: z.string().regex(/^\d{4}-(0[1-9]|1[0-2])$/).optional(),
   dueDay: z.coerce.number().int().min(1).max(31).optional(),
+  installmentCount: z.coerce.number().int().min(1).max(600).optional(),
   notes: z.string().max(10000).optional(),
   rates: z.array(z.object({month:z.number().int().min(1).max(600),apr:z.number().min(0).max(100)})).default([]),
 });
