@@ -116,12 +116,12 @@ export default function Home() {
           <Plus size={17} /> {en?"Add task":"Tambah tugas"}
         </Button>
       </section>
-      <div className="quick-capture">
+      <div className="quick-capture dashboard-quick-actions">
         <QuickAction icon={<FileText size={18}/>} onClick={() => setKind("notes")}>{en?"Capture an idea":"Tangkap ide"}</QuickAction>
         <QuickAction icon={<CalendarDays size={18}/>} onClick={() => setKind("events")}>{en?"Create agenda":"Buat agenda"}</QuickAction>
         <QuickAction icon={<Check size={18}/>} onClick={() => setKind("habits")}>{en?"Build a habit":"Bangun kebiasaan"}</QuickAction>
       </div>
-      <div className="dashboard-grid home-bento" aria-busy={data.isPending}>
+      <div className="dashboard-grid home-bento dashboard-compact" aria-busy={data.isPending}>
         <ActivityCard title={tr("Setiap langkah berarti")} to="/records/tasks" className="completion-card">
           <div className="completion-content"><CompletionRing value={allTasks.length ? completed / allTasks.length * 100 : 0} label={tr("Tugas selesai")}/><div><strong className="completion-total">{data.isPending ? "…" : completed}<span> / {data.isPending ? "…" : allTasks.length}</span></strong><p>{tr("tugas selesai")}</p><small>{allTasks.length ? `${tasks.length} tugas menunggu langkah Anda` : "Tambahkan tugas untuk mulai melacak progres."}</small></div></div>
           <Link className="text-button" to="/records/tasks">{en?"View all tasks":"Lihat semua tugas"} <ArrowRight size={15}/></Link>
