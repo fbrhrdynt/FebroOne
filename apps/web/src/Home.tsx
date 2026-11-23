@@ -72,20 +72,14 @@ export default function Home() {
       new Date(r.data.expiry).getTime() - Date.now() < 30 * 86400000,
   );
   const notes = rs.filter((r) => r.kind === "notes").slice(0, 4);
-  const greeting =
-    new Date().getHours() < 11
-      ? "Selamat pagi"
-      : new Date().getHours() < 15
-        ? "Selamat siang"
-        : new Date().getHours() < 18
-          ? "Selamat sore"
-          : "Selamat malam";
+  const hour = new Date().getHours();
+  const greeting = en ? (hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening") : (hour < 11 ? "Selamat pagi" : hour < 15 ? "Selamat siang" : hour < 18 ? "Selamat sore" : "Selamat malam");
   if (data.isError && !data.data) return <><PageHeader title="Workspace belum dapat dimuat"/><ErrorText error={data.error}/><Button onClick={()=>data.refetch()}>Coba lagi</Button></>;
   if (data.isPending) return <><PageHeader title={en?"Your day, in one place.":"Hari Anda, dalam satu tempat."} description={en?"Loading workspace…":"Memuat workspace…"}/><div className="dashboard-loading skeleton" role="status" aria-label="Memuat dashboard"/></>;
   return (
     <>
       <PageHeader
-        eyebrow={new Date().toLocaleDateString("id-ID", {
+        eyebrow={new Date().toLocaleDateString(en ? "en-GB" : "id-ID", {
           weekday: "long",
           day: "numeric",
           month: "long",
