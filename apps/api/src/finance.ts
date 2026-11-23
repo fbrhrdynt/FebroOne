@@ -56,12 +56,13 @@ export async function financialState(db: DB, owner: string) {
     debts: d.rows.map((d) => ({
       ...d,
       ...(d.details || {}),
+      settledAt: d.settled_at ? (typeof d.settled_at === "string" ? d.settled_at : d.settled_at.toISOString()) : null,
       principal: major(d.principal),
       paid: major(d.paid),
       apr: Number(d.apr),
       start: d.start ? (typeof d.start === "string" ? d.start : d.start.toISOString().slice(0, 10)) : null,
     })),
-    installments: installments.rows.map((item) => ({...item,amount:item.amount===null?null:major(item.amount)})),
+    installments: installments.rows.map((item) => ({...item,debtId:item.debt_id,paidAt:item.paid_at,amount:item.amount===null?null:major(item.amount)})),
   };
 }
 export async function createAccount(db: DB, owner: string, raw: any) {
@@ -194,7 +195,7 @@ export async function createDebt(db: DB, owner: string, raw: any) {
       d.direction,
       d.model,
       JSON.stringify(d.rates),
-      JSON.stringify({dueDate:d.dueDate||null,repaymentMode:d.repaymentMode||"installment",monthlyPayment:d.monthlyPayment||null,paymentBank:d.paymentBank||"",paymentAccount:d.paymentAccount||"",paymentType:d.paymentType||"",creditorType:d.creditorType||"other",agreementDate:d.agreementDate||null,repaymentStart:d.repaymentStart||null,dueDay:d.dueDay||null,notes:d.notes||"",reminderDays:d.reminderDays??7}),
+      JSON.stringify({dueDate:d.dueDate||null,repaymentMode:d.repaymentMode||"installment",monthlyPayment:d.monthlyPayment||null,paymentBank:d.paymentBank||"",paymentAccount:d.paymentAccount||"",paymentType:d.paymentType||"",creditorType:d.creditorType||"other",agreementDate:d.agreementDate||null,repaymentStart:d.repaymentStart||null,dueDay:d.dueDay||null,notes:d.notes||"",reminderDays:d.reminderDays??7,installmentCount:d.installmentCount||null}),
     ],
   );
   return { id: did };
@@ -204,7 +205,7 @@ export async function updateDebt(db: DB, owner: string, did: string, raw: any) {
   const d = debtSchema.parse(raw);
   const result = await db.query(
     "UPDATE debts SET name=$1,principal=$2,apr=$3,months=$4,start=$5,direction=$6,model=$7,rates=$8,details=$9 WHERE id=$10 AND owner_id=$11 AND archived_at IS NULL RETURNING id",
-    [d.name,minor(d.principal).toString(),d.apr,d.months,d.start||null,d.direction,d.model,JSON.stringify(d.rates),JSON.stringify({dueDate:d.dueDate||null,repaymentMode:d.repaymentMode||"installment",monthlyPayment:d.monthlyPayment||null,paymentBank:d.paymentBank||"",paymentAccount:d.paymentAccount||"",paymentType:d.paymentType||"",creditorType:d.creditorType||"other",agreementDate:d.agreementDate||null,repaymentStart:d.repaymentStart||null,dueDay:d.dueDay||null,notes:d.notes||"",reminderDays:d.reminderDays??7}),did,owner]
+    [d.name,minor(d.principal).toString(),d.apr,d.months,d.start||null,d.direction,d.model,JSON.stringify(d.rates),JSON.stringify({dueDate:d.dueDate||null,repaymentMode:d.repaymentMode||"installment",monthlyPayment:d.monthlyPayment||null,paymentBank:d.paymentBank||"",paymentAccount:d.paymentAccount||"",paymentType:d.paymentType||"",creditorType:d.creditorType||"other",agreementDate:d.agreementDate||null,repaymentStart:d.repaymentStart||null,dueDay:d.dueDay||null,notes:d.notes||"",reminderDays:d.reminderDays??7,installmentCount:d.installmentCount||null}),did,owner]
   );
   if (!result.rows.length) throw new Error("Utang tidak ditemukan");
   return {id:did};
@@ -258,7 +259,8 @@ export async function runDebtReminders(db: DB) {
       AND COALESCE(NULLIF(d.details->>'monthlyPayment','')::numeric,0)>0
       AND NULLIF(d.details->>'dueDay','') IS NOT NULL
       AND (d.details->>'repaymentStart' IS NULL OR m.period >= (d.details->>'repaymentStart')::date)
-      AND due.due_date <= CURRENT_DATE + COALESCE((d.details->>'reminderDays')::int,7)
+      AND (d.details->>'installmentCount' IS NULL OR m.period < ((d.details->>'repaymentStart')::date + ((d.details->>'installmentCount')::int * interval '1 month')))
+      AND (due.due_date BETWEEN CURRENT_DATE AND CURRENT_DATE + COALESCE((d.details->>'reminderDays')::int,7) OR due.due_date < CURRENT_DATE)
       AND NOT EXISTS (
         SELECT 1 FROM debt_installments i
         WHERE i.debt_id=d.id AND i.period=m.period AND i.status='paid'
