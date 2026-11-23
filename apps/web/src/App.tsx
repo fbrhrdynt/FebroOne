@@ -1,5 +1,5 @@
 import { tr } from "./i18n";
-import { lazy, Suspense, useEffect, useState, useRef } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 import {
   Routes,
   Route,
@@ -85,7 +85,6 @@ function Login({ onDone, language, setLanguage }: { onDone: () => void; language
   const [error, setError] = useState<unknown>();
   const [busy, setBusy] = useState(false);
   const [showPassword,setShowPassword]=useState(false);
-  const emailRef=useRef<HTMLInputElement>(null);
   const t=copy[language];
   return (
     <div className="login-page">
@@ -119,7 +118,7 @@ function Login({ onDone, language, setLanguage }: { onDone: () => void; language
           }}
         >
           <Field label={t.email}>
-            <input ref={emailRef} name="email" type="email" autoComplete="username" required />
+            <input name="email" type="email" autoComplete="username" required />
           </Field>
           {recovery && (
             <Field label={t.recovery}>
@@ -139,10 +138,8 @@ function Login({ onDone, language, setLanguage }: { onDone: () => void; language
           </Button>
           {!recovery && (
             <Button variant="outline" type="button" disabled={busy} onClick={async()=>{
-              const email=emailRef.current?.value.trim();
-              if(!email){setError(language==="id"?"Masukkan email terlebih dahulu.":"Enter your email first.");return;}
               setBusy(true);setError(undefined);
-              try{await store.passkeyLogin(email);onDone();}
+              try{await store.passkeyLogin();onDone();}
               catch(e){setError(e);}
               finally{setBusy(false);}
             }}>
