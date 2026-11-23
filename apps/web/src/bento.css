@@ -235,3 +235,13 @@ main{max-width:1600px;width:100%;padding:30px 32px 80px}.panel,.stat{border-radi
 .finance-plan .plan-total small{font-size:11px;color:var(--muted)}
 .finance-plan .plan-income input[type=text],.finance-plan .plan-row input[type=text]{font-size:13px}
 @media(max-width:560px){.finance-plan .plan-expense{grid-template-columns:20px minmax(0,1fr) 105px 22px}.finance-plan .plan-row.plan-income{grid-template-columns:minmax(0,1fr) 112px 22px}.finance-plan .plan-total strong{font-size:19px}}
+
+.finance-plan .plan-summary{grid-template-columns:repeat(4,minmax(0,1fr))}
+.finance-plan .plan-unallocated{border-color:var(--blue);background:var(--accent)}
+.finance-plan .plan-unallocated strong{color:var(--blue)}
+.finance-plan .plan-copy-prompt{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px;border:1px solid var(--blue);border-radius:13px;background:var(--accent)}
+.finance-plan .plan-copy-prompt>div{display:grid;gap:4px;min-width:0}
+.finance-plan .plan-copy-prompt strong{font-size:13px}
+.finance-plan .plan-copy-prompt small,.finance-plan .plan-copy-notice{font-size:11px;color:var(--muted)}
+.finance-plan .plan-copy-notice{margin:0}
+@media(max-width:800px){.finance-plan .plan-summary{grid-template-columns:repeat(2,minmax(0,1fr))}.finance-plan .plan-copy-prompt{align-items:flex-start;flex-direction:column}}

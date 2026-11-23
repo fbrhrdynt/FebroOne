@@ -15,7 +15,7 @@ export default function WorkspaceCategories(){
     <button className="workspace-group-toggle" aria-expanded={isOpen} disabled={busy} onClick={()=>save(isOpen?expanded.filter(v=>v!==g):[...expanded,g])}>
       <span><ModuleIcon group={g}/><strong>{g}</strong><small>{items.length}</small></span><span className="workspace-chevron">{isOpen?'−':'+'}</span>
     </button>
-    {isOpen&&<div className="workspace-group-items">{items.map(m=><Link key={m.key} to={m.key==='events'?'/calendar':m.key==='incomePlans'?'/finance/plans':'/records/'+m.key}>{m.title}<span>↗</span></Link>)}</div>}
+    {isOpen&&<div className="workspace-group-items">{items.map(m=><Link key={m.key} to={m.key==='events'?'/calendar':m.key==='incomePlans'?'/finance/plans':m.key==='debts'?'/debts':'/records/'+m.key}>{m.title}<span>↗</span></Link>)}</div>}
   </section>})}</div>
  </div>;
 }
