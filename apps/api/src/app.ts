@@ -20,6 +20,8 @@ import {
   createTransaction,
   financialState,
   createDebt,
+  updateDebt,
+  archiveDebt,
   payDebt,
   reverseTransaction,
   importTransactions,
@@ -603,6 +605,8 @@ export async function makeApp(
     reverseTransaction(db, owner(req), req.params.id),
   );
   app.post("/api/debts", (req) => createDebt(db, owner(req), req.body));
+  app.put("/api/debts/:id", (req:any) => updateDebt(db, owner(req), req.params.id, req.body));
+  app.delete("/api/debts/:id", (req:any) => archiveDebt(db, owner(req), req.params.id));
   app.post("/api/debts/:id/pay", (req: any) =>
     payDebt(db, owner(req), req.params.id, req.body),
   );
