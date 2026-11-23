@@ -422,7 +422,7 @@ export default function CalendarPage() {
                 }
               }}
             >
-              <button className="day-number" aria-label={d.toLocaleDateString("id-ID",{weekday:"long",day:"numeric",month:"long",year:"numeric"})} aria-current={dayKey(d) === localDay() ? "date" : undefined} aria-pressed={dayKey(d) === dayKey(date)} onClick={()=>setDate(d)}>{d.getDate()}</button>
+              <button className="day-number" aria-label={d.toLocaleDateString(localStorage.getItem("febro-one-language")==="en"?"en-GB":"id-ID",{weekday:"long",day:"numeric",month:"long",year:"numeric"})} aria-current={dayKey(d) === localDay() ? "date" : undefined} aria-pressed={dayKey(d) === dayKey(date)} onClick={()=>setDate(d)}>{d.getDate()}</button>
               {events(d).map((r) => (
                 <button
                   draggable={r.kind === "events"}
