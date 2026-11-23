@@ -441,6 +441,17 @@ export const modules: Module[] = [
     fields: [f("kind", "Jenis"), f("content", "Isi template", "textarea")],
   },
   {
+    key: "incomePlans",
+    title: "Rencana keuangan",
+    group: "Keuangan",
+    description: "Rencanakan beberapa sumber pemasukan dan alokasikan pengeluaran bulanan dengan checklist.",
+    fields: [
+      f("month", "Bulan (YYYY-MM)", "text", undefined, true),
+      f("incomeSources", "Sumber pemasukan (JSON)", "textarea"),
+      f("plannedItems", "Rencana pengeluaran (JSON)", "textarea"),
+    ],
+  },
+  {
     key: "budgets",
     title: "Budgets",
     group: "Keuangan",
