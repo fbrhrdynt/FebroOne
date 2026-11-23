@@ -12,7 +12,7 @@ type PaymentDraft = { debt: Debt; periods: string[] };
 const monthLabel=(value:string)=>new Date(value+"-01T00:00:00").toLocaleDateString("id-ID",{month:"long",year:"numeric"});
 const monthDate=(value:string,day?:number)=>{const [y,m]=value.split("-").map(Number);const last=new Date(y,m,0).getDate();return new Date(y,m-1,Math.min(day||1,last)).toISOString().slice(0,10)};
 const money=(value:any)=>value===null||value===undefined||value===""?"Belum diisi":rp(value);
-const formatThousands=(value:any)=>{const whole=String(value??"").split(".")[0];const digits=whole.replace(/\\D/g,"");return digits?new Intl.NumberFormat("id-ID",{maximumFractionDigits:0}).format(Number(digits)):"";};
+const formatThousands=(value:any)=>formatMoneyInput(value);
 const rawMoney=(value:any)=>String(value??"").replace(/[^0-9]/g,"");
 const creditorLabel:Record<string,string>={bank:"Pinjaman bank","credit-card":"Kartu kredit",paylater:"PayLater",pinjol:"Pinjaman online",koperasi:"Koperasi",personal:"Pribadi",other:"Lainnya"};
 export default function DebtCenter(){
