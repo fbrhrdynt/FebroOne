@@ -172,6 +172,7 @@ export default function App() {
   const [profileOpen, setProfileOpen] = useState(false);
   const [language,setLanguageState]=useState<Language>(()=>localStorage.getItem(languageStorageKey)==="en"?"en":"id");
   const setLanguage=(v:Language)=>{setLanguageState(v);localStorage.setItem(languageStorageKey,v);};
+  useEffect(()=>{const syncLanguage=()=>setLanguageState(localStorage.getItem(languageStorageKey)==="en"?"en":"id");window.addEventListener("febro-language-change",syncLanguage);return()=>window.removeEventListener("febro-language-change",syncLanguage);},[]);
   const t=copy[language];
   const [shellError, setShellError] = useState<unknown>();
   const [themeBusy, setThemeBusy] = useState(false);
