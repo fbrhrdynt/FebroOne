@@ -122,7 +122,7 @@ export function RecordFormPage({
     (l: any) => l.source_id === initial?.id || l.target_id === initial?.id,
   );
   return (
-    <section className="panel record-form-page"><header><Button variant="ghost" onClick={onClose}>{tr("← Kembali")}</Button><h1>{initial ? "Edit " + m.title : "Tambah " + m.title}</h1><p>{m.description}</p></header>
+    <section className="panel record-form-page"><header><Button variant="ghost" onClick={onClose}>{tr("← Kembali")}</Button><h1>{initial ? tr("Edit") + " " + tr(m.title) : tr("Tambah") + " " + tr(m.title)}</h1><p>{tr(m.description)}</p></header>
       <div className="tabs">
         <button
           className={tab === "edit" ? "active" : ""}
@@ -207,7 +207,7 @@ export function RecordFormPage({
                 key={f.key}
                 className={f.type === "textarea" ? "span-2" : ""}
               >
-                <Field label={f.label}>
+                <Field label={tr(f.label)}>
                   {f.key === "checklist" && kind === "tasks" ? (
                     <div className="form-stack">{checklistItems(data.checklist).map((item,index,items)=><div className="checklist-row" key={item.id}>
                     <input aria-label={tr("Selesai")} type="checkbox" checked={item.checked} onChange={e=>setData({...data,checklist:items.map((v,i)=>i===index?{...v,checked:e.target.checked}:v)})}/>
