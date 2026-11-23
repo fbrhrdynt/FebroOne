@@ -385,7 +385,7 @@ export default function App() {
         {offline && (
           <div className="offline-banner">
             <CloudOff size={16} />
-            Offline ·{" "}
+            Offline ·{tr(" ")}
             {store.trial
               ? "Data lokal tetap tersedia."
               : "Hanya draft notes yang dapat diedit."}
