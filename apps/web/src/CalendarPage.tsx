@@ -14,7 +14,8 @@ import * as store from "./store";
 import RecordForm from "./RecordForm";
 import { Button, PageHeader, Empty, ErrorText } from "./ui";
 const dayNames = ["Sen", "Sel", "Rab", "Kam", "Jum", "Sab", "Min"];
-const calendarDate = (value: string) => /^\\d{4}-\\d{2}-\\d{2}$/.test(value) ? new Date(Number(value.slice(0,4)), Number(value.slice(5,7))-1, Number(value.slice(8,10))) : new Date(value);\nconst dayKey = (d: Date) =>
+const calendarDate = (value: string) => /^\d{4}-\d{2}-\d{2}$/.test(value) ? new Date(Number(value.slice(0,4)), Number(value.slice(5,7))-1, Number(value.slice(8,10))) : new Date(value);
+const dayKey = (d: Date) =>
   `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 export default function CalendarPage() {
   const q = useQueryClient();
