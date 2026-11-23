@@ -75,7 +75,6 @@ const nav = [
   ["/records/tasks", "Tasks", CheckSquare],
   ["/records/notes", "Notes", FileText],
   ["/finance", "Finance", Wallet],
-  ["/debts", "Debt", ChartNoAxesCombined],
   ["/records/work", "Workspace", BriefcaseBusiness],
   ["/records/trainings", "Career", GraduationCap],
   ["/records/activities", "Life", Heart],
