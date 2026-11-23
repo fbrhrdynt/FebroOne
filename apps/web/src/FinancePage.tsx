@@ -621,6 +621,12 @@ export default function FinancePage() {
             )}
             {modal === "debt" && (
               <>
+                <Field label="Jenis pencatatan">
+                  <select name="direction" value={debtDirection} onChange={e=>setDebtDirection(e.target.value as "borrowed"|"lent")}>
+                    <option value="borrowed">Saya berutang</option>
+                    <option value="lent">Orang lain berutang kepada saya</option>
+                  </select>
+                </Field>
                 <Field label={debtDirection==="borrowed"?"Nama pemberi pinjaman / platform":"Nama peminjam / pihak yang berutang"}>
                   <input name="name" required placeholder={debtDirection==="borrowed"?"Contoh: Bank, kartu kredit, pinjol":"Nama orang atau perusahaan"}/>
                 </Field>
