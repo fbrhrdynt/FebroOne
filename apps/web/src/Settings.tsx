@@ -127,10 +127,10 @@ export default function Settings() {
               : "Data utama tersimpan di PostgreSQL. Draft catatan offline disimpan di perangkat ini sampai tersinkron."}
           </p>
           <p>
-            Penyimpanan lampiran:{" "}
+            Penyimpanan lampiran:{tr(" ")}
             {(
               files.reduce((a: number, f: any) => a + f.size, 0) / 1048576
-            ).toFixed(2)}{" "}
+            ).toFixed(2)}{tr(" ")}
             / 100 MB
           </p>
           <div className="form-stack">
