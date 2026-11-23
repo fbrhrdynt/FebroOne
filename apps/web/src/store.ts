@@ -383,6 +383,15 @@ export async function addDebt(raw: any) {
     return d;
   });
 }
+export async function updateDebt(id: string, raw: any) {
+  const p=debtSchema.parse(raw);
+  if(!trial)return api("/debts/"+id,"PUT",p);
+  return financeMutation(s=>{const d=s.debts.find((x:any)=>x.id===id);if(!d)throw new Error("Utang tidak ditemukan");Object.assign(d,p);return d;});
+}
+export async function archiveDebt(id: string) {
+  if(!trial)return api("/debts/"+id,"DELETE");
+  return financeMutation(s=>{const d=s.debts.find((x:any)=>x.id===id);if(!d)throw new Error("Utang tidak ditemukan");d.archivedAt=new Date().toISOString();s.debts=s.debts.filter((x:any)=>x.id!==id);return {ok:true};});
+}
 export async function payDebt(id: string, p: any) {
   minor(p.principal);
   minor(p.interest);
