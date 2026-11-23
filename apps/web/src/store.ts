@@ -71,7 +71,7 @@ export async function identity() {
         preferences: {
           timezone: "Asia/Jakarta",
           widgets: ["tasks", "agenda", "finance", "career", "notes"],
-          theme: "light",
+          theme: "dark",
         },
       }),
     };
