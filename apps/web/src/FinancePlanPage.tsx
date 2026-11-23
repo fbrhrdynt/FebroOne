@@ -50,7 +50,7 @@ export default function FinancePlanPage(){
  const planned=useMemo(()=>items.reduce((s,v)=>s+numberValue(v.amount),0),[items]);
  const remaining=totalIncome-allocated;
  function markDirty(){dirtyRef.current=true;setSaveState("saving");}
- function changeMonth(value:string){if(value&&value!==month){setLoaded(false);setMonth(value);}}
+ function changeMonth(value:string){if(value&&value!==month){void persist().finally(()=>{setLoaded(false);setMonth(value);});}}
  function updateIncome(id:string,patch:Partial<Income>){markDirty();setIncomes(v=>v.map(x=>x.id===id?{...x,...patch}:x));}
  function updateItem(id:string,patch:Partial<Item>){markDirty();setItems(v=>v.map(x=>x.id===id?{...x,...patch}:x));}
  async function persist(){
