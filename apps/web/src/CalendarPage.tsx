@@ -14,7 +14,7 @@ import * as store from "./store";
 import RecordForm from "./RecordForm";
 import { Button, PageHeader, Empty, ErrorText } from "./ui";
 const dayNames = ["Sen", "Sel", "Rab", "Kam", "Jum", "Sab", "Min"];
-const dayKey = (d: Date) =>
+const calendarDate = (value: string) => /^\\d{4}-\\d{2}-\\d{2}$/.test(value) ? new Date(Number(value.slice(0,4)), Number(value.slice(5,7))-1, Number(value.slice(8,10))) : new Date(value);\nconst dayKey = (d: Date) =>
   `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 export default function CalendarPage() {
   const q = useQueryClient();
@@ -24,7 +24,7 @@ export default function CalendarPage() {
   });
   const linked = useQuery({queryKey:["records","calendar-linked"],queryFn:async()=>(await Promise.all([store.records("tasks"),store.records("reminders")])).flat()});
   const [date, setDate] = useState(new Date());
-  const [view, setView] = useState(() => matchMedia("(max-width: 800px)").matches ? "agenda" : "month");
+  const [view, setView] = useState("month");
   const [calendar, setCalendar] = useState("all");
   const [editing, setEditing] = useState<RecordItem>();
   const [open, setOpen] = useState(false);
@@ -59,7 +59,7 @@ export default function CalendarPage() {
     .flatMap((r) =>
       occurrences(r, new Date(year - 1, 11, 1), new Date(year + 1, 1, 1)),
     );
-  const expanded: (RecordItem & {occurrence?: string})[] = [...eventOccurrences, ...(linked.data || []).filter(r=>r.kind==="tasks" ? r.data.status!=="Completed" && r.data.due : !r.data.done && r.data.due).map(r=>({...r,data:{...r.data,start:r.data.due,end:r.data.due,allDay:!String(r.data.due).includes("T"),calendar:r.kind==="tasks"?"Tasks":"Reminders"},occurrence:"linked"})).filter(r=>calendar==="all"||r.data.calendar===calendar)];
+  const expanded: (RecordItem & {occurrence?: string})[] = [...eventOccurrences, ...(linked.data || []).filter(r=>r.kind==="tasks" ? r.data.status!=="Completed" && r.data.due : !r.data.done && r.data.due).map(r=>({...r,data:{...r.data,start:calendarDate(String(r.data.due)).toISOString(),end:calendarDate(String(r.data.due)).toISOString(),allDay:!String(r.data.due).includes("T"),calendar:r.kind==="tasks"?"Tasks":"Reminders"},occurrence:"linked"})).filter(r=>calendar==="all"||r.data.calendar===calendar)];
   function editItem(r: RecordItem) {
     setEditing((r.kind === "events" ? result.data : linked.data)?.find(x=>x.id===r.id));
     setOpen(true);
