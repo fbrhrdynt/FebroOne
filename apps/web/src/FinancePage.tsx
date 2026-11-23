@@ -332,7 +332,7 @@ export default function FinancePage() {
                 .map((d: any, i: number) => {
                   const remaining=new Decimal(d.principal).minus(d.paid);
                   const paymentMonths:string[]=[];
-                  if(d.direction==="borrowed"&&d.start&&d.monthlyPayment){
+                  if(d.direction==="borrowed"&&d.start){
                     const first=new Date(d.start+"T00:00:00");
                     const today=new Date(localDay()+"T00:00:00");
                     for(let cursor=new Date(first.getFullYear(),first.getMonth(),1),n=0;cursor<new Date(today.getFullYear(),today.getMonth(),1)&&n<240;cursor.setMonth(cursor.getMonth()+1),n++){
@@ -362,10 +362,7 @@ export default function FinancePage() {
                     {paymentMonths.length>0&&<details className="debt-history-checklist">
                       <summary>Pembayaran lampau <span>{paymentMonths.length} periode belum tercatat</span></summary>
                       <div className="debt-history-action">
-                        <select aria-label="Pilih periode pembayaran lampau" value={selectedMonth} onChange={e=>setHistorySelection(v=>({...v,[d.id]:e.target.value}))}>
-                          <option value="">Pilih bulan</option>
-                          {paymentMonths.map(m=><option key={m} value={m}>{new Date(m+"-01T00:00:00").toLocaleDateString("id-ID",{month:"long",year:"numeric"})}</option>)}
-                        </select>
+                        <div className="debt-history-months">{paymentMonths.map(m=><label key={m}><input type="checkbox" checked={selectedMonth===m} onChange={e=>setHistorySelection(v=>({...v,[d.id]:e.target.checked?m:""}))}/><span>{new Date(m+"-01T00:00:00").toLocaleDateString("id-ID",{month:"long",year:"numeric"})}</span></label>)}</div>
                         <Button size="sm" disabled={!selectedMonth} onClick={()=>{setPaymentDraft({debtId:d.id,date:selectedMonth+"-01",amount:d.monthlyPayment||""});show("pay",d);}}>Paid / Catat</Button>
                       </div>
                       <small className="hint">Pilih periode yang sudah dibayar. Tanggal dan nominal dapat disesuaikan sebelum disimpan.</small>
