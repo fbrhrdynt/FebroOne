@@ -1,3 +1,4 @@
+import { tr } from "./i18n";
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
@@ -155,9 +156,9 @@ export default function CalendarPage() {
   return (
     <>
       <PageHeader
-        eyebrow="Produktivitas"
-        title="Calendar"
-        description="Buat ruang untuk hal yang berarti."
+        eyebrow={tr("Produktivitas")}
+        title={tr("Calendar")}
+        description={tr("Buat ruang untuk hal yang berarti.")}
       >
         <Button
           onClick={() => {
@@ -173,7 +174,7 @@ export default function CalendarPage() {
         <div className="row-actions">
           <Button
             variant="ghost"
-            aria-label="Sebelumnya"
+            aria-label={tr("Sebelumnya")}
             onClick={() => move(-1)}
           >
             <ChevronLeft size={19} />
@@ -189,7 +190,7 @@ export default function CalendarPage() {
           </h2>
           <Button
             variant="ghost"
-            aria-label="Berikutnya"
+            aria-label={tr("Berikutnya")}
             onClick={() => move(1)}
           >
             <ChevronRight size={19} />
@@ -222,11 +223,11 @@ export default function CalendarPage() {
       </div>
       <div className="list-toolbar">
         <select
-          aria-label="Kalender"
+          aria-label={tr("Kalender")}
           value={calendar}
           onChange={(e) => setCalendar(e.target.value)}
         >
-          <option value="all">Semua kalender</option>
+          <option value="all">{tr("Semua kalender")}</option>
           {[
             ...new Set([...(result.data?.map((r) => r.data.calendar || "Personal") || []), "Tasks", "Reminders"]),
           ].map((c) => (
@@ -253,12 +254,12 @@ export default function CalendarPage() {
       <ErrorText error={error || result.error || linked.error} />
       {ics && (
         <div className="notice">
-          Preview: {ics.length} event.{" "}
+          Preview: {ics.length} event.{tr(" ")}
           {ics
             .slice(0, 3)
             .map((r) => r.title)
             .join(", ")}
-          .{" "}
+          .{tr(" ")}
           <Button
             onClick={async () => {
               try {
@@ -308,7 +309,7 @@ export default function CalendarPage() {
                       new Date(r.data.start).getMonth() === m &&
                       new Date(r.data.start).getFullYear() === year,
                   ).length
-                }{" "}
+                }{tr(" ")}
                 event
               </p>
               <div className="mini-days">
@@ -333,7 +334,7 @@ export default function CalendarPage() {
         </div>
       ) : view === "agenda" ? (
         <div className="record-list calendar-agenda">
-          {!expanded.some(r=>new Date(r.data.start).getMonth() === month && new Date(r.data.start).getFullYear() === year) && <Empty title="Ruang untuk rencana baru" text="Agenda, tugas, dan pengingat bulan ini tampil di sini." onAdd={()=>{setEditing(undefined);setOpen(true);}}/>}
+          {!expanded.some(r=>new Date(r.data.start).getMonth() === month && new Date(r.data.start).getFullYear() === year) && <Empty title={tr("Ruang untuk rencana baru")} text="Agenda, tugas, dan pengingat bulan ini tampil di sini." onAdd={()=>{setEditing(undefined);setOpen(true);}}/>}
           {expanded
             .filter(
               (r) =>
@@ -363,7 +364,7 @@ export default function CalendarPage() {
                       : new Date(r.data.start).toLocaleTimeString("id-ID", {
                           hour: "2-digit",
                           minute: "2-digit",
-                        })}{" "}
+                        })}{tr(" ")}
                     · {r.data.calendar || "Personal"}
                   </p>
                 </div>
@@ -421,7 +422,7 @@ export default function CalendarPage() {
                 }
               }}
             >
-              <button className="day-number" aria-label={d.toLocaleDateString("id-ID",{weekday:"long",day:"numeric",month:"long",year:"numeric"})} aria-current={dayKey(d) === localDay() ? "date" : undefined} aria-pressed={dayKey(d) === dayKey(date)} onClick={()=>setDate(d)}>{d.getDate()}</button>
+              <button className="day-number" aria-label={d.toLocaleDateString(localStorage.getItem("febro-one-language")==="en"?"en-GB":"id-ID",{weekday:"long",day:"numeric",month:"long",year:"numeric"})} aria-current={dayKey(d) === localDay() ? "date" : undefined} aria-pressed={dayKey(d) === dayKey(date)} onClick={()=>setDate(d)}>{d.getDate()}</button>
               {events(d).map((r) => (
                 <button
                   draggable={r.kind === "events"}

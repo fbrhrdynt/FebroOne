@@ -1,3 +1,4 @@
+import { tr } from "./i18n";
 import { useState, useEffect, useRef } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
@@ -193,13 +194,13 @@ export default function FinancePage() {
           selected.rates,
         )
       : null;
-  if (!state) return <><PageHeader title={debtPage ? "Debt & receivables" : "Finance"} description={loadError ? "Data keuangan belum dapat dimuat." : "Memuat data keuangan…"}/>{loadError ? <><ErrorText error={loadError}/><Button onClick={()=>q.invalidateQueries({queryKey:["finance"]})}>Coba lagi</Button></> : <div className="skeleton dashboard-loading" role="status" aria-label="Memuat keuangan"/>}</>;
-  if(["pay","schedule","reconcile"].includes(modal)&&!selected)return <><Button onClick={()=>setModal("")}>← Kembali</Button><Empty title="Pilih akun atau utang terlebih dahulu"/></>;
+  if (!state) return <><PageHeader title={tr(debtPage ? "Debt & receivables" : "Finance")} description={loadError ? "Data keuangan belum dapat dimuat." : "Memuat data keuangan…"}/>{loadError ? <><ErrorText error={loadError}/><Button onClick={()=>q.invalidateQueries({queryKey:["finance"]})}>{tr("Coba lagi")}</Button></> : <div className="skeleton dashboard-loading" role="status" aria-label={tr("Memuat keuangan")}/>}</>;
+  if(["pay","schedule","reconcile"].includes(modal)&&!selected)return <><Button onClick={()=>setModal("")}>{tr("← Kembali")}</Button><Empty title={tr("Pilih akun atau utang terlebih dahulu")}/></>;
   return (
     <>
       {!modal&&<>
       <PageHeader
-        eyebrow="Keuangan pribadi"
+        eyebrow={tr("Keuangan pribadi")}
         title={debtPage ? "Debt & receivables" : "Finance"}
         description={
           debtPage
@@ -209,7 +210,7 @@ export default function FinancePage() {
       >
         <Button
           variant="ghost"
-          aria-label="Sembunyikan nominal"
+          aria-label={tr("Sembunyikan nominal")}
           onClick={() => setMask(!mask)}
         >
           {mask ? <EyeOff size={18} /> : <Eye size={18} />}
@@ -222,7 +223,7 @@ export default function FinancePage() {
       <ErrorText error={loadError || (!modal && error)} />
       <div className="stat-grid">
         <div className="stat">
-          <span>Saldo rekening</span>
+          <span>{tr("Saldo rekening")}</span>
           <strong>{money(cash)}</strong>
           <small>{s.accounts.length} akun terdaftar</small>
         </div>
@@ -245,11 +246,11 @@ export default function FinancePage() {
           </small>
         </div>
         <div className="stat">
-          <span>Net worth</span>
+          <span>{tr("Net worth")}</span>
           <strong>
             {money(cash.plus(receivable).plus(assets).minus(liability))}
           </strong>
-          <small>Rekening + aset + piutang − kewajiban</small>
+          <small>{tr("Rekening + aset + piutang − kewajiban")}</small>
         </div>
       </div>
       <div className="tabs page-tabs">
@@ -259,23 +260,23 @@ export default function FinancePage() {
         <Link className={debtPage ? "active" : ""} to="/debts">
           Debt
         </Link>
-        <Link to="/records/budgets">Budgets</Link>
-        <Link to="/records/bills">Bills</Link>
-        <Link to="/records/savings">Savings</Link>
-        <Link to="/records/assets">Assets</Link>
-        <Link to="/records/categories">Categories</Link>
+        <Link to="/records/budgets">{tr("Budgets")}</Link>
+        <Link to="/records/bills">{tr("Bills")}</Link>
+        <Link to="/records/savings">{tr("Savings")}</Link>
+        <Link to="/records/assets">{tr("Assets")}</Link>
+        <Link to="/records/categories">{tr("Categories")}</Link>
       </div>
       {debtPage ? (
         <>
           <div className="section-heading">
-            <h2>Daftar utang & piutang</h2>
+            <h2>{tr("Daftar utang & piutang")}</h2>
             <select
-              aria-label="Strategi pelunasan"
+              aria-label={tr("Strategi pelunasan")}
               value={strategy}
               onChange={(e) => setStrategy(e.target.value)}
             >
-              <option value="avalanche">Avalanche · bunga tertinggi</option>
-              <option value="snowball">Snowball · saldo terkecil</option>
+              <option value="avalanche">{tr("Avalanche · bunga tertinggi")}</option>
+              <option value="snowball">{tr("Snowball · saldo terkecil")}</option>
             </select>
           </div>
           <p className="hint">
@@ -284,7 +285,7 @@ export default function FinancePage() {
           </p>
           {!s.debts.length ? (
             <Empty
-              title="Belum ada utang atau piutang"
+              title={tr("Belum ada utang atau piutang")}
               onAdd={() => show("debt")}
             />
           ) : (
@@ -313,7 +314,7 @@ export default function FinancePage() {
                       {money(new Decimal(d.principal).minus(d.paid))}
                     </strong>
                     <p>
-                      dari {money(d.principal)} ·{" "}
+                      dari {money(d.principal)} ·{tr(" ")}
                       {d.model === "flat" ? "Flat" : "Saldo menurun"}
                     </p>
                     <progress max={d.principal} value={d.paid} />
@@ -339,7 +340,7 @@ export default function FinancePage() {
       ) : (
         <>
           <div className="section-heading">
-            <h2>Rekening & dompet</h2>
+            <h2>{tr("Rekening & dompet")}</h2>
             <Button variant="ghost" onClick={() => show("account")}>
               <Plus size={16} />
               Akun
@@ -347,7 +348,7 @@ export default function FinancePage() {
           </div>
           {!s.accounts.length ? (
             <Empty
-              title="Mulai dari akun pertama"
+              title={tr("Mulai dari akun pertama")}
               text="Tambahkan rekening, uang tunai, atau e-wallet beserta saldo awal."
               onAdd={() => show("account")}
             />
@@ -374,8 +375,8 @@ export default function FinancePage() {
             </div>
           )}
           <div className="section-heading">
-            <h2>Anggaran bulan ini</h2>
-            <Link to="/records/budgets">Kelola →</Link>
+            <h2>{tr("Anggaran bulan ini")}</h2>
+            <Link to="/records/budgets">{tr("Kelola →")}</Link>
           </div>
           {rs.filter((r) => r.kind === "budgets" && r.data.month === month)
             .length === 0 ? (
@@ -403,7 +404,7 @@ export default function FinancePage() {
                         value={spent.toNumber()}
                       />
                       {spent.gt(b.data.amount) && (
-                        <small className="text-warn">Melebihi anggaran</small>
+                        <small className="text-warn">{tr("Melebihi anggaran")}</small>
                       )}
                     </div>
                   );
@@ -419,7 +420,7 @@ export default function FinancePage() {
             <Download size={16} />
             CSV
           </Button>
-          <Button variant="ghost" onClick={()=>import('./financeFiles').then(m=>m.exportExcel(s.transactions)).catch(setError)}>Excel</Button>
+          <Button variant="ghost" onClick={()=>import('./financeFiles').then(m=>m.exportExcel(s.transactions)).catch(setError)}>{tr("Excel")}</Button>
           <label className="button ghost">
             <Upload size={16} />
             Import
@@ -435,23 +436,23 @@ export default function FinancePage() {
         </div>
       </div>
       <div className="list-toolbar">
-        <select aria-label="Jenis transaksi" value={transactionKind} onChange={e=>setTransactionKind(e.target.value)}><option value="">Semua jenis</option><option value="income">Pemasukan</option><option value="expense">Pengeluaran</option><option value="transfer">Transfer</option><option value="debt_payment">Pembayaran utang</option><option value="debt_receipt">Penerimaan piutang</option></select>
-        <select aria-label="Rekening transaksi" value={accountFilter} onChange={e=>setAccountFilter(e.target.value)}><option value="">Semua rekening</option>{s.accounts.map((a:any)=><option key={a.id} value={a.id}>{a.name}</option>)}</select>
+        <select aria-label={tr("Jenis transaksi")} value={transactionKind} onChange={e=>setTransactionKind(e.target.value)}><option value="">{tr("Semua jenis")}</option><option value="income">{tr("Pemasukan")}</option><option value="expense">{tr("Pengeluaran")}</option><option value="transfer">{tr("Transfer")}</option><option value="debt_payment">{tr("Pembayaran utang")}</option><option value="debt_receipt">{tr("Penerimaan piutang")}</option></select>
+        <select aria-label={tr("Rekening transaksi")} value={accountFilter} onChange={e=>setAccountFilter(e.target.value)}><option value="">{tr("Semua rekening")}</option>{s.accounts.map((a:any)=><option key={a.id} value={a.id}>{a.name}</option>)}</select>
         <input
-          aria-label="Bulan transaksi"
+          aria-label={tr("Bulan transaksi")}
           type="month"
           value={month}
           onChange={(e) => setMonth(e.target.value)}
         />
         <input
-          placeholder="Cari transaksi…"
-          aria-label="Cari transaksi"
+          placeholder={tr("Cari transaksi…")}
+          aria-label={tr("Cari transaksi")}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
       </div>
       <div className="record-list">
-        <select aria-label="Urutkan transaksi" value={txSort} onChange={e=>setTxSort(e.target.value)}><option value="date-desc">Tanggal terbaru</option><option value="date-asc">Tanggal terlama</option><option value="amount-desc">Jumlah terbesar</option></select>
+        <select aria-label={tr("Urutkan transaksi")} value={txSort} onChange={e=>setTxSort(e.target.value)}><option value="date-desc">{tr("Tanggal terbaru")}</option><option value="date-asc">{tr("Tanggal terlama")}</option><option value="amount-desc">{tr("Jumlah terbesar")}</option></select>
         {sortedTransactions
           .slice(currentTxPage*30,(currentTxPage+1)*30)
           .map((t: any) => (
@@ -471,8 +472,8 @@ export default function FinancePage() {
               <div className="grow">
                 <strong>{t.description || t.category}</strong>
                 <p>
-                  {t.date} ·{" "}
-                  {s.accounts.find((a: any) => a.id === t.accountId)?.name} ·{" "}
+                  {t.date} ·{tr(" ")}
+                  {s.accounts.find((a: any) => a.id === t.accountId)?.name} ·{tr(" ")}
                   {t.category}
                   {t.reversed ? " · Dibatalkan" : ""}
                 </p>
@@ -481,7 +482,7 @@ export default function FinancePage() {
               {!t.reversed && !["opening", "reversal"].includes(t.kind) && (
                 <Button
                   variant="ghost"
-                  aria-label="Batalkan transaksi"
+                  aria-label={tr("Batalkan transaksi")}
                   onClick={async () => {
                     if(reverseId!==t.id){setReverseId(t.id);return;}
                     try {
@@ -497,36 +498,36 @@ export default function FinancePage() {
               )}
             </div>
           ))}
-        {sortedTransactions.length>30&&<div className="pagination"><Button disabled={!currentTxPage} onClick={()=>setTxPage(currentTxPage-1)}>Sebelumnya</Button><span>{currentTxPage+1} / {Math.ceil(sortedTransactions.length/30)}</span><Button disabled={(currentTxPage+1)*30>=sortedTransactions.length} onClick={()=>setTxPage(currentTxPage+1)}>Berikutnya</Button></div>}
+        {sortedTransactions.length>30&&<div className="pagination"><Button disabled={!currentTxPage} onClick={()=>setTxPage(currentTxPage-1)}>{tr("Sebelumnya")}</Button><span>{currentTxPage+1} / {Math.ceil(sortedTransactions.length/30)}</span><Button disabled={(currentTxPage+1)*30>=sortedTransactions.length} onClick={()=>setTxPage(currentTxPage+1)}>{tr("Berikutnya")}</Button></div>}
         {!sortedTransactions.length && (
           <Empty
-            title="Belum ada transaksi bulan ini"
+            title={tr("Belum ada transaksi bulan ini")}
             text="Catat transaksi pertama saat Anda siap."
           />
         )}
       </div>
       </>}
-      {modal&&<section className="panel record-form-page"><Button variant="ghost" onClick={()=>setModal("")}>← Kembali / Batal</Button><h1>{({account:"Tambah akun",transaction:"Catat transaksi",debt:"Tambah utang / piutang",pay:"Catat pembayaran",schedule:"Jadwal & simulasi",import:"Preview impor CSV / Excel",reconcile:"Rekonsiliasi saldo"} as any)[modal]||"Keuangan"}</h1>
+      {modal&&<section className="panel record-form-page"><Button variant="ghost" onClick={()=>setModal("")}>{tr("← Kembali / Batal")}</Button><h1>{({account:"Tambah akun",transaction:"Catat transaksi",debt:"Tambah utang / piutang",pay:"Catat pembayaran",schedule:"Jadwal & simulasi",import:"Preview impor CSV / Excel",reconcile:"Rekonsiliasi saldo"} as any)[modal]||"Keuangan"}</h1>
         <ErrorText error={error} />
         {["account", "transaction", "debt", "pay"].includes(modal) && (
           <form className="form-stack" onSubmit={submit}>
             {modal === "account" && (
               <>
-                <Field label="Nama akun">
+                <Field label={tr("Nama akun")}>
                   <input
                     name="name"
                     required
-                    placeholder="Contoh: Rekening utama"
+                    placeholder={tr("Contoh: Rekening utama")}
                   />
                 </Field>
-                <Field label="Jenis">
+                <Field label={tr("Jenis")}>
                   <select name="type">
-                    <option>Bank</option>
-                    <option>Cash</option>
-                    <option>E-wallet</option>
+                    <option>{tr("Bank")}</option>
+                    <option>{tr("Cash")}</option>
+                    <option>{tr("E-wallet")}</option>
                   </select>
                 </Field>
-                <Field label="Saldo awal IDR">
+                <Field label={tr("Saldo awal IDR")}>
                   <input
                     name="opening"
                     type="number"
@@ -540,16 +541,16 @@ export default function FinancePage() {
             )}
             {modal === "transaction" && (
               <>
-                <Field label="Jenis">
+                <Field label={tr("Jenis")}>
                   <select name="kind">
-                    <option value="expense">Pengeluaran</option>
-                    <option value="income">Pemasukan</option>
-                    <option value="transfer">Transfer internal</option>
+                    <option value="expense">{tr("Pengeluaran")}</option>
+                    <option value="income">{tr("Pemasukan")}</option>
+                    <option value="transfer">{tr("Transfer internal")}</option>
                   </select>
                 </Field>
-                <Field label="Dari / akun">
+                <Field label={tr("Dari / akun")}>
                   <select name="accountId" required>
-                    <option value="">Pilih akun</option>
+                    <option value="">{tr("Pilih akun")}</option>
                     {s.accounts.map((a: any) => (
                       <option key={a.id} value={a.id}>
                         {a.name}
@@ -557,9 +558,9 @@ export default function FinancePage() {
                     ))}
                   </select>
                 </Field>
-                <Field label="Akun tujuan (hanya transfer)">
+                <Field label={tr("Akun tujuan (hanya transfer)")}>
                   <select name="toAccountId">
-                    <option value="">Tidak digunakan</option>
+                    <option value="">{tr("Tidak digunakan")}</option>
                     {s.accounts.map((a: any) => (
                       <option key={a.id} value={a.id}>
                         {a.name}
@@ -567,7 +568,7 @@ export default function FinancePage() {
                     ))}
                   </select>
                 </Field>
-                <Field label="Nominal IDR">
+                <Field label={tr("Nominal IDR")}>
                   <input
                     name="amount"
                     type="number"
@@ -576,7 +577,7 @@ export default function FinancePage() {
                     required
                   />
                 </Field>
-                <Field label="Kategori">
+                <Field label={tr("Kategori")}>
                   <input
                     name="category"
                     list="categories"
@@ -591,7 +592,7 @@ export default function FinancePage() {
                       ))}
                   </datalist>
                 </Field>
-                <Field label="Tanggal">
+                <Field label={tr("Tanggal")}>
                   <input
                     type="date"
                     name="date"
@@ -599,7 +600,7 @@ export default function FinancePage() {
                     required
                   />
                 </Field>
-                <Field label="Deskripsi">
+                <Field label={tr("Deskripsi")}>
                   <input name="description" />
                 </Field>
                 <p className="hint">
@@ -610,16 +611,16 @@ export default function FinancePage() {
             )}
             {modal === "debt" && (
               <>
-                <Field label="Nama pinjaman / pihak">
+                <Field label={tr("Nama pinjaman / pihak")}>
                   <input name="name" required />
                 </Field>
-                <Field label="Jenis">
+                <Field label={tr("Jenis")}>
                   <select name="direction">
-                    <option value="borrowed">Saya berutang</option>
-                    <option value="lent">Piutang saya</option>
+                    <option value="borrowed">{tr("Saya berutang")}</option>
+                    <option value="lent">{tr("Piutang saya")}</option>
                   </select>
                 </Field>
-                <Field label="Pokok IDR">
+                <Field label={tr("Pokok IDR")}>
                   <input
                     type="number"
                     step="0.01"
@@ -629,7 +630,7 @@ export default function FinancePage() {
                   />
                 </Field>
                 <div className="form-grid">
-                  <Field label="Bunga tahunan (%)">
+                  <Field label={tr("Bunga tahunan (%)")}>
                     <input
                       type="number"
                       step="0.01"
@@ -640,7 +641,7 @@ export default function FinancePage() {
                       required
                     />
                   </Field>
-                  <Field label="Tenor (bulan)">
+                  <Field label={tr("Tenor (bulan)")}>
                     <input
                       type="number"
                       min="1"
@@ -651,7 +652,7 @@ export default function FinancePage() {
                     />
                   </Field>
                 </div>
-                <Field label="Mulai">
+                <Field label={tr("Mulai")}>
                   <input
                     type="date"
                     name="start"
@@ -659,14 +660,14 @@ export default function FinancePage() {
                     required
                   />
                 </Field>
-                <Field label="Model bunga">
+                <Field label={tr("Model bunga")}>
                   <select name="model">
-                    <option value="reducing">Saldo menurun / anuitas</option>
-                    <option value="flat">Flat atas pokok awal</option>
+                    <option value="reducing">{tr("Saldo menurun / anuitas")}</option>
+                    <option value="flat">{tr("Flat atas pokok awal")}</option>
                   </select>
                 </Field>
                 <details>
-                  <summary>Perubahan bunga terjadwal</summary>
+                  <summary>{tr("Perubahan bunga terjadwal")}</summary>
                   <Field label={'JSON, contoh: [{"month":7,"apr":9}]'}>
                     <textarea name="rates" defaultValue="[]" />
                   </Field>
@@ -681,12 +682,12 @@ export default function FinancePage() {
             {modal === "pay" && (
               <>
                 <p>
-                  Sisa pokok:{" "}
+                  Sisa pokok:{tr(" ")}
                   {money(new Decimal(selected.principal).minus(selected.paid))}
                 </p>
-                <Field label="Akun pembayaran">
+                <Field label={tr("Akun pembayaran")}>
                   <select required name="accountId">
-                    <option value="">Pilih akun</option>
+                    <option value="">{tr("Pilih akun")}</option>
                     {s.accounts.map((a: any) => (
                       <option value={a.id} key={a.id}>
                         {a.name}
@@ -694,7 +695,7 @@ export default function FinancePage() {
                     ))}
                   </select>
                 </Field>
-                <Field label="Pokok dibayar (IDR)">
+                <Field label={tr("Pokok dibayar (IDR)")}>
                   <input
                     name="principal"
                     type="number"
@@ -703,7 +704,7 @@ export default function FinancePage() {
                     required
                   />
                 </Field>
-                <Field label="Bunga dibayar (IDR)">
+                <Field label={tr("Bunga dibayar (IDR)")}>
                   <input
                     name="interest"
                     type="number"
@@ -713,7 +714,7 @@ export default function FinancePage() {
                     required
                   />
                 </Field>
-                <Field label="Tanggal">
+                <Field label={tr("Tanggal")}>
                   <input
                     name="date"
                     type="date"
@@ -734,7 +735,7 @@ export default function FinancePage() {
         )}
         {modal === "schedule" && schedule && (
           <>
-            <Field label="Pembayaran pokok ekstra per bulan IDR">
+            <Field label={tr("Pembayaran pokok ekstra per bulan IDR")}>
               <input
                 type="number"
                 min="0"
@@ -743,7 +744,7 @@ export default function FinancePage() {
               />
             </Field>
             <p>
-              Estimasi {schedule.months} bulan · total bunga{" "}
+              Estimasi {schedule.months} bulan · total bunga{tr(" ")}
               {rp(schedule.totalInterest)}. Simulasi dimulai dari sisa pokok
               dengan tenor yang tercatat; bukan jadwal kontrak aktual.
             </p>
@@ -751,11 +752,11 @@ export default function FinancePage() {
               <table>
                 <thead>
                   <tr>
-                    <th>Bulan</th>
-                    <th>Pokok</th>
-                    <th>Bunga</th>
-                    <th>Cicilan</th>
-                    <th>Sisa</th>
+                    <th>{tr("Bulan")}</th>
+                    <th>{tr("Pokok")}</th>
+                    <th>{tr("Bunga")}</th>
+                    <th>{tr("Cicilan")}</th>
+                    <th>{tr("Sisa")}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -827,14 +828,14 @@ export default function FinancePage() {
             }}
           >
             <p>Saldo tercatat {money(selected.balance)}</p>
-            <Field label="Saldo aktual IDR">
+            <Field label={tr("Saldo aktual IDR")}>
               <input name="actual" type="number" min="0" step="0.01" required />
             </Field>
             <p className="hint">
               Selisih dicatat sebagai penyesuaian saldo, tanpa menambah
               pendapatan atau pengeluaran. Catatan tetap dapat diaudit.
             </p>
-            <Button type="submit">Konfirmasi penyesuaian</Button>
+            <Button type="submit">{tr("Konfirmasi penyesuaian")}</Button>
           </form>
         )}
       </section>}

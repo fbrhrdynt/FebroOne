@@ -1,4 +1,5 @@
 import Dexie, { type Table } from "dexie";
+import { startAuthentication, startRegistration } from "@simplewebauthn/browser";
 import {
   validateRecord,
   txSchema,
@@ -82,6 +83,18 @@ export async function login(email: string, password: string) {
   const r = await api("/auth/login", "POST", { email, password });
   csrf = r.csrf;
   return r;
+}
+export async function passkeyLogin(email: string) {
+  const challenge = await api("/auth/passkey/options", "POST", { email });
+  const response = await startAuthentication({ optionsJSON: challenge.options });
+  const result = await api("/auth/passkey/verify", "POST", { challengeId: challenge.challengeId, response });
+  csrf = result.csrf;
+  return result;
+}
+export async function registerPasskey(name = "Passkey") {
+  const challenge = await api("/auth/passkey/register/options", "POST");
+  const response = await startRegistration({ optionsJSON: challenge.options });
+  return api("/auth/passkey/register/verify", "POST", { challengeId: challenge.challengeId, response, name });
 }
 export async function logout() {
   if (!trial) await api("/auth/logout", "POST");

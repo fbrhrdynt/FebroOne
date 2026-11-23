@@ -1,4 +1,5 @@
-import { lazy, Suspense, useEffect, useState } from "react";
+import { tr } from "./i18n";
+import { lazy, Suspense, useEffect, useState, useRef } from "react";
 import {
   Routes,
   Route,
@@ -34,6 +35,10 @@ import {
   ArrowUpRight,
   LogOut,
   UserRound,
+  Eye,
+  EyeOff,
+  Globe2,
+  Fingerprint,
 } from "lucide-react";
 import { catalog, modules, groupNames } from "../../../packages/shared/catalog";
 import * as store from "./store";
@@ -49,6 +54,18 @@ const Finance = lazy(() => import("./FinancePage"));
 const Tools = lazy(() => import("./ToolsPage"));
 const Insights = lazy(() => import("./Insights"));
 const Settings = lazy(() => import("./Settings"));
+const languageStorageKey = "febro-one-language";
+type Language = "id" | "en";
+const copy = {
+  id: { email:"Email", password:"Kata sandi", show:"Tampilkan kata sandi", hide:"Sembunyikan kata sandi", login:"Masuk", recover:"Pulihkan akun", recovery:"Kode pemulihan", newPassword:"Kata sandi baru (minimal 12 karakter)", back:"Kembali ke login", working:"Memproses…", settings:"Pengaturan" },
+  en: { email:"Email", password:"Password", show:"Show password", hide:"Hide password", login:"Sign in", recover:"Recover account", recovery:"Recovery code", newPassword:"New password (at least 12 characters)", back:"Back to sign in", working:"Working…", settings:"Settings" }
+} as const;
+function LanguageSwitch({value,onChange}:{value:Language;onChange:(v:Language)=>void}) {
+  return <div className="language-switch" role="group" aria-label={tr("Language")}>
+    <Globe2 size={14}/><button type="button" aria-pressed={value==="id"} onClick={()=>onChange("id")}>{tr("ID")}</button>
+    <span>/</span><button type="button" aria-pressed={value==="en"} onClick={()=>onChange("en")}>{tr("EN")}</button>
+  </div>;
+}
 const nav = [
   ["/", "Home", HomeIcon],
   ["/calendar", "Calendar", CalendarDays],
@@ -63,19 +80,22 @@ const nav = [
   ["/tools", "Tools", Calculator],
   ["/insights", "Insights", ChartNoAxesCombined],
 ] as const;
-function Login({ onDone }: { onDone: () => void }) {
+function Login({ onDone, language, setLanguage }: { onDone: () => void; language: Language; setLanguage:(v:Language)=>void }) {
   const [recovery, setRecovery] = useState(false);
   const [error, setError] = useState<unknown>();
   const [busy, setBusy] = useState(false);
+  const [showPassword,setShowPassword]=useState(false);
+  const emailRef=useRef<HTMLInputElement>(null);
+  const t=copy[language];
   return (
     <div className="login-page">
-      <div className="login-card">
+      <div className="login-card"><div className="login-language"><LanguageSwitch value={language} onChange={setLanguage}/></div>
         <div className="brand">
-          <span className="brand-mark">f.</span>
-          <strong>Febro One</strong>
+          <span className="brand-mark">{tr("f.")}</span>
+          <strong>{tr("Febro One")}</strong>
         </div>
-        <h1>{recovery ? "Pulihkan akun" : "Selamat datang kembali."}</h1>
-        <p>Your Entire Life. One Workspace.</p>
+        <h1>{recovery ? t.recover : language==="id" ? "Selamat datang kembali." : "Welcome back."}</h1>
+        <p>{tr("Your Entire Life. One Workspace.")}</p>
         <form
           className="form-stack"
           onSubmit={async (e) => {
@@ -86,7 +106,7 @@ function Login({ onDone }: { onDone: () => void }) {
               if (recovery) {
                 await store.api("/auth/recover", "POST", d);
                 setRecovery(false);
-                setError("Password diganti. Silakan masuk.");
+                setError(language==="id"?"Kata sandi diganti. Silakan masuk.":"Password updated. Please sign in.");
               } else {
                 await store.login(d.email, d.password);
                 onDone();
@@ -98,40 +118,46 @@ function Login({ onDone }: { onDone: () => void }) {
             }
           }}
         >
-          <Field label="Email">
-            <input name="email" type="email" autoComplete="username" required />
+          <Field label={t.email}>
+            <input ref={emailRef} name="email" type="email" autoComplete="username" required />
           </Field>
           {recovery && (
-            <Field label="Kode pemulihan">
+            <Field label={t.recovery}>
               <input name="recovery" autoComplete="off" required />
             </Field>
           )}
           <Field
             label={
-              recovery ? "Password baru (minimal 12 karakter)" : "Password"
+              recovery ? t.newPassword : t.password
             }
           >
-            <input
-              name="password"
-              type="password"
-              autoComplete={recovery ? "new-password" : "current-password"}
-              minLength={recovery ? 12 : 1}
-              required
-            />
+            <div className="password-input-wrap"><input name="password" type={showPassword ? "text" : "password"} autoComplete={recovery ? "new-password" : "current-password"} minLength={recovery ? 12 : 1} required/><button className="password-visibility" type="button" onClick={()=>setShowPassword(v=>!v)} aria-label={showPassword?t.hide:t.show} title={showPassword?t.hide:t.show}>{showPassword?<EyeOff size={18}/>:<Eye size={18}/>}</button></div>
           </Field>
           <ErrorText error={error} />
           <Button disabled={busy} type="submit">
-            {busy ? "Memproses…" : recovery ? "Ganti password" : "Masuk"}
+            {busy ? t.working : recovery ? (language==="id"?"Ganti kata sandi":"Reset password") : t.login}
           </Button>
+          {!recovery && (
+            <Button variant="outline" type="button" disabled={busy} onClick={async()=>{
+              const email=emailRef.current?.value.trim();
+              if(!email){setError(language==="id"?"Masukkan email terlebih dahulu.":"Enter your email first.");return;}
+              setBusy(true);setError(undefined);
+              try{await store.passkeyLogin(email);onDone();}
+              catch(e){setError(e);}
+              finally{setBusy(false);}
+            }}>
+              <Fingerprint size={17}/>{language==="id"?"Masuk dengan passkey":"Sign in with passkey"}
+            </Button>
+          )}
           <Button
             variant="ghost"
             type="button"
             onClick={() => setRecovery(!recovery)}
           >
-            {recovery ? "Kembali ke login" : "Pulihkan akun"}
+            {recovery ? t.back : t.recover}
           </Button>
         </form>
-        <small>Akun pertama dibuat melalui perintah admin di VPS.</small>
+        <small>{language==="id"?"Akun pertama dibuat melalui perintah admin di VPS.":"The first account is created using the VPS admin command."}</small>
       </div>
     </div>
   );
@@ -144,6 +170,10 @@ export default function App() {
   });
   const q = useQueryClient();
   const [profileOpen, setProfileOpen] = useState(false);
+  const [language,setLanguageState]=useState<Language>(()=>localStorage.getItem(languageStorageKey)==="en"?"en":"id");
+  const setLanguage=(v:Language)=>{setLanguageState(v);localStorage.setItem(languageStorageKey,v);};
+  useEffect(()=>{const syncLanguage=()=>setLanguageState(localStorage.getItem(languageStorageKey)==="en"?"en":"id");window.addEventListener("febro-language-change",syncLanguage);return()=>window.removeEventListener("febro-language-change",syncLanguage);},[]);
+  const t=copy[language];
   const [shellError, setShellError] = useState<unknown>();
   const [themeBusy, setThemeBusy] = useState(false);
   const [quick, setQuick] = useState(false);
@@ -221,11 +251,11 @@ export default function App() {
   if (identity.isLoading)
     return (
       <div className="app-loading">
-        <span className="brand-mark">f.</span>
-        <p>Membuka workspace…</p>
+        <span className="brand-mark">{tr("f.")}</span>
+        <p>{tr("Membuka workspace…")}</p>
       </div>
     );
-  if (!identity.data) return <Login onDone={() => q.invalidateQueries()} />;
+  if (!identity.data) return <Login language={language} setLanguage={setLanguage} onDone={() => q.invalidateQueries()} />;
   const current =
     nav.find((n) => n[0] === location.pathname)?.[1] ||
     catalog[location.pathname.split("/")[2]]?.title ||
@@ -241,12 +271,12 @@ export default function App() {
     : [];
   return (
     <div data-module={location.pathname.split("/")[2] || location.pathname.split("/")[1] || "home"} className={"app " + (collapsed ? "collapsed" : "")}>
-      <a href="#main" className="skip-link">Skip to content</a>
+      <a href="#main" className="skip-link">{tr("Skip to content")}</a>
       <aside className="sidebar">
         <Link to="/" className="brand">
-          <span className="brand-mark">f.</span>
+          <span className="brand-mark">{tr("f.")}</span>
           <strong>
-            Febro One<span>PERSONAL WORKSPACE</span>
+            Febro One<span>{tr("PERSONAL WORKSPACE")}</span>
           </strong>
         </Link>
         <button
@@ -260,7 +290,7 @@ export default function App() {
           </span>
           <ChevronRight size={14} />
         </button>
-        <nav aria-label="Navigasi utama">
+        <nav aria-label={tr("Navigasi utama")}>
           {nav.map(([path, label, Icon], i) => (
             <NavLink
               key={path}
@@ -269,23 +299,23 @@ export default function App() {
               className={i === 4 ? "nav-divider" : ""}
             >
               <Icon size={18} />
-              <span>{label}</span>
+              <span>{(language==="id" ? ({Home:"Beranda",Calendar:"Kalender",Tasks:"Tugas",Notes:"Catatan",Finance:"Keuangan",Debt:"Utang",Workspace:"Ruang kerja",Career:"Karier",Life:"Aktivitas",Documents:"Dokumen",Tools:"Alat",Insights:"Analisis"} as Record<string,string>) : ({Home:"Home",Calendar:"Calendar",Tasks:"Tasks",Notes:"Notes",Finance:"Finance",Debt:"Debt",Workspace:"Workspace",Career:"Career",Life:"Life",Documents:"Documents",Tools:"Tools",Insights:"Insights"} as Record<string,string>))[label]}</span>
               {label === "Tasks" && !!pending.data && <small>{pending.data}</small>}
             </NavLink>
           ))}
           {!collapsed && <div className="sidebar-categories">{groupNames.map(group => <div key={group}>
-            <button className="sidebar-category-toggle" aria-expanded={expanded.includes(group)} onClick={() => toggleCategory(group)}>{group}<ChevronRight size={14} className={expanded.includes(group) ? "rotate" : ""} /></button>
-            {expanded.includes(group) && <div className="sidebar-category-links">{modules.filter(m => m.group === group).map(m => <NavLink key={m.key} to={m.key === "events" ? "/calendar" : "/records/"+m.key}><ModuleIcon group={m.group}/>{m.title}</NavLink>)}</div>}
+            <button className="sidebar-category-toggle" aria-expanded={expanded.includes(group)} onClick={() => toggleCategory(group)}>{tr(group)}<ChevronRight size={14} className={expanded.includes(group) ? "rotate" : ""} /></button>
+            {expanded.includes(group) && <div className="sidebar-category-links">{modules.filter(m => m.group === group).map(m => <NavLink key={m.key} to={m.key === "events" ? "/calendar" : "/records/"+m.key}><ModuleIcon group={m.group}/>{tr(m.title)}</NavLink>)}</div>}
           </div>)}</div>}
           <NavLink to="/more">
             <Grid2X2 size={18} />
-            <span>Semua modul</span>
+            <span>{tr("Semua modul")}</span>
           </NavLink>
         </nav>
         <div className="sidebar-footer">
           <NavLink to="/settings">
             <SettingsIcon size={18} />
-            Settings
+            {t.settings}
           </NavLink>
           <small>
             Your Entire Life.
@@ -300,30 +330,31 @@ export default function App() {
             <Button
               variant="ghost"
               className="desktop-only"
-              aria-label="Toggle sidebar"
+              aria-label={tr("Toggle sidebar")}
               aria-expanded={!collapsed}
               onClick={() => { localStorage.setItem("febro-sidebar-collapsed", String(!collapsed)); setCollapsed(!collapsed); }}
             >
               <PanelLeftClose size={18} />
             </Button>
-            <span>Workspace</span>
+            <span>{tr("Workspace")}</span>
             <ChevronRight size={14} />
             <strong>{current}</strong>
           </div>
           <div className="row-actions">
+            <LanguageSwitch value={language} onChange={setLanguage}/>
             <Button
               variant="ghost"
               className="search-trigger"
-              aria-label="Cari seluruh workspace"
+              aria-label={tr("Cari seluruh workspace")}
               onClick={() => setSearchOpen(true)}
             >
               <Search size={18} />
-              <span className="desktop-only">Cari apa saja</span>
-              <kbd className="desktop-only">⌘ K</kbd>
+              <span className="desktop-only">{tr("Cari apa saja")}</span>
+              <kbd className="desktop-only">{tr("⌘ K")}</kbd>
             </Button>
             <Button
               variant="ghost"
-              aria-label="Ganti tema"
+              aria-label={tr("Ganti tema")}
               disabled={themeBusy}
               onClick={toggleTheme}
             >
@@ -331,21 +362,21 @@ export default function App() {
             </Button>
             <Button
               variant="ghost"
-              aria-label="Notifications"
+              aria-label={tr("Notifications")}
               className="notification-trigger"
               onClick={() => setNotificationsOpen(true)}
             >
               <Bell size={18} />
               {ns.data?.some((n: any) => !n.read_at) && <i />}
             </Button>
-            <Button variant="ghost" aria-label="Profile menu" onClick={() => setProfileOpen(true)}><UserRound size={18} /></Button>
+            <Button variant="ghost" aria-label={tr("Profile menu")} onClick={() => setProfileOpen(true)}><UserRound size={18} /></Button>
           </div>
         </header>
         {store.trial && (
           <div className="trial-banner">
             <span className="status-dot" />
-            <strong>Trial pribadi</strong>
-            <span>Data tersimpan di browser ini.</span>
+            <strong>{tr("Trial pribadi")}</strong>
+            <span>{tr("Data tersimpan di browser ini.")}</span>
             <Link to="/settings">
               Export data <ArrowUpRight size={13} />
             </Link>
@@ -354,7 +385,7 @@ export default function App() {
         {offline && (
           <div className="offline-banner">
             <CloudOff size={16} />
-            Offline ·{" "}
+            Offline ·{tr(" ")}
             {store.trial
               ? "Data lokal tetap tersedia."
               : "Hanya draft notes yang dapat diedit."}
@@ -382,13 +413,13 @@ export default function App() {
                 element={
                   <>
                     <PageHeader
-                      title="Your workspace"
-                      description="Semua bagian kehidupan, terhubung dalam satu tempat."
+                      title={tr("Your workspace")}
+                      description={tr("Semua bagian kehidupan, terhubung dalam satu tempat.")}
                     />
                     <div className="more-grid">
                       <WorkspaceCategories />
                       <section className="panel">
-                        <h2>Workspace</h2>
+                        <h2>{tr("Workspace")}</h2>
                         <Link to="/settings">
                           Settings
                           <ChevronRight size={15} />
@@ -416,12 +447,12 @@ export default function App() {
               />
               <Route
                 path="*"
-                element={<Empty title="Halaman tidak ditemukan" />}
+                element={<Empty title={tr("Halaman tidak ditemukan")} />}
               />
             </Routes>
           </Suspense>
           <footer className="main-footer">
-            Febro One <span>by Febro Herdyanto</span>
+            Febro One <span>{tr("by Febro Herdyanto")}</span>
           </footer>
         </main>
       </div>
@@ -430,17 +461,17 @@ export default function App() {
         <Plus size={19} />
         Quick Add
       </Button>
-      <Modal open={profileOpen} onOpenChange={setProfileOpen} title="Your account" description={identity.data.user.email || "Personal workspace"}>
+      <Modal open={profileOpen} onOpenChange={setProfileOpen} title={tr("Your account")} description={identity.data.user.email || "Personal workspace"}>
         <div className="profile-summary"><span className="avatar">{identity.data.user.name.slice(0,1)}</span><strong>{identity.data.user.name}</strong></div>
-        <div className="form-stack"><Button variant="outline" onClick={() => {navigate("/settings");setProfileOpen(false);}}><SettingsIcon size={18}/> Profile & settings</Button>
-        <Button variant="outline" onClick={() => {navigate("/more");setProfileOpen(false);}}><Grid2X2 size={18}/> All modules</Button>
-        {!store.trial && <Button variant="ghost" onClick={() => store.logout().catch(setShellError)}><LogOut size={18}/> Sign out</Button>}</div>
+        <div className="form-stack"><Button variant="outline" onClick={() => {navigate("/settings");setProfileOpen(false);}}><SettingsIcon size={18}/> {tr("Profile & settings")}</Button>
+        <Button variant="outline" onClick={() => {navigate("/more");setProfileOpen(false);}}><Grid2X2 size={18}/> {tr("All modules")}</Button>
+        {!store.trial && <Button variant="ghost" onClick={() => store.logout().catch(setShellError)}><LogOut size={18}/> {tr("Sign out")}</Button>}</div>
       </Modal>
       <Modal
         open={quick}
         onOpenChange={setQuick}
-        title="Quick Add"
-        description="Apa yang ingin Anda simpan?"
+        title={tr("Quick Add")}
+        description={tr("Apa yang ingin Anda simpan?")}
       >
         <div className="quick-grid">
           {[
@@ -469,8 +500,8 @@ export default function App() {
       <Modal
         open={searchOpen}
         onOpenChange={setSearchOpen}
-        title="Search workspace"
-        description="Cari judul, tags, atau isi catatan."
+        title={tr("Search workspace")}
+        description={tr("Cari judul, tags, atau isi catatan.")}
       >
         <label className="search-input">
           <Search size={20} />
@@ -478,13 +509,13 @@ export default function App() {
             autoFocus
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            aria-label="Cari seluruh workspace"
-            placeholder="Cari apa saja…"
+            aria-label={tr("Cari seluruh workspace")}
+            placeholder={tr("Cari apa saja…")}
           />
         </label>
         <div className="search-results">
-          {nav.filter(([,label])=>!search || label.toLowerCase().includes(search.toLowerCase())).map(([path,label,Icon])=><button key={path} onClick={()=>{navigate(path);setSearchOpen(false);}}><Icon size={18}/><strong>{label}</strong><small>Modul</small></button>)}
-          {modules.filter(m=>search && m.title.toLowerCase().includes(search.toLowerCase())).map(m=><button key={m.key} onClick={()=>{navigate(m.key==='events'?'/calendar':'/records/'+m.key);setSearchOpen(false);}}><strong>{m.title}</strong><small>{m.group}</small></button>)}
+          {nav.filter(([,label])=>!search || label.toLowerCase().includes(search.toLowerCase())).map(([path,label,Icon])=><button key={path} onClick={()=>{navigate(path);setSearchOpen(false);}}><Icon size={18}/><strong>{label}</strong><small>{tr("Modul")}</small></button>)}
+          {modules.filter(m=>search && m.title.toLowerCase().includes(search.toLowerCase())).map(m=><button key={m.key} onClick={()=>{navigate(m.key==='events'?'/calendar':'/records/'+m.key);setSearchOpen(false);}}><strong>{m.title}</strong><small>{tr(m.group)}</small></button>)}
           {matches?.map((r) => (
             <button
               key={r.id}
@@ -499,21 +530,21 @@ export default function App() {
               <small>{catalog[r.kind]?.title}</small>
             </button>
           ))}
-          {search && !matches?.length && <p>Tidak ada hasil.</p>}
+          {search && !matches?.length && <p>{tr("Tidak ada hasil.")}</p>}
           {!search && (
-            <p className="hint">Mulai ketik untuk mencari di seluruh modul.</p>
+            <p className="hint">{tr("Mulai ketik untuk mencari di seluruh modul.")}</p>
           )}
         </div>
       </Modal>
       <Modal
         open={notificationsOpen}
         onOpenChange={setNotificationsOpen}
-        title="Notification center"
+        title={tr("Notification center")}
       >
         <div className="form-stack">
           {!ns.data?.length && (
             <Empty
-              title="Semua tenang"
+              title={tr("Semua tenang")}
               text="Pengingat dan masa berlaku dokumen akan muncul di sini."
             />
           )}

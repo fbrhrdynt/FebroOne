@@ -1,3 +1,4 @@
+import { tr } from "./i18n";
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
@@ -20,6 +21,7 @@ import { ActivityCard, ChartCard, CompletionRing, QuickAction, StatusDot } from 
 import FocusTimer from "./FocusTimer";
 export default function Home() {
   const q = useQueryClient();
+  const en = localStorage.getItem("febro-one-language") === "en";
   const data = useQuery({
     queryKey: ["records"],
     queryFn: () => store.records(),
@@ -71,45 +73,39 @@ export default function Home() {
       new Date(r.data.expiry).getTime() - Date.now() < 30 * 86400000,
   );
   const notes = rs.filter((r) => r.kind === "notes").slice(0, 4);
-  const greeting =
-    new Date().getHours() < 11
-      ? "Selamat pagi"
-      : new Date().getHours() < 15
-        ? "Selamat siang"
-        : new Date().getHours() < 18
-          ? "Selamat sore"
-          : "Selamat malam";
-  if (data.isError && !data.data) return <><PageHeader title="Workspace belum dapat dimuat"/><ErrorText error={data.error}/><Button onClick={()=>data.refetch()}>Coba lagi</Button></>;
-  if (data.isPending) return <><PageHeader title="Hari Anda, dalam satu tempat." description="Memuat workspace…"/><div className="dashboard-loading skeleton" role="status" aria-label="Memuat dashboard"/></>;
+  const hour = new Date().getHours();
+  const greeting = en ? (hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening") : (hour < 11 ? "Selamat pagi" : hour < 15 ? "Selamat siang" : hour < 18 ? "Selamat sore" : "Selamat malam");
+  if (data.isError && !data.data) return <><PageHeader title={tr("Workspace belum dapat dimuat")}/><ErrorText error={data.error}/><Button onClick={()=>data.refetch()}>{tr("Coba lagi")}</Button></>;
+  if (data.isPending) return <><PageHeader title={en?"Your day, in one place.":"Hari Anda, dalam satu tempat."} description={en?"Loading workspace…":"Memuat workspace…"}/><div className="dashboard-loading skeleton" role="status" aria-label={tr("Memuat dashboard")}/></>;
   return (
     <>
       <PageHeader
-        eyebrow={new Date().toLocaleDateString("id-ID", {
+        eyebrow={new Date().toLocaleDateString(en ? "en-GB" : "id-ID", {
           weekday: "long",
           day: "numeric",
           month: "long",
           year: "numeric",
         })}
         title={greeting + ", " + (profile.data?.user.name?.split(" ")[0] || "Anda") + "."}
-        description="Satu tempat untuk hari Anda."
+        description={en?"One place for your day.":"Satu tempat untuk hari Anda."}
       >
         <Button
           variant="outline"
           onClick={() => setCustom(true)}
-          aria-label="Atur widget"
+          aria-label={tr("Atur widget")}
         >
           <SlidersHorizontal size={17} />
-          <span className="desktop-only">Atur tampilan</span>
+          <span className="desktop-only">{tr("Atur tampilan")}</span>
         </Button>
       </PageHeader>
       <ErrorText error={error || data.error || fin.error} />
-      {data.isLoading && <div className="skeleton" role="status" aria-label="Memuat dashboard" />}
+      {data.isLoading && <div className="skeleton" role="status" aria-label={tr("Memuat dashboard")} />}
       <section className="day-intro">
         <div>
           <div className="eyebrow">
             <Sun size={16} /> MY DAY
           </div>
-          <h2>Apa fokus Anda hari ini?</h2>
+          <h2>{en?"What is your focus today?":"Apa fokus Anda hari ini?"}</h2>
           <p>
             {tasks.length
               ? `${tasks.length} tugas terbuka${overdue.length ? `, ${overdue.length} melewati tenggat` : ""}. Ambil satu langkah berikutnya.`
@@ -117,25 +113,25 @@ export default function Home() {
           </p>
         </div>
         <Button onClick={() => setKind("tasks")}>
-          <Plus size={17} /> Tambah tugas
+          <Plus size={17} /> {en?"Add task":"Tambah tugas"}
         </Button>
       </section>
       <div className="quick-capture">
-        <QuickAction icon={<FileText size={18}/>} onClick={() => setKind("notes")}>Tangkap ide</QuickAction>
-        <QuickAction icon={<CalendarDays size={18}/>} onClick={() => setKind("events")}>Buat agenda</QuickAction>
-        <QuickAction icon={<Check size={18}/>} onClick={() => setKind("habits")}>Bangun kebiasaan</QuickAction>
+        <QuickAction icon={<FileText size={18}/>} onClick={() => setKind("notes")}>{en?"Capture an idea":"Tangkap ide"}</QuickAction>
+        <QuickAction icon={<CalendarDays size={18}/>} onClick={() => setKind("events")}>{en?"Create agenda":"Buat agenda"}</QuickAction>
+        <QuickAction icon={<Check size={18}/>} onClick={() => setKind("habits")}>{en?"Build a habit":"Bangun kebiasaan"}</QuickAction>
       </div>
       <div className="dashboard-grid home-bento" aria-busy={data.isPending}>
-        <ActivityCard title="Setiap langkah berarti" to="/records/tasks" className="completion-card">
-          <div className="completion-content"><CompletionRing value={allTasks.length ? completed / allTasks.length * 100 : 0} label="Tugas selesai"/><div><strong className="completion-total">{data.isPending ? "…" : completed}<span> / {data.isPending ? "…" : allTasks.length}</span></strong><p>tugas selesai</p><small>{allTasks.length ? `${tasks.length} tugas menunggu langkah Anda` : "Tambahkan tugas untuk mulai melacak progres."}</small></div></div>
-          <Link className="text-button" to="/records/tasks">Lihat semua tugas <ArrowRight size={15}/></Link>
+        <ActivityCard title={tr("Setiap langkah berarti")} to="/records/tasks" className="completion-card">
+          <div className="completion-content"><CompletionRing value={allTasks.length ? completed / allTasks.length * 100 : 0} label={tr("Tugas selesai")}/><div><strong className="completion-total">{data.isPending ? "…" : completed}<span> / {data.isPending ? "…" : allTasks.length}</span></strong><p>{tr("tugas selesai")}</p><small>{allTasks.length ? `${tasks.length} tugas menunggu langkah Anda` : "Tambahkan tugas untuk mulai melacak progres."}</small></div></div>
+          <Link className="text-button" to="/records/tasks">{en?"View all tasks":"Lihat semua tugas"} <ArrowRight size={15}/></Link>
         </ActivityCard>
         <FocusTimer/>
-        <ActivityCard title="Akses cepat" className="capture-card"><QuickAction icon={<Plus size={18}/>} onClick={()=>setKind("tasks")}>Tugas baru</QuickAction><QuickAction icon={<FileText size={18}/>} onClick={()=>setKind("notes")}>Catatan baru</QuickAction><QuickAction icon={<CalendarDays size={18}/>} onClick={()=>setKind("reminders")}>Pengingat baru</QuickAction></ActivityCard>
+        <ActivityCard title={en?"Quick access":"Akses cepat"} className="capture-card"><QuickAction icon={<Plus size={18}/>} onClick={()=>setKind("tasks")}>{en?"New task":"Tugas baru"}</QuickAction><QuickAction icon={<FileText size={18}/>} onClick={()=>setKind("notes")}>{en?"New note":"Catatan baru"}</QuickAction><QuickAction icon={<CalendarDays size={18}/>} onClick={()=>setKind("reminders")}>{en?"New reminder":"Pengingat baru"}</QuickAction></ActivityCard>
         {widgets.includes("tasks") && (
           <section className="panel dashboard-tasks">
             <div className="section-heading">
-              <h2>Langkah berikutnya</h2>
+              <h2>{tr("Langkah berikutnya")}</h2>
               <Link to="/records/tasks">
                 Semua <ArrowUpRight size={15} />
               </Link>
@@ -171,7 +167,7 @@ export default function Home() {
                             day: "numeric",
                             month: "short",
                           })
-                        : "Tanpa tenggat"}{" "}
+                        : "Tanpa tenggat"}{tr(" ")}
                       · {t.data.priority || "Medium"}
                     </small>
                   </Link>
@@ -180,7 +176,7 @@ export default function Home() {
               ))
             ) : (
               <Empty
-                title="Ruang untuk hal baru"
+                title={tr("Ruang untuk hal baru")}
                 text="Tugas yang Anda buat akan muncul di sini."
                 onAdd={() => setKind("tasks")}
               />
@@ -190,8 +186,8 @@ export default function Home() {
         {widgets.includes("agenda") && (
           <section className="panel">
             <div className="section-heading">
-              <h2>Agenda hari ini</h2>
-              <Link to="/calendar" aria-label="Buka agenda hari ini">
+              <h2>{tr("Agenda hari ini")}</h2>
+              <Link to="/calendar" aria-label={tr("Buka agenda hari ini")}>
                 <ArrowUpRight size={17} />
               </Link>
             </div>
@@ -219,8 +215,8 @@ export default function Home() {
             ) : (
               <div className="quiet-empty">
                 <CalendarDays size={26} />
-                <h3>Hari yang masih lapang</h3>
-                <p>Belum ada agenda hari ini.</p>
+                <h3>{tr("Hari yang masih lapang")}</h3>
+                <p>{tr("Belum ada agenda hari ini.")}</p>
                 <button
                   className="text-button"
                   onClick={() => setKind("events")}
@@ -234,17 +230,17 @@ export default function Home() {
         {widgets.includes("finance") && (
           <section className="panel">
             <div className="section-heading">
-              <h2>Keuangan sekilas</h2>
-              <Link to="/finance" aria-label="Buka keuangan">
+              <h2>{tr("Keuangan sekilas")}</h2>
+              <Link to="/finance" aria-label={tr("Buka keuangan")}>
                 <ArrowUpRight size={17} />
               </Link>
             </div>
-            <span className="muted">Total saldo rekening</span>
+            <span className="muted">{tr("Total saldo rekening")}</span>
             <strong className="balance">
               {money(total(fin.data?.accounts || [], "balance"))}
             </strong>
             <p>
-              {fin.data?.accounts.length || 0} akun ·{" "}
+              {fin.data?.accounts.length || 0} akun ·{tr(" ")}
               {(fin.data?.debts || []).length} utang / piutang
             </p>
             <Link className="text-button" to="/finance">
@@ -255,8 +251,8 @@ export default function Home() {
         {widgets.includes("career") && (
           <section className="panel">
             <div className="section-heading">
-              <h2>Karier & belajar</h2>
-              <Link to="/records/trainings" aria-label="Buka karier dan belajar">
+              <h2>{tr("Karier & belajar")}</h2>
+              <Link to="/records/trainings" aria-label={tr("Buka karier dan belajar")}>
                 <ArrowUpRight size={17} />
               </Link>
             </div>
@@ -270,11 +266,11 @@ export default function Home() {
                     )
                     .reduce((a, r) => a + Number(r.data.hours || 0), 0)}
                 </strong>
-                <span>jam belajar</span>
+                <span>{tr("jam belajar")}</span>
               </div>
               <div>
                 <strong>{rs.filter((r) => r.kind === "work").length}</strong>
-                <span>catatan kerja</span>
+                <span>{tr("catatan kerja")}</span>
               </div>
             </div>
             {certs.length ? (
@@ -282,20 +278,20 @@ export default function Home() {
                 {certs.length} sertifikat perlu diperiksa masa berlakunya →
               </Link>
             ) : (
-              <p>Masa berlaku sertifikat akan dipantau di sini.</p>
+              <p>{tr("Masa berlaku sertifikat akan dipantau di sini.")}</p>
             )}
           </section>
         )}
         {widgets.includes("finance") && <>
-          <ChartCard title="Arus kas bulan ini" description={new Date(today+"T12:00:00").toLocaleDateString("id-ID",{month:"long",year:"numeric"})}>
-            <div className="cashflow-bars">{[{label:"Pemasukan",value:cashflow.income,tone:"income"},{label:"Pengeluaran",value:cashflow.expense,tone:"expense"}].map(item=><div key={item.label}><div className="cashflow-label"><span>{item.label}</span><strong>{money(item.value)}</strong></div><div className={"cashflow-track "+item.tone} aria-hidden="true"><span style={{width:prefs.maskMoney?"0%":Math.max(0,Math.min(100,item.value.div(cashflow.income.plus(cashflow.expense).isZero()?1:cashflow.income.plus(cashflow.expense)).mul(100).toNumber()))+"%"}}/></div></div>)}</div><p className="hint">Transfer dan pokok cicilan dikecualikan.</p>
+          <ChartCard title={tr("Arus kas bulan ini")} description={new Date(today+"T12:00:00").toLocaleDateString("id-ID",{month:"long",year:"numeric"})}>
+            <div className="cashflow-bars">{[{label:"Pemasukan",value:cashflow.income,tone:"income"},{label:"Pengeluaran",value:cashflow.expense,tone:"expense"}].map(item=><div key={item.label}><div className="cashflow-label"><span>{item.label}</span><strong>{money(item.value)}</strong></div><div className={"cashflow-track "+item.tone} aria-hidden="true"><span style={{width:prefs.maskMoney?"0%":Math.max(0,Math.min(100,item.value.div(cashflow.income.plus(cashflow.expense).isZero()?1:cashflow.income.plus(cashflow.expense)).mul(100).toNumber()))+"%"}}/></div></div>)}</div><p className="hint">{tr("Transfer dan pokok cicilan dikecualikan.")}</p>
           </ChartCard>
-          <ActivityCard title="Transaksi terbaru" to="/finance" className="transactions-card">{fin.isPending?<p role="status">Memuat transaksi…</p>:recentTx.length?recentTx.map((t:any)=><Link className="transaction-preview" key={t.id} to="/finance"><span className={"transaction-icon "+(t.kind==="income"?"income":"expense")}><ArrowUpRight size={17}/></span><div><strong>{t.description || t.category || t.kind}</strong><small>{new Date(t.date+"T12:00:00").toLocaleDateString("id-ID",{day:"numeric",month:"short"})} · {t.category || t.kind}</small></div><b>{money(t.amount)}</b></Link>):<div className="quiet-empty"><p>{fin.isError?"Transaksi belum dapat dimuat.":"Belum ada transaksi tersimpan."}</p><Link className="text-button" to="/finance?quick=expense">Catat transaksi →</Link></div>}</ActivityCard>
+          <ActivityCard title={tr("Transaksi terbaru")} to="/finance" className="transactions-card">{fin.isPending?<p role="status">{tr("Memuat transaksi…")}</p>:recentTx.length?recentTx.map((t:any)=><Link className="transaction-preview" key={t.id} to="/finance"><span className={"transaction-icon "+(t.kind==="income"?"income":"expense")}><ArrowUpRight size={17}/></span><div><strong>{t.description || t.category || t.kind}</strong><small>{new Date(t.date+"T12:00:00").toLocaleDateString("id-ID",{day:"numeric",month:"short"})} · {t.category || t.kind}</small></div><b>{money(t.amount)}</b></Link>):<div className="quiet-empty"><p>{fin.isError?"Transaksi belum dapat dimuat.":"Belum ada transaksi tersimpan."}</p><Link className="text-button" to="/finance?quick=expense">{tr("Catat transaksi →")}</Link></div>}</ActivityCard>
         </>}
         {widgets.includes("notes") && (
           <section className="panel span-2 notes-panel">
             <div className="section-heading">
-              <h2>Catatan terbaru</h2>
+              <h2>{tr("Catatan terbaru")}</h2>
               <Link to="/records/notes">
                 Buka notes <ArrowUpRight size={15} />
               </Link>
@@ -337,8 +333,8 @@ export default function Home() {
         })}
       </div>
       <div className="section-heading">
-        <h2>Aktivitas terbaru</h2>
-        <Link to="/insights">Review →</Link>
+        <h2>{tr("Aktivitas terbaru")}</h2>
+        <Link to="/insights">{tr("Review →")}</Link>
       </div>
       <div className="activity-list">
         {rs.slice(0, 5).map((r) => (
@@ -361,7 +357,7 @@ export default function Home() {
         )}
       </div>
       {kind && <RecordForm kind={kind} onClose={() => setKind("")} />}
-      <Modal open={custom} onOpenChange={setCustom} title="Atur dashboard">
+      <Modal open={custom} onOpenChange={setCustom} title={tr("Atur dashboard")}>
         <div className="form-stack">
           {["tasks", "agenda", "finance", "career", "notes"].map((w) => (
             <Field key={w} label={w}>

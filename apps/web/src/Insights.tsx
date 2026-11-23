@@ -1,3 +1,4 @@
+import { tr } from "./i18n";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
@@ -59,9 +60,9 @@ export default function Insights() {
   return (
     <>
       <PageHeader
-        eyebrow="Intelligence"
-        title="Review & insights"
-        description="Lihat apa yang sudah bergerak, lalu pilih fokus berikutnya."
+        eyebrow={tr("Intelligence")}
+        title={tr("Review & insights")}
+        description={tr("Lihat apa yang sudah bergerak, lalu pilih fokus berikutnya.")}
       >
         <Button
           variant="outline"
@@ -82,38 +83,38 @@ export default function Insights() {
             {n === 1 ? "Harian" : n === 7 ? "Mingguan" : "Bulanan"}
           </button>
         ))}
-        <Link to="/records/reviews">Refleksi pribadi</Link>
-        <Link to="/records/automations">Automation rules</Link>
+        <Link to="/records/reviews">{tr("Refleksi pribadi")}</Link>
+        <Link to="/records/automations">{tr("Automation rules")}</Link>
       </div>
       <div className="stat-grid">
         <div className="stat">
-          <span>Tugas selesai</span>
+          <span>{tr("Tugas selesai")}</span>
           <strong>{completed.length}</strong>
           <small>{days} hari terakhir</small>
         </div>
         <div className="stat">
-          <span>Jam belajar</span>
+          <span>{tr("Jam belajar")}</span>
           <strong>{hours}</strong>
-          <small>Training berstatus completed</small>
+          <small>{tr("Training berstatus completed")}</small>
         </div>
         <div className="stat">
-          <span>Pengeluaran</span>
+          <span>{tr("Pengeluaran")}</span>
           <strong>{rp(total(expenses, "amount"))}</strong>
-          <small>Transaksi expense</small>
+          <small>{tr("Transaksi expense")}</small>
         </div>
         <div className="stat">
-          <span>Waktu fokus / kerja</span>
+          <span>{tr("Waktu fokus / kerja")}</span>
           <strong>
             {current
               .filter((r) => r.kind === "timesheets")
-              .reduce((a, r) => a + Number(r.data.minutes || 0), 0)}{" "}
-            <small>min</small>
+              .reduce((a, r) => a + Number(r.data.minutes || 0), 0)}{tr(" ")}
+            <small>{tr("min")}</small>
           </strong>
         </div>
       </div>
       <div className="dashboard-grid">
         <section className="panel">
-          <h2>Career timeline</h2>
+          <h2>{tr("Career timeline")}</h2>
           {rs
             .filter((r) =>
               ["employments", "trainings", "achievements"].includes(r.kind),
@@ -139,7 +140,7 @@ export default function Insights() {
           )}
         </section>
         <section className="panel">
-          <h2>Fokus yang perlu perhatian</h2>
+          <h2>{tr("Fokus yang perlu perhatian")}</h2>
           {rs
             .filter(
               (r) =>
@@ -161,15 +162,15 @@ export default function Insights() {
           </Link>
         </section>
       </div>
-      <section className="panel" aria-label="Pengeluaran per kategori">
-        <div className="section-heading"><h2>Pengeluaran per kategori</h2><Link to="/finance">Buka keuangan →</Link></div>
+      <section className="panel" aria-label={tr("Pengeluaran per kategori")}>
+        <div className="section-heading"><h2>{tr("Pengeluaran per kategori")}</h2><Link to="/finance">{tr("Buka keuangan →")}</Link></div>
         {expenses.length ? [...new Set<string>(expenses.map((t:any) => String(t.category || "Tanpa kategori")))].map(category => ({category, amount: total(expenses.filter((t:any) => String(t.category || "Tanpa kategori") === category), "amount")})).sort((a,b) => b.amount.comparedTo(a.amount)).slice(0,6).map(({category,amount}) => <div className="bento-progress-row" key={category}>
           <strong>{category}</strong><progress aria-label={category} max={total(expenses,"amount").toNumber() || 1} value={amount.toNumber()}/><span>{rp(amount)}</span>
-        </div>) : <p className="hint">Belum ada pengeluaran pada periode ini.</p>}
+        </div>) : <p className="hint">{tr("Belum ada pengeluaran pada periode ini.")}</p>}
       </section>
       <section className="panel ai-panel">
         <div className="section-heading">
-          <h2>Personal AI assistant</h2>
+          <h2>{tr("Personal AI assistant")}</h2>
           <span className="badge">
             {ai.data?.configured ? "Terhubung" : "Perlu konfigurasi"}
           </span>
@@ -178,7 +179,7 @@ export default function Insights() {
           <p>
             {store.trial
               ? "AI eksternal tidak aktif pada trial browser. Pada VPS, atur provider dan API key di environment."
-              : "Atur AI_BASE_URL, AI_MODEL, dan AI_API_KEY pada environment server untuk mengaktifkan assistant."}{" "}
+              : "Atur AI_BASE_URL, AI_MODEL, dan AI_API_KEY pada environment server untuk mengaktifkan assistant."}{tr(" ")}
             Catatan pribadi tidak dikirim otomatis.
           </p>
         ) : (
@@ -197,16 +198,16 @@ export default function Insights() {
               }
             }}
           >
-            <Field label="Teks yang akan dikirim ke provider">
+            <Field label={tr("Teks yang akan dikirim ke provider")}>
               <textarea
                 rows={6}
                 value={prompt}
                 onChange={(e) => setPrompt(e.target.value)}
-                placeholder="Tempel catatan yang sudah Anda periksa, lalu minta ringkasan atau draft laporan."
+                placeholder={tr("Tempel catatan yang sudah Anda periksa, lalu minta ringkasan atau draft laporan.")}
                 required
               />
             </Field>
-            <Field label="Saya setuju teks di atas dikirim ke provider AI">
+            <Field label={tr("Saya setuju teks di atas dikirim ke provider AI")}>
               <input
                 type="checkbox"
                 checked={consent}

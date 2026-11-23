@@ -1,3 +1,4 @@
+import { tr } from "./i18n";
 import { useState, useEffect } from "react";
 import { useParams, Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -71,7 +72,7 @@ export default function RecordsPage() {
   });
   useEffect(()=>{setUrl({search,view,filter,priority,related,sort,page:String(page),archived:String(archived),trash:String(trash)},{replace:true});},[search,view,filter,priority,related,sort,page,archived,trash]);
   const referenceRows=[...(result.data && "references" in result.data?result.data.references||[]:[]),...(all.data||[])];
-  if (!m) return <Empty title="Halaman tidak ditemukan" />;
+  if (!m) return <Empty title={tr("Halaman tidak ditemukan")} />;
   const serverPaged=!store.trial;
   let rows = (result.data?.items || []).filter(
     (r) => serverPaged ||
@@ -249,7 +250,7 @@ export default function RecordsPage() {
   }
   return (
     <>
-      <PageHeader eyebrow={m.group} title={m.title} description={m.description}>
+      <PageHeader eyebrow={tr(m.group)} title={tr(m.title)} description={tr(m.description)}>
         <Button onClick={() => edit()}>
           <Plus size={17} />
           Tambah
@@ -259,7 +260,7 @@ export default function RecordsPage() {
         <div className="focus-bar">
           <div>
             <Timer size={18} />
-            <strong>Focus session</strong>
+            <strong>{tr("Focus session")}</strong>
             <span>
               {timer
                 ? `${Math.floor(elapsed / 60)}:${String(elapsed % 60).padStart(2, "0")}`
@@ -277,19 +278,19 @@ export default function RecordsPage() {
               }
             }}
           >
-            {timer ? <Square size={14} /> : <Play size={14} />}{" "}
+            {timer ? <Square size={14} /> : <Play size={14} />}{tr(" ")}
             {timer ? "Simpan sesi" : "Mulai fokus"}
           </Button>
         </div>
       )}
       <div className="list-toolbar">
-        <select aria-label="Urutkan" value={sort} onChange={e=>{setSort(e.target.value);setPage(0)}}><option value="updated">Terbaru</option><option value="title">Judul A–Z</option><option value="due">Tenggat</option></select>
-        <input type="search" aria-label="Cari opsi relasi" placeholder="Cari perusahaan / kategori / proyek" value={referenceSearch} onChange={e=>setReferenceSearch(e.target.value)}/><select aria-label="Filter relasi" value={related} onChange={e=>{setRelated(e.target.value);setPage(0)}}><option value="">Semua perusahaan / kategori / proyek</option>{all.data?.filter(r=>["companies","categories","projects"].includes(r.kind)).map(r=><option key={r.id} value={r.id}>{r.title}</option>)}</select>
+        <select aria-label={tr("Urutkan")} value={sort} onChange={e=>{setSort(e.target.value);setPage(0)}}><option value="updated">{tr("Terbaru")}</option><option value="title">{tr("Judul A–Z")}</option><option value="due">{tr("Tenggat")}</option></select>
+        <input type="search" aria-label={tr("Cari opsi relasi")} placeholder={tr("Cari perusahaan / kategori / proyek")} value={referenceSearch} onChange={e=>setReferenceSearch(e.target.value)}/><select aria-label={tr("Filter relasi")} value={related} onChange={e=>{setRelated(e.target.value);setPage(0)}}><option value="">{tr("Semua perusahaan / kategori / proyek")}</option>{all.data?.filter(r=>["companies","categories","projects"].includes(r.kind)).map(r=><option key={r.id} value={r.id}>{r.title}</option>)}</select>
         <Button variant="ghost" onClick={()=>{const cell=(v:any)=>'"'+String(v??'').replace(/^[=+@-]/,"'$&").replaceAll('"','""')+'"';store.download(m.key+'.csv', ['Title,Status,Priority,Due,Company,Category,Project',...rows.map(r=>[r.title,r.data.status,r.data.priority,r.data.due,...[r.data.companyId,r.data.categoryId,r.data.projectId].map(id=>referenceRows.find(v=>v.id===id)?.title||'')].map(cell).join(','))].join('\r\n'),'text/csv;charset=utf-8')}}>{serverPaged?"CSV halaman ini":"CSV export"}</Button>
         <label className="search-input">
           <Search size={17} />
           <input
-            aria-label="Cari catatan"
+            aria-label={tr("Cari catatan")}
             placeholder={"Cari di " + m.title.toLowerCase()}
             value={search}
             onChange={(e) => {
@@ -300,13 +301,13 @@ export default function RecordsPage() {
         </label>
         {kind === "tasks" && (
           <>
-            <select aria-label="Filter prioritas" value={priority} onChange={e=>{setPriority(e.target.value);setPage(0)}}><option value="">Semua prioritas</option>{["Low","Medium","High","Urgent"].map(p=><option key={p}>{p}</option>)}</select>
+            <select aria-label={tr("Filter prioritas")} value={priority} onChange={e=>{setPriority(e.target.value);setPage(0)}}><option value="">{tr("Semua prioritas")}</option>{["Low","Medium","High","Urgent"].map(p=><option key={p}>{p}</option>)}</select>
             <select
-              aria-label="Filter status"
+              aria-label={tr("Filter status")}
               value={filter}
               onChange={(e) => {setFilter(e.target.value);setPage(0)}}
             >
-              <option value="all">Semua status</option>
+              <option value="all">{tr("Semua status")}</option>
               {statuses.map((s) => (
                 <option key={s}>{s}</option>
               ))}
@@ -324,7 +325,7 @@ export default function RecordsPage() {
               >
                 Board
               </button>
-              <button className={view === "completed" ? "active" : ""} onClick={()=>{setView("completed");setPage(0)}}>Completed</button>
+              <button className={view === "completed" ? "active" : ""} onClick={()=>{setView("completed");setPage(0)}}>{tr("Completed")}</button>
             </div>
           </>
         )}
@@ -335,7 +336,7 @@ export default function RecordsPage() {
         </Button>
         <Button
           variant="ghost"
-          aria-label="Export"
+          aria-label={tr("Export")}
           onClick={() =>
             store.download(
               m.key + ".md",
@@ -364,7 +365,7 @@ export default function RecordsPage() {
       <ErrorText error={error || result.error} />
       {undo && (
         <div className="notice">
-          Record diarsipkan.{" "}
+          Record diarsipkan.{tr(" ")}
           <button
             onClick={async () => {
               await store.restoreRecord(undo);
@@ -405,7 +406,7 @@ export default function RecordsPage() {
         {key:"company",label:"Company",render:r=>referenceRows.find(v=>v.id===r.data.companyId)?.title||r.data.company||"—"},
         {key:"category",label:"Category",render:r=>referenceRows.find(v=>v.id===r.data.categoryId)?.title||r.data.category||"—"},
         {key:"project",label:"Project",render:r=>referenceRows.find(v=>v.id===r.data.projectId)?.title||r.data.project||"—"},
-        {key:"archive",label:"Arsip",render:r=><button onClick={()=>remove(r)}>Arsipkan</button>}
+        {key:"archive",label:"Arsip",render:r=><button onClick={()=>remove(r)}>{tr("Arsipkan")}</button>}
       ]}/> : (
         <div className={kind === "notes" ? "notes-grid" : "record-list"}>
           {visible.map(row)}
@@ -440,7 +441,7 @@ export default function RecordsPage() {
         "competencies",
       ].includes(kind) && (
         <div className="subtle-links">
-          <Link to="/insights">Lihat ringkasan karier & laporan →</Link>
+          <Link to="/insights">{tr("Lihat ringkasan karier & laporan →")}</Link>
         </div>
       )}
       {open && (

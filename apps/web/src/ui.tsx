@@ -1,3 +1,4 @@
+import { tr } from "./i18n";
 import * as React from "react";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { Slot } from "@radix-ui/react-slot";
@@ -151,7 +152,7 @@ export function ErrorText({ error }: { error: unknown }) {
 
 export function BentoGrid({children,className,...props}:React.HTMLAttributes<HTMLDivElement>){return <div className={cn("bento-grid",className)} {...props}>{children}</div>;}
 export function BentoCard({children,className,span=4,...props}:React.HTMLAttributes<HTMLElement>&{span?:3|4|6|8|12}){return <section className={cn("panel","bento-card",`bento-span-${span}`,className)} {...props}>{children}</section>;}
-export function StatusBadge({children,status}: {children?:React.ReactNode;status?:string}){return <span className={cn("badge",status==="Completed"&&"success",status==="In Progress"&&"in-progress",status==="To Do"&&"to-do")}>{children || status}</span>;}
+export function StatusBadge({children,status}: {children?:React.ReactNode;status?:string}){return <span className={cn("badge",status==="Completed"&&"success",status==="In Progress"&&"in-progress",status==="To Do"&&"to-do")}>{children || (status ? tr(status) : children)}</span>;}
 export function ProgressCard({title,value,total=100,children}: {title:string;value:number;total?:number;children?:React.ReactNode}){const progress=total>0?Math.max(0,Math.min(100,value/total*100)):0;return <BentoCard><div className="section-heading"><h2>{title}</h2><span>{Math.round(progress)}%</span></div><progress aria-label={title} max={100} value={progress}/>{children}</BentoCard>;}
 export function StatCard({title,value,description}: {title:string;value:React.ReactNode;description?:string}){return <BentoCard span={3} className="stat"><span>{title}</span><strong>{value}</strong>{description&&<small>{description}</small>}</BentoCard>;}
 export function FilterDropdown({label,options,...props}:React.SelectHTMLAttributes<HTMLSelectElement>&{label:string;options:{value:string;label:string}[]}){return <Field label={label}><select {...props}>{options.map(option=><option key={option.value} value={option.value}>{option.label}</option>)}</select></Field>;}

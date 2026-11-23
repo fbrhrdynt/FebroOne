@@ -1,3 +1,4 @@
+import { tr } from "./i18n";
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
@@ -26,9 +27,9 @@ export default function ToolsPage() {
   return (
     <>
       <PageHeader
-        eyebrow="Tools"
-        title="Engineering desk"
-        description="Rumus yang terlihat. Satuan yang jelas. Hasil yang dapat ditelusuri."
+        eyebrow={tr("Tools")}
+        title={tr("Engineering desk")}
+        description={tr("Rumus yang terlihat. Satuan yang jelas. Hasil yang dapat ditelusuri.")}
       />
       <div className="tabs page-tabs">
         <button
@@ -43,8 +44,8 @@ export default function ToolsPage() {
         >
           Unit converter
         </button>
-        <Link to="/records/calculations">Riwayat tersimpan</Link>
-        <Link to="/records/integrations">App launcher</Link>
+        <Link to="/records/calculations">{tr("Riwayat tersimpan")}</Link>
+        <Link to="/records/integrations">{tr("App launcher")}</Link>
       </div>
       <ErrorText error={error} />
       {tab === "calc" ? (
@@ -95,12 +96,12 @@ export default function ToolsPage() {
                   />
                 </Field>
               ))}
-              <Button type="submit">Hitung</Button>
+              <Button type="submit">{tr("Hitung")}</Button>
             </form>
             <p className="hint">Asumsi: {c.assumptions}</p>
             {result && (
               <div className="calculation-result">
-                <span>Hasil</span>
+                <span>{tr("Hasil")}</span>
                 <strong>
                   {result.result.toPrecision(8)} <small>{result.unit}</small>
                 </strong>
@@ -144,7 +145,7 @@ export default function ToolsPage() {
       ) : (
         <section className="panel narrow">
           <div className="form-stack">
-            <Field label="Besaran">
+            <Field label={tr("Besaran")}>
               <select
                 value={group}
                 onChange={(e) => {
@@ -159,7 +160,7 @@ export default function ToolsPage() {
                 ))}
               </select>
             </Field>
-            <Field label="Nilai">
+            <Field label={tr("Nilai")}>
               <input
                 type="number"
                 step="any"
@@ -168,14 +169,14 @@ export default function ToolsPage() {
               />
             </Field>
             <div className="form-grid">
-              <Field label="Dari">
+              <Field label={tr("Dari")}>
                 <select value={from} onChange={(e) => setFrom(e.target.value)}>
                   {Object.keys(units).map((u) => (
                     <option key={u}>{u}</option>
                   ))}
                 </select>
               </Field>
-              <Field label="Ke">
+              <Field label={tr("Ke")}>
                 <select value={to} onChange={(e) => setTo(e.target.value)}>
                   {Object.keys(units).map((u) => (
                     <option key={u}>{u}</option>
@@ -184,9 +185,9 @@ export default function ToolsPage() {
               </Field>
             </div>
             <div className="calculation-result">
-              <span>Hasil konversi</span>
+              <span>{tr("Hasil konversi")}</span>
               <strong>
-                {((Number(value) * units[from]) / units[to]).toPrecision(9)}{" "}
+                {((Number(value) * units[from]) / units[to]).toPrecision(9)}{tr(" ")}
                 <small>{to}</small>
               </strong>
               <p>
