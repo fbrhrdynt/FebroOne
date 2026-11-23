@@ -210,21 +210,25 @@ export async function updateDebt(db: DB, owner: string, did: string, raw: any) {
   return {id:did};
 }
 export async function setDebtInstallmentPaid(db: DB, owner: string, raw: any) {
-  const input=z.object({debtId:id,period:z.string().regex(/^\d{4}-(0[1-9]|1[0-2])$/),amount:money.optional(),dueDate:z.iso.date().optional(),notes:z.string().max(1000).optional(),paid:z.boolean().default(true)}).parse(raw);
+  const input=z.object({debtId:id,periods:z.array(z.string().regex(/^\\d{4}-(0[1-9]|1[0-2])$/)).min(1).max(24),amount:money.optional(),dueDate:z.iso.date().optional(),notes:z.string().max(1000).optional(),paid:z.boolean().default(true)}).parse(raw);
+  if(new Set(input.periods).size!==input.periods.length)throw new Error("Periode pembayaran duplikat");
   return db.transaction(async tx=>{
     await tx.query("SELECT id FROM users WHERE id=$1 FOR UPDATE",[owner]);
     const debt=(await tx.query("SELECT id FROM debts WHERE id=$1 AND owner_id=$2 AND archived_at IS NULL FOR UPDATE",[input.debtId,owner])).rows[0];
     if(!debt)throw new Error("Utang tidak ditemukan");
-    const period=input.period+"-01";
-    const result=await tx.query(
-      `INSERT INTO debt_installments(id,owner_id,debt_id,period,due_date,amount,status,paid_at,notes)
-       VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9)
-       ON CONFLICT(debt_id,period) DO UPDATE SET due_date=EXCLUDED.due_date,amount=EXCLUDED.amount,status=EXCLUDED.status,paid_at=EXCLUDED.paid_at,notes=EXCLUDED.notes
-       RETURNING id,status,period::text period`,
-      [randomUUID(),owner,input.debtId,period,input.dueDate||null,input.amount?minor(input.amount).toString():null,input.paid?"paid":"scheduled",input.paid?new Date().toISOString():null,input.notes||""]
-    );
-    await tx.query("INSERT INTO audit_logs(owner_id,action,entity_id) VALUES($1,$2,$3)",[owner,input.paid?"debt.installment_paid":"debt.installment_scheduled",result.rows[0].id]);
-    return result.rows[0];
+    const result=[];
+    for(const period of input.periods){
+      const saved=await tx.query(
+        `INSERT INTO debt_installments(id,owner_id,debt_id,period,due_date,amount,status,paid_at,notes)
+         VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9)
+         ON CONFLICT(debt_id,period) DO UPDATE SET due_date=EXCLUDED.due_date,amount=EXCLUDED.amount,status=EXCLUDED.status,paid_at=EXCLUDED.paid_at,notes=EXCLUDED.notes
+         RETURNING id,status,period::text period`,
+        [randomUUID(),owner,input.debtId,period+"-01",input.dueDate||null,input.amount?minor(input.amount).toString():null,input.paid?"paid":"scheduled",input.paid?new Date().toISOString():null,input.notes||""]
+      );
+      result.push(saved.rows[0]);
+    }
+    await tx.query("INSERT INTO audit_logs(owner_id,action,entity_id) VALUES($1,$2,$3)",[owner,input.paid?"debt.installments_paid":"debt.installments_scheduled",input.debtId]);
+    return {items:result};
   });
 }
 export async function runDebtReminders(db: DB) {
