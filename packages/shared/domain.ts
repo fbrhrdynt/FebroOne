@@ -151,6 +151,13 @@ export const debtSchema = z.object({
   start: z.iso.date(),
   direction: z.enum(["borrowed", "lent"]),
   model: z.enum(["reducing", "flat"]),
+  dueDate: z.iso.date().optional(),
+  repaymentMode: z.enum(["installment", "flexible"]).optional(),
+  monthlyPayment: money.optional(),
+  paymentBank: z.string().max(120).optional(),
+  paymentAccount: z.string().max(80).optional(),
+  paymentType: z.string().trim().max(80).optional(),
+  notes: z.string().max(10000).optional(),
   rates: z
     .array(
       z.object({
