@@ -17,6 +17,7 @@ import * as store from "./store";
 import { Button, PageHeader, Empty, Modal, Field, ErrorText } from "./ui";
 import RecordForm from "./RecordForm";
 import { rp, total, monthlyCashflow } from "./money";
+import { ChevronDown, ChevronUp } from "lucide-react";
 import { ActivityCard, ChartCard, CompletionRing, QuickAction, StatusDot } from "./Bento";
 import FocusTimer from "./FocusTimer";
 export default function Home() {
@@ -31,6 +32,7 @@ export default function Home() {
   const [kind, setKind] = useState("");
   const [custom, setCustom] = useState(false);
   const [error, setError] = useState<unknown>();
+  const [debtDetailsOpen,setDebtDetailsOpen] = useState(false);
   const rs = data.data || [];
   const prefs = profile.data?.user.preferences || {};
   const extraWidgets = ["reminders", "projects", "habits", "documents", "goals"];
@@ -51,6 +53,10 @@ export default function Home() {
   const completed = allTasks.filter(r => r.data.status === "Completed").length;
   const month = today.slice(0, 7);
   const cashflow = monthlyCashflow(fin.data?.transactions || [], month);
+  const debtInstallments = fin.data?.installments || [];
+  const activeDebts = (fin.data?.debts || []).filter((d:any)=>d.direction==="borrowed"&&!d.settledAt);
+  const monthlyDebtRows = activeDebts.filter((d:any)=>{const start=d.repaymentStart||month;if(month<start)return false;if(d.installmentCount){const [sy,sm]=start.split("-").map(Number);const [y,m]=month.split("-").map(Number);if((y-sy)*12+(m-sm)>=Number(d.installmentCount))return false;}return !debtInstallments.some((i:any)=>i.debtId===d.id&&String(i.period).slice(0,7)===month&&i.status==="paid")&&Number(d.monthlyPayment||0)>0;});
+  const monthlyDebtTotal = monthlyDebtRows.reduce((sum:number,d:any)=>sum+Number(d.monthlyPayment||0),0);
   const recentTx = (fin.data?.transactions || []).filter((t: any) => !t.reversed && !["opening", "reversal"].includes(t.kind)).sort((a: any,b: any) => b.date.localeCompare(a.date)).slice(0, 4);
   const money = (value: any) => fin.isPending ? "Memuat…" : fin.isError ? "Tidak tersedia" : prefs.maskMoney ? "••••••" : rp(value);
   const overdue = tasks.filter(
@@ -243,6 +249,13 @@ export default function Home() {
               {fin.data?.accounts.length || 0} akun ·{tr(" ")}
               {(fin.data?.debts || []).length} utang / piutang
             </p>
+            <div className="dashboard-debt-due">
+              <button type="button" className="dashboard-debt-toggle" aria-expanded={debtDetailsOpen} onClick={()=>setDebtDetailsOpen(v=>!v)}>
+                <span><strong>Cicilan bulan ini</strong><small>{monthlyDebtRows.length} jadwal aktif</small></span>
+                <span><b>{money(monthlyDebtTotal)}</b>{debtDetailsOpen?<ChevronUp size={16}/>:<ChevronDown size={16}/>}</span>
+              </button>
+              {debtDetailsOpen && <div className="dashboard-debt-items">{monthlyDebtRows.length?monthlyDebtRows.map((d:any)=><div className="dashboard-debt-item" key={d.id}><span>{d.name||"Utang tanpa nama"}</span><strong>{money(d.monthlyPayment)}</strong></div>):<p className="hint">Tidak ada cicilan terjadwal bulan ini.</p>}</div>}
+            </div>
             <Link className="text-button" to="/finance">
               Lihat transaksi <ArrowRight size={15} />
             </Link>
