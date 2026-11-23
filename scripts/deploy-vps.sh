@@ -15,6 +15,19 @@ SOURCE_BACKUP=""
 log(){ printf '\n[%s] %s\n' "$(date -Is)" "$*"; }
 die(){ echo "ERROR: $*" >&2; exit 1; }
 cleanup(){ [[ -z "$WORK_DIR" ]] || rm -rf "$WORK_DIR"; }
+restore_source(){
+  local restore_dir
+  restore_dir="$(mktemp -d /opt/febro-one-rollback.XXXXXX)"
+  tar -xzf "$SOURCE_BACKUP" -C "$restore_dir"
+  rsync -a --delete \
+    --exclude='.git/' \
+    --exclude='.env' \
+    --exclude='runtime/' \
+    --exclude='uploads/' \
+    --exclude='logs/' \
+    "$restore_dir/" "$APP_DIR/"
+  rm -rf "$restore_dir"
+}
 trap cleanup EXIT
 
 [[ $EUID -eq 0 ]] || die "Jalankan script dengan sudo."
@@ -75,7 +88,7 @@ chmod 640 "$APP_DIR/.env"
 log "Menjalankan migrasi additive."
 if ! bash "$APP_DIR/scripts/migrate.sh"; then
   log "Migrasi gagal. Mengembalikan source sebelum deployment."
-  tar -xzf "$SOURCE_BACKUP" -C "$APP_DIR"
+  restore_source
   systemctl restart "$SERVICE" || true
   die "Migrasi gagal; source dipulihkan. Database tidak dihapus."
 fi
