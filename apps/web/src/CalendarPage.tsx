@@ -254,12 +254,12 @@ export default function CalendarPage() {
       <ErrorText error={error || result.error || linked.error} />
       {ics && (
         <div className="notice">
-          Preview: {ics.length} event.{" "}
+          Preview: {ics.length} event.{tr(" ")}
           {ics
             .slice(0, 3)
             .map((r) => r.title)
             .join(", ")}
-          .{" "}
+          .{tr(" ")}
           <Button
             onClick={async () => {
               try {
@@ -309,7 +309,7 @@ export default function CalendarPage() {
                       new Date(r.data.start).getMonth() === m &&
                       new Date(r.data.start).getFullYear() === year,
                   ).length
-                }{" "}
+                }{tr(" ")}
                 event
               </p>
               <div className="mini-days">
@@ -364,7 +364,7 @@ export default function CalendarPage() {
                       : new Date(r.data.start).toLocaleTimeString("id-ID", {
                           hour: "2-digit",
                           minute: "2-digit",
-                        })}{" "}
+                        })}{tr(" ")}
                     · {r.data.calendar || "Personal"}
                   </p>
                 </div>
