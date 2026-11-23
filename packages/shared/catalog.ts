@@ -451,6 +451,13 @@ export const modules: Module[] = [
     ],
   },
   {
+    key: "debts",
+    title: "Utang & piutang",
+    group: "Keuangan",
+    description: "Kelola pinjaman, cicilan, pembayaran, dan piutang.",
+    fields: [],
+  },
+  {
     key: "budgets",
     title: "Budgets",
     group: "Keuangan",
