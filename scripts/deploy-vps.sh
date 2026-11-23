@@ -62,13 +62,13 @@ npm run build || die "Build gagal; production tidak diubah."
 
 log "Memasang release sambil mempertahankan .env, runtime, dan upload production."
 rsync -a --delete \
+  --exclude='.git/' \
   --exclude='.env' \
   --exclude='runtime/' \
   --exclude='uploads/' \
   --exclude='logs/' \
   "$WORK_DIR/source/" "$APP_DIR/" || die "Copy release gagal."
 
-chown -R root:root "$APP_DIR"
 chown root:febro-one "$APP_DIR/.env"
 chmod 640 "$APP_DIR/.env"
 
