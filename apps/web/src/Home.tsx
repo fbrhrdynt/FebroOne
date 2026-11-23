@@ -22,7 +22,7 @@ import RecordForm from "./RecordForm";
 import { rp, total, monthlyCashflow } from "./money";
 import { ActivityCard, ChartCard, CompletionRing, QuickAction, StatusDot } from "./Bento";
 import FocusTimer from "./FocusTimer";
-export default function Home() {
+export default function Home() {\n const language=localStorage.getItem("febro-language")==="en"?"en":"id";\n const tr=(en:string,id:string)=>language==="en"?en:id;
   const q = useQueryClient();
   const data = useQuery({
     queryKey: ["records"],
