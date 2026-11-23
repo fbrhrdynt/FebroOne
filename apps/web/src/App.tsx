@@ -34,6 +34,9 @@ import {
   ArrowUpRight,
   LogOut,
   UserRound,
+  Eye,
+  EyeOff,
+  Globe2,
 } from "lucide-react";
 import { catalog, modules, groupNames } from "../../../packages/shared/catalog";
 import * as store from "./store";
@@ -49,6 +52,18 @@ const Finance = lazy(() => import("./FinancePage"));
 const Tools = lazy(() => import("./ToolsPage"));
 const Insights = lazy(() => import("./Insights"));
 const Settings = lazy(() => import("./Settings"));
+const languageStorageKey = "febro-one-language";
+type Language = "id" | "en";
+const copy = {
+  id: { email:"Email", password:"Kata sandi", show:"Tampilkan kata sandi", hide:"Sembunyikan kata sandi", login:"Masuk", recover:"Pulihkan akun", recovery:"Kode pemulihan", newPassword:"Kata sandi baru (minimal 12 karakter)", back:"Kembali ke login", working:"Memproses…", settings:"Pengaturan" },
+  en: { email:"Email", password:"Password", show:"Show password", hide:"Hide password", login:"Sign in", recover:"Recover account", recovery:"Recovery code", newPassword:"New password (at least 12 characters)", back:"Back to sign in", working:"Working…", settings:"Settings" }
+} as const;
+function LanguageSwitch({value,onChange}:{value:Language;onChange:(v:Language)=>void}) {
+  return <div className="language-switch" role="group" aria-label="Language">
+    <Globe2 size={14}/><button type="button" aria-pressed={value==="id"} onClick={()=>onChange("id")}>ID</button>
+    <span>/</span><button type="button" aria-pressed={value==="en"} onClick={()=>onChange("en")}>EN</button>
+  </div>;
+}
 const nav = [
   ["/", "Home", HomeIcon],
   ["/calendar", "Calendar", CalendarDays],
@@ -63,18 +78,20 @@ const nav = [
   ["/tools", "Tools", Calculator],
   ["/insights", "Insights", ChartNoAxesCombined],
 ] as const;
-function Login({ onDone }: { onDone: () => void }) {
+function Login({ onDone, language, setLanguage }: { onDone: () => void; language: Language; setLanguage:(v:Language)=>void }) {
   const [recovery, setRecovery] = useState(false);
   const [error, setError] = useState<unknown>();
   const [busy, setBusy] = useState(false);
+  const [showPassword,setShowPassword]=useState(false);
+  const t=copy[language];
   return (
     <div className="login-page">
-      <div className="login-card">
+      <div className="login-card"><div className="login-language"><LanguageSwitch value={language} onChange={setLanguage}/></div>
         <div className="brand">
           <span className="brand-mark">f.</span>
           <strong>Febro One</strong>
         </div>
-        <h1>{recovery ? "Pulihkan akun" : "Selamat datang kembali."}</h1>
+        <h1>{recovery ? t.recover : language==="id" ? "Selamat datang kembali." : "Welcome back."}</h1>
         <p>Your Entire Life. One Workspace.</p>
         <form
           className="form-stack"
@@ -98,7 +115,7 @@ function Login({ onDone }: { onDone: () => void }) {
             }
           }}
         >
-          <Field label="Email">
+          <Field label={t.email}>
             <input name="email" type="email" autoComplete="username" required />
           </Field>
           {recovery && (
@@ -108,27 +125,21 @@ function Login({ onDone }: { onDone: () => void }) {
           )}
           <Field
             label={
-              recovery ? "Password baru (minimal 12 karakter)" : "Password"
+              recovery ? t.newPassword : t.password
             }
           >
-            <input
-              name="password"
-              type="password"
-              autoComplete={recovery ? "new-password" : "current-password"}
-              minLength={recovery ? 12 : 1}
-              required
-            />
+            <div className="password-input-wrap"><input name="password" type={showPassword ? "text" : "password"} autoComplete={recovery ? "new-password" : "current-password"} minLength={recovery ? 12 : 1} required/><button className="password-visibility" type="button" onClick={()=>setShowPassword(v=>!v)} aria-label={showPassword?t.hide:t.show} title={showPassword?t.hide:t.show}>{showPassword?<EyeOff size={18}/>:<Eye size={18}/>}</button></div>
           </Field>
           <ErrorText error={error} />
           <Button disabled={busy} type="submit">
-            {busy ? "Memproses…" : recovery ? "Ganti password" : "Masuk"}
+            {busy ? t.working : recovery ? (language==="id"?"Ganti kata sandi":"Reset password") : t.login}
           </Button>
           <Button
             variant="ghost"
             type="button"
             onClick={() => setRecovery(!recovery)}
           >
-            {recovery ? "Kembali ke login" : "Pulihkan akun"}
+            {recovery ? t.back : t.recover}
           </Button>
         </form>
         <small>Akun pertama dibuat melalui perintah admin di VPS.</small>
@@ -144,6 +155,9 @@ export default function App() {
   });
   const q = useQueryClient();
   const [profileOpen, setProfileOpen] = useState(false);
+  const [language,setLanguageState]=useState<Language>(()=>localStorage.getItem(languageStorageKey)==="en"?"en":"id");
+  const setLanguage=(v:Language)=>{setLanguageState(v);localStorage.setItem(languageStorageKey,v);};
+  const t=copy[language];
   const [shellError, setShellError] = useState<unknown>();
   const [themeBusy, setThemeBusy] = useState(false);
   const [quick, setQuick] = useState(false);
@@ -225,7 +239,7 @@ export default function App() {
         <p>Membuka workspace…</p>
       </div>
     );
-  if (!identity.data) return <Login onDone={() => q.invalidateQueries()} />;
+  if (!identity.data) return <Login language={language} setLanguage={setLanguage} onDone={() => q.invalidateQueries()} />;
   const current =
     nav.find((n) => n[0] === location.pathname)?.[1] ||
     catalog[location.pathname.split("/")[2]]?.title ||
@@ -285,7 +299,7 @@ export default function App() {
         <div className="sidebar-footer">
           <NavLink to="/settings">
             <SettingsIcon size={18} />
-            Settings
+            {t.settings}
           </NavLink>
           <small>
             Your Entire Life.
@@ -311,6 +325,7 @@ export default function App() {
             <strong>{current}</strong>
           </div>
           <div className="row-actions">
+            <LanguageSwitch value={language} onChange={setLanguage}/>
             <Button
               variant="ghost"
               className="search-trigger"
