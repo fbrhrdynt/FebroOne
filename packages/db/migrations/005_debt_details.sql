@@ -1,0 +1,1 @@
+ALTER TABLE debts ADD COLUMN IF NOT EXISTS details jsonb NOT NULL DEFAULT '{}'::jsonb;
