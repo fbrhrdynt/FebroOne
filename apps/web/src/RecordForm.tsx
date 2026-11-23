@@ -1,3 +1,4 @@
+import { tr } from "./i18n";
 import { useNavigate } from "react-router-dom";
 import { lazy, Suspense, useEffect, useState, useRef } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -121,7 +122,7 @@ export function RecordFormPage({
     (l: any) => l.source_id === initial?.id || l.target_id === initial?.id,
   );
   return (
-    <section className="panel record-form-page"><header><Button variant="ghost" onClick={onClose}>← Kembali</Button><h1>{initial ? "Edit " + m.title : "Tambah " + m.title}</h1><p>{m.description}</p></header>
+    <section className="panel record-form-page"><header><Button variant="ghost" onClick={onClose}>{tr("← Kembali")}</Button><h1>{initial ? "Edit " + m.title : "Tambah " + m.title}</h1><p>{m.description}</p></header>
       <div className="tabs">
         <button
           className={tab === "edit" ? "active" : ""}
@@ -152,7 +153,7 @@ export function RecordFormPage({
           </>
         )}
       </div>
-      {(tab==="links" || (kind==="notes"&&!initial&&tab==="edit"))&&<details className="lookup-tools"><summary>Cari template / record terkait</summary><input type="search" aria-label="Cari record terkait" value={lookupSearch} onChange={e=>{setLookupSearch(e.target.value);setLookupPage(0)}}/><div className="row-actions"><Button type="button" variant="ghost" disabled={!lookupPage} onClick={()=>setLookupPage(lookupPage-1)}>Sebelumnya</Button><span>{lookupPage+1}</span><Button type="button" variant="ghost" disabled={(all.data?.length||0)<100} onClick={()=>setLookupPage(lookupPage+1)}>Berikutnya</Button></div></details>}
+      {(tab==="links" || (kind==="notes"&&!initial&&tab==="edit"))&&<details className="lookup-tools"><summary>{tr("Cari template / record terkait")}</summary><input type="search" aria-label={tr("Cari record terkait")} value={lookupSearch} onChange={e=>{setLookupSearch(e.target.value);setLookupPage(0)}}/><div className="row-actions"><Button type="button" variant="ghost" disabled={!lookupPage} onClick={()=>setLookupPage(lookupPage-1)}>{tr("Sebelumnya")}</Button><span>{lookupPage+1}</span><Button type="button" variant="ghost" disabled={(all.data?.length||0)<100} onClick={()=>setLookupPage(lookupPage+1)}>{tr("Berikutnya")}</Button></div></details>}
       <ErrorText error={error || all.error} />
       {tab === "edit" && (
         <form onSubmit={save} className="form-stack">
@@ -172,7 +173,7 @@ export function RecordFormPage({
               </button>
             </div>
           )}
-          <Field label="Judul / nama">
+          <Field label={tr("Judul / nama")}>
             <input
               autoFocus
               required
@@ -182,14 +183,14 @@ export function RecordFormPage({
             />
           </Field>
           {kind === "notes" && !initial && (
-            <Field label="Gunakan template">
+            <Field label={tr("Gunakan template")}>
               <select
                 onChange={(e) => {
                   const t = all.data?.find((r) => r.id === e.target.value);
                   if (t) setData({ ...data, content: t.data.content || "" });
                 }}
               >
-                <option value="">Tanpa template</option>
+                <option value="">{tr("Tanpa template")}</option>
                 {all.data
                   ?.filter((r) => r.kind === "templates")
                   .map((r) => (
@@ -209,12 +210,12 @@ export function RecordFormPage({
                 <Field label={f.label}>
                   {f.key === "checklist" && kind === "tasks" ? (
                     <div className="form-stack">{checklistItems(data.checklist).map((item,index,items)=><div className="checklist-row" key={item.id}>
-                    <input aria-label="Selesai" type="checkbox" checked={item.checked} onChange={e=>setData({...data,checklist:items.map((v,i)=>i===index?{...v,checked:e.target.checked}:v)})}/>
-                    <input aria-label="Checklist item" value={item.text} onChange={e=>setData({...data,checklist:items.map((v,i)=>i===index?{...v,text:e.target.value}:v)})}/>
-                    <button type="button" disabled={!index} aria-label="Naik" onClick={()=>{[items[index-1],items[index]]=[items[index],items[index-1]];setData({...data,checklist:items})}}>↑</button>
-                    <button type="button" disabled={index===items.length-1} aria-label="Turun" onClick={()=>{[items[index+1],items[index]]=[items[index],items[index+1]];setData({...data,checklist:items})}}>↓</button>
-                    <button type="button" aria-label="Hapus item" onClick={()=>setData({...data,checklist:items.filter((_,i)=>i!==index)})}>×</button>
-                    </div>)}<button type="button" onClick={()=>setData({...data,checklist:[...checklistItems(data.checklist),{id:crypto.randomUUID(),text:"Item baru",checked:false}]})}>+ Tambah checklist</button>
+                    <input aria-label={tr("Selesai")} type="checkbox" checked={item.checked} onChange={e=>setData({...data,checklist:items.map((v,i)=>i===index?{...v,checked:e.target.checked}:v)})}/>
+                    <input aria-label={tr("Checklist item")} value={item.text} onChange={e=>setData({...data,checklist:items.map((v,i)=>i===index?{...v,text:e.target.value}:v)})}/>
+                    <button type="button" disabled={!index} aria-label={tr("Naik")} onClick={()=>{[items[index-1],items[index]]=[items[index],items[index-1]];setData({...data,checklist:items})}}>↑</button>
+                    <button type="button" disabled={index===items.length-1} aria-label={tr("Turun")} onClick={()=>{[items[index+1],items[index]]=[items[index],items[index+1]];setData({...data,checklist:items})}}>↓</button>
+                    <button type="button" aria-label={tr("Hapus item")} onClick={()=>setData({...data,checklist:items.filter((_,i)=>i!==index)})}>×</button>
+                    </div>)}<button type="button" onClick={()=>setData({...data,checklist:[...checklistItems(data.checklist),{id:crypto.randomUUID(),text:"Item baru",checked:false}]})}>{tr("+ Tambah checklist")}</button>
                     <small>{checklistItems(data.checklist).length ? Math.round(checklistItems(data.checklist).filter(i=>i.checked).length/checklistItems(data.checklist).length*100):0}% selesai · Status otomatis jika memiliki checklist</small></div>
                   ) : f.key === "parent" && kind === "tasks" ? <RelationshipPicker name="parent" value={data.parent||""} records={all.data||[]} onChange={value=>setData({...data,parent:value})}/> : f.key === "content" && kind === "notes" ? (
                     <div>
@@ -309,16 +310,16 @@ export function RecordFormPage({
             ))}
           </div>
           {["tasks","work","employments","trainings","certificates","projects","achievements","competencies","timesheets"].includes(kind)&&["company","category",...(kind === "projects" ? [] : ["project"])].map((name)=><RelationshipPicker key={name} name={name} companyId={data.companyId} value={data[name+"Id"]||""} records={(all.data||[]).filter(r=>r.kind===({company:"companies",category:"categories",project:"projects",parent:"tasks"}[name])&&(name!=="project"||!data.companyId||r.data.companyId===data.companyId))} onChange={value=>setData({...data,[name+"Id"]:value,...(name==="company"&&value!==data.companyId?{projectId:""}:{})})}/>)}
-          {kind === "tasks" && <><Field label={"Pengingat ("+timezone+")"}><input type="datetime-local" value={data.reminder?zonedInput(data.reminder,timezone):""} onChange={e=>setData({...data,reminder:e.target.value?zonedInstant(e.target.value,timezone):""})}/></Field><Field label="Pengulangan pengingat"><select value={data.reminderRepeat||"None"} onChange={e=>setData({...data,reminderRepeat:e.target.value})}>{["None","Daily","Weekly","Monthly"].map(v=><option key={v}>{v}</option>)}</select></Field></>}
-          <Field label="Tags (pisahkan dengan koma)">
+          {kind === "tasks" && <><Field label={"Pengingat ("+timezone+")"}><input type="datetime-local" value={data.reminder?zonedInput(data.reminder,timezone):""} onChange={e=>setData({...data,reminder:e.target.value?zonedInstant(e.target.value,timezone):""})}/></Field><Field label={tr("Pengulangan pengingat")}><select value={data.reminderRepeat||"None"} onChange={e=>setData({...data,reminderRepeat:e.target.value})}>{["None","Daily","Weekly","Monthly"].map(v=><option key={v}>{v}</option>)}</select></Field></>}
+          <Field label={tr("Tags (pisahkan dengan koma)")}>
             <input
               value={tags}
               onChange={(e) => setTags(e.target.value)}
-              placeholder="personal, penting"
+              placeholder={tr("personal, penting")}
             />
           </Field>
           <footer className="form-footer">
-            <small>Draft disimpan otomatis di perangkat ini.</small><Button type="button" variant="outline" onClick={onClose}>Batal</Button>
+            <small>{tr("Draft disimpan otomatis di perangkat ini.")}</small><Button type="button" variant="outline" onClick={onClose}>{tr("Batal")}</Button>
             <Button disabled={busy} type="submit">
               <Save size={16} />
               {busy ? "Menyimpan…" : "Simpan"}
@@ -328,7 +329,7 @@ export function RecordFormPage({
       )}
       {tab === "files" && (
         <div className="form-stack">
-          <Field label="Unggah PDF / gambar · maks. 10 MB">
+          <Field label={tr("Unggah PDF / gambar · maks. 10 MB")}>
             <input
               type="file"
               accept="application/pdf,image/png,image/jpeg,image/webp"
@@ -358,14 +359,14 @@ export function RecordFormPage({
                 </Button>
                 <Button
                   variant="ghost"
-                  aria-label="Unduh"
+                  aria-label={tr("Unduh")}
                   onClick={() => store.downloadFile(f).catch(setError)}
                 >
                   <Download size={17} />
                 </Button>
                 <Button
                   variant="ghost"
-                  aria-label="Hapus file"
+                  aria-label={tr("Hapus file")}
                   onClick={async () => {
                     if(deleteFileId!==f.id){setDeleteFileId(f.id);return;}
                     await store.deleteFile(f.id);
@@ -381,9 +382,9 @@ export function RecordFormPage({
       )}
       {tab === "links" && (
         <div className="form-stack">
-          <Field label="Hubungkan record">
+          <Field label={tr("Hubungkan record")}>
             <select value={target} onChange={(e) => setTarget(e.target.value)}>
-              <option value="">Pilih record</option>
+              <option value="">{tr("Pilih record")}</option>
               {all.data
                 ?.filter((r) => r.id !== initial?.id)
                 .map((r) => (
@@ -393,7 +394,7 @@ export function RecordFormPage({
                 ))}
             </select>
           </Field>
-          <Field label="Hubungan">
+          <Field label={tr("Hubungan")}>
             <select
               value={relation}
               onChange={(e) => setRelation(e.target.value)}
@@ -439,7 +440,7 @@ export function RecordFormPage({
       )}
       {tab === "history" && (
         <div className="form-stack">
-          {history.data?.length === 0 && <p>Belum ada versi sebelumnya.</p>}
+          {history.data?.length === 0 && <p>{tr("Belum ada versi sebelumnya.")}</p>}
           {history.data?.map((v: any) => (
             <div className="panel" key={v.version}>
               <strong>
@@ -474,7 +475,7 @@ function RelationshipPicker({name,value,records,onChange,companyId}:{name:string
  const selected=useQuery({queryKey:["master-selected",value],queryFn:()=>store.api('/records/'+value),enabled:!!value&&!store.trial});
  const options:RecordItem[]=store.trial?records:result.data?.items||[];
  const selectedRow=selected.data||records.find(r=>r.id===value);
- return <div className="relationship-picker"><label>{label}<input type="search" aria-label={"Cari "+label} placeholder={"Cari "+label} value={search} onChange={e=>{setSearch(e.target.value);setPage(0)}}/></label><select aria-label={label} value={value} onChange={e=>onChange(e.target.value)}><option value="">Tanpa {label.toLowerCase()}</option>{selectedRow&&!options.some(r=>r.id===value)&&<option value={value}>{selectedRow.title} {selectedRow.archivedAt?'(arsip)':''}</option>}{options.map(r=><option key={r.id} value={r.id}>{r.title}</option>)}</select><ErrorText error={result.error}/>{result.data?.total>30&&<div className="row-actions"><Button type="button" variant="ghost" disabled={!page} onClick={()=>setPage(page-1)}>Sebelumnya</Button><span>{page+1}</span><Button type="button" variant="ghost" disabled={(page+1)*30>=result.data.total} onClick={()=>setPage(page+1)}>Berikutnya</Button></div>}</div>;
+ return <div className="relationship-picker"><label>{label}<input type="search" aria-label={"Cari "+label} placeholder={"Cari "+label} value={search} onChange={e=>{setSearch(e.target.value);setPage(0)}}/></label><select aria-label={label} value={value} onChange={e=>onChange(e.target.value)}><option value="">Tanpa {label.toLowerCase()}</option>{selectedRow&&!options.some(r=>r.id===value)&&<option value={value}>{selectedRow.title} {selectedRow.archivedAt?'(arsip)':''}</option>}{options.map(r=><option key={r.id} value={r.id}>{r.title}</option>)}</select><ErrorText error={result.error}/>{result.data?.total>30&&<div className="row-actions"><Button type="button" variant="ghost" disabled={!page} onClick={()=>setPage(page-1)}>{tr("Sebelumnya")}</Button><span>{page+1}</span><Button type="button" variant="ghost" disabled={(page+1)*30>=result.data.total} onClick={()=>setPage(page+1)}>{tr("Berikutnya")}</Button></div>}</div>;
 }
 export default function RecordForm({kind,initial,onClose}:{kind:string;initial?:RecordItem;onClose:()=>void}) {
  const navigate=useNavigate();const routed=useRef(false);
