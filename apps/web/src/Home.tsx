@@ -20,6 +20,7 @@ import { ActivityCard, ChartCard, CompletionRing, QuickAction, StatusDot } from 
 import FocusTimer from "./FocusTimer";
 export default function Home() {
   const q = useQueryClient();
+  const en = localStorage.getItem("febro-one-language") === "en";
   const data = useQuery({
     queryKey: ["records"],
     queryFn: () => store.records(),
@@ -80,7 +81,7 @@ export default function Home() {
           ? "Selamat sore"
           : "Selamat malam";
   if (data.isError && !data.data) return <><PageHeader title="Workspace belum dapat dimuat"/><ErrorText error={data.error}/><Button onClick={()=>data.refetch()}>Coba lagi</Button></>;
-  if (data.isPending) return <><PageHeader title="Hari Anda, dalam satu tempat." description="Memuat workspace…"/><div className="dashboard-loading skeleton" role="status" aria-label="Memuat dashboard"/></>;
+  if (data.isPending) return <><PageHeader title={en?"Your day, in one place.":"Hari Anda, dalam satu tempat."} description={en?"Loading workspace…":"Memuat workspace…"}/><div className="dashboard-loading skeleton" role="status" aria-label="Memuat dashboard"/></>;
   return (
     <>
       <PageHeader
@@ -91,7 +92,7 @@ export default function Home() {
           year: "numeric",
         })}
         title={greeting + ", " + (profile.data?.user.name?.split(" ")[0] || "Anda") + "."}
-        description="Satu tempat untuk hari Anda."
+        description={en?"One place for your day.":"Satu tempat untuk hari Anda."}
       >
         <Button
           variant="outline"
@@ -109,7 +110,7 @@ export default function Home() {
           <div className="eyebrow">
             <Sun size={16} /> MY DAY
           </div>
-          <h2>Apa fokus Anda hari ini?</h2>
+          <h2>{en?"What is your focus today?":"Apa fokus Anda hari ini?"}</h2>
           <p>
             {tasks.length
               ? `${tasks.length} tugas terbuka${overdue.length ? `, ${overdue.length} melewati tenggat` : ""}. Ambil satu langkah berikutnya.`
@@ -117,21 +118,21 @@ export default function Home() {
           </p>
         </div>
         <Button onClick={() => setKind("tasks")}>
-          <Plus size={17} /> Tambah tugas
+          <Plus size={17} /> {en?"Add task":"Tambah tugas"}
         </Button>
       </section>
       <div className="quick-capture">
-        <QuickAction icon={<FileText size={18}/>} onClick={() => setKind("notes")}>Tangkap ide</QuickAction>
-        <QuickAction icon={<CalendarDays size={18}/>} onClick={() => setKind("events")}>Buat agenda</QuickAction>
-        <QuickAction icon={<Check size={18}/>} onClick={() => setKind("habits")}>Bangun kebiasaan</QuickAction>
+        <QuickAction icon={<FileText size={18}/>} onClick={() => setKind("notes")}>{en?"Capture an idea":"Tangkap ide"}</QuickAction>
+        <QuickAction icon={<CalendarDays size={18}/>} onClick={() => setKind("events")}>{en?"Create agenda":"Buat agenda"}</QuickAction>
+        <QuickAction icon={<Check size={18}/>} onClick={() => setKind("habits")}>{en?"Build a habit":"Bangun kebiasaan"}</QuickAction>
       </div>
       <div className="dashboard-grid home-bento" aria-busy={data.isPending}>
         <ActivityCard title="Setiap langkah berarti" to="/records/tasks" className="completion-card">
           <div className="completion-content"><CompletionRing value={allTasks.length ? completed / allTasks.length * 100 : 0} label="Tugas selesai"/><div><strong className="completion-total">{data.isPending ? "…" : completed}<span> / {data.isPending ? "…" : allTasks.length}</span></strong><p>tugas selesai</p><small>{allTasks.length ? `${tasks.length} tugas menunggu langkah Anda` : "Tambahkan tugas untuk mulai melacak progres."}</small></div></div>
-          <Link className="text-button" to="/records/tasks">Lihat semua tugas <ArrowRight size={15}/></Link>
+          <Link className="text-button" to="/records/tasks">{en?"View all tasks":"Lihat semua tugas"} <ArrowRight size={15}/></Link>
         </ActivityCard>
         <FocusTimer/>
-        <ActivityCard title="Akses cepat" className="capture-card"><QuickAction icon={<Plus size={18}/>} onClick={()=>setKind("tasks")}>Tugas baru</QuickAction><QuickAction icon={<FileText size={18}/>} onClick={()=>setKind("notes")}>Catatan baru</QuickAction><QuickAction icon={<CalendarDays size={18}/>} onClick={()=>setKind("reminders")}>Pengingat baru</QuickAction></ActivityCard>
+        <ActivityCard title={en?"Quick access":"Akses cepat"} className="capture-card"><QuickAction icon={<Plus size={18}/>} onClick={()=>setKind("tasks")}>{en?"New task":"Tugas baru"}</QuickAction><QuickAction icon={<FileText size={18}/>} onClick={()=>setKind("notes")}>{en?"New note":"Catatan baru"}</QuickAction><QuickAction icon={<CalendarDays size={18}/>} onClick={()=>setKind("reminders")}>{en?"New reminder":"Pengingat baru"}</QuickAction></ActivityCard>
         {widgets.includes("tasks") && (
           <section className="panel dashboard-tasks">
             <div className="section-heading">
