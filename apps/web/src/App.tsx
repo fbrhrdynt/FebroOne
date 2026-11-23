@@ -515,7 +515,7 @@ export default function App() {
         </label>
         <div className="search-results">
           {nav.filter(([,label])=>!search || label.toLowerCase().includes(search.toLowerCase())).map(([path,label,Icon])=><button key={path} onClick={()=>{navigate(path);setSearchOpen(false);}}><Icon size={18}/><strong>{label}</strong><small>{tr("Modul")}</small></button>)}
-          {modules.filter(m=>search && m.title.toLowerCase().includes(search.toLowerCase())).map(m=><button key={m.key} onClick={()=>{navigate(m.key==='events'?'/calendar':'/records/'+m.key);setSearchOpen(false);}}><strong>{m.title}</strong><small>{m.group}</small></button>)}
+          {modules.filter(m=>search && m.title.toLowerCase().includes(search.toLowerCase())).map(m=><button key={m.key} onClick={()=>{navigate(m.key==='events'?'/calendar':'/records/'+m.key);setSearchOpen(false);}}><strong>{m.title}</strong><small>{tr(m.group)}</small></button>)}
           {matches?.map((r) => (
             <button
               key={r.id}
