@@ -84,8 +84,8 @@ export async function login(email: string, password: string) {
   csrf = r.csrf;
   return r;
 }
-export async function passkeyLogin(email: string) {
-  const challenge = await api("/auth/passkey/options", "POST", { email });
+export async function passkeyLogin() {
+  const challenge = await api("/auth/passkey/options", "POST");
   const response = await startAuthentication({ optionsJSON: challenge.options });
   const result = await api("/auth/passkey/verify", "POST", { challengeId: challenge.challengeId, response });
   csrf = result.csrf;
