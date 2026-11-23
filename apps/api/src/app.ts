@@ -24,6 +24,7 @@ import {
   archiveDebt,
   payDebt,
   setDebtInstallmentPaid,
+  deleteDebtInstallment,
   settleDebt,
   reverseTransaction,
   importTransactions,
@@ -614,6 +615,7 @@ export async function makeApp(
     payDebt(db, owner(req), req.params.id, req.body),
   );
   app.post("/api/debt-installments", (req:any) => setDebtInstallmentPaid(db,owner(req),req.body));
+  app.delete("/api/debt-installments/:id", (req:any) => deleteDebtInstallment(db,owner(req),req.params.id));
   app.get(
     "/api/files",
     async (req) =>
