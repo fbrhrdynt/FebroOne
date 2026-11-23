@@ -39,3 +39,24 @@ main{max-width:1600px;width:100%;padding:30px 32px 80px}.panel,.stat{border-radi
 :root{--link:#245FC0}.dark{--link:#A4C7FF}.text-button,.section-heading a{color:var(--link)}.section-heading a{min-width:44px}.button.primary{background:#2767D7;color:#fff}.button.primary:hover{background:#2059BC}.quick-capture .quick-action>svg{color:var(--link)}
 /* V1.2 route forms and checklist-first detail */
 .record-form-page{max-width:900px;margin:0 auto}.record-form-page>header{margin-bottom:20px}.record-form-page h1,.page-header h1{overflow-wrap:anywhere}.record-form-page input,.record-form-page select,.record-form-page textarea,.inline-checklist-form input{font-size:16px}.record-form-page footer{flex-wrap:wrap}.checklist-detail{margin-bottom:18px}.checklist-detail progress{width:100%;height:9px;margin-bottom:16px}.checklist-detail-item{padding:10px 0;border-bottom:1px solid var(--line)}.checklist-detail-item>label{display:flex;align-items:center;gap:12px;min-height:44px}.checklist-detail-item input[type=checkbox]{width:24px;height:24px;flex-shrink:0}.checklist-detail-item span{overflow-wrap:anywhere}.inline-checklist-form{display:grid;gap:10px;padding:12px 0}.inline-checklist-form label{display:grid;gap:8px}.record-metadata{margin-top:18px}.record-metadata dl>div{display:grid;grid-template-columns:minmax(90px,1fr) 2fr;gap:12px;padding:8px 0}.record-metadata dt{color:var(--muted)}.record-metadata dd{margin:0;overflow-wrap:anywhere;white-space:pre-wrap}.kanban{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));overflow:visible;align-items:start}.kanban>section{min-width:0;min-height:0;padding:12px}.kanban h3{flex-wrap:wrap}.kanban h3 span{font-size:11px}.kanban-card{min-width:0}.kanban .record-main{min-width:0}.kanban .record-row{display:flex;flex-wrap:wrap}.kanban .record-main{flex-basis:100%}input,textarea,select{scroll-margin-block:100px}button,.button{touch-action:manipulation}@media(max-width:800px){.kanban{grid-template-columns:repeat(2,minmax(0,1fr));overflow:visible;gap:10px}.kanban-card .record-main p{display:none}.kanban-card .record-row{padding:10px}.kanban .meta{gap:5px}.record-form-page{padding:16px}}@media(max-width:480px){.kanban{grid-template-columns:minmax(0,1fr)}.kanban>section{min-height:0}.kanban-card .record-title{font-size:15px}}@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
+
+/* Observability-inspired dark dashboard + utility controls */
+.dark{--bg:#08090d;--surface:#11141e;--sidebar:#0d1018;--line:rgba(255,255,255,.09);--text:#f4f5f8;--muted:#a1a6b4;--blue:#93c5fd;--accent:#1d2d43;--hover:#202635;background:#08090d;color:#f4f5f8}
+.dark body,.dark .app{background:#08090d;color:#f4f5f8}.dark .main-shell{background:transparent}
+.dark .topbar{background:rgba(8,9,13,.82);backdrop-filter:blur(18px);border-bottom:1px solid var(--line)}
+.dark .panel,.dark .stat,.dark .day-intro{background:rgba(17,20,30,.94);border:1px solid var(--line);box-shadow:0 24px 60px rgba(0,0,0,.2);border-radius:22px}
+.dark .sidebar{background:#0c0e14;border-right:1px solid var(--line)}
+.dark .page-header h1{color:#fff;font-weight:500;letter-spacing:-1.2px}
+.dark .page-header p,.dark .panel p{color:var(--muted)}
+.dark .home-bento{gap:16px}.dark .home-bento>.panel{min-height:290px}
+.dark .day-intro{padding:28px;background:linear-gradient(125deg,#171d2a,#10131b)}
+.dark .login-page{background:radial-gradient(ellipse at 50% 12%,#24334b 0%,#0a0c12 56%);color:#fff}
+.dark .login-card{background:rgba(17,20,30,.94);border:1px solid var(--line);border-radius:24px;box-shadow:0 30px 100px #0008}
+.language-switch{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--line);border-radius:999px;padding:5px 9px;color:var(--muted);font-size:11px;white-space:nowrap}
+.language-switch button{padding:3px 4px;border-radius:5px;font-size:11px;color:inherit}
+.language-switch button[aria-pressed=true]{color:var(--text);font-weight:750}
+.login-language{display:flex;justify-content:flex-end;margin-bottom:16px}
+.password-input-wrap{position:relative;width:100%}.password-input-wrap input{padding-right:48px}
+.password-visibility{position:absolute;right:7px;top:50%;transform:translateY(-50%);width:38px;height:38px;display:grid;place-items:center;color:var(--muted);border-radius:9px}
+.password-visibility:hover{background:var(--hover);color:var(--text)}
+@media(max-width:800px){.dark .home-bento>.panel{min-height:0}.language-switch{gap:4px;padding:4px 6px}}
