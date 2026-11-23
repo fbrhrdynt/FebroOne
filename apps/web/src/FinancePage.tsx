@@ -279,22 +279,24 @@ export default function FinancePage() {
       </div>}
       {debtPage ? (
         <>
-          <section className="panel debt-overview">
-            <div className="section-heading"><h2>Ringkasan pembayaran</h2><span className="badge">Aktif</span></div>
-            <div className="debt-overview-grid">
-              <div><small>Total kewajiban tersisa</small><strong>{money(liability)}</strong></div>
-              <div><small>Total piutang belum diterima</small><strong>{money(receivable)}</strong></div>
-              <div><small>Jadwal pembayaran terdekat</small><strong>{s.debts.filter((d:any)=>d.direction==="borrowed"&&d.dueDate).sort((a:any,b:any)=>String(a.dueDate).localeCompare(String(b.dueDate)))[0]?.dueDate||"Belum diatur"}</strong></div>
-            </div>
+          <section className="debt-summary-strip">
+            <div><small>Sisa utang</small><strong>{money(liability)}</strong></div>
+            <div><small>Piutang</small><strong>{money(receivable)}</strong></div>
+            <div><small>Jatuh tempo terdekat</small><strong>{s.debts.filter((d:any)=>d.direction==="borrowed"&&d.dueDate).sort((a:any,b:any)=>String(a.dueDate).localeCompare(String(b.dueDate)))[0]?.dueDate||"—"}</strong></div>
           </section>
-          <section className="panel debt-reminders">
-            <div className="section-heading"><h2>Pengingat pembayaran</h2><span className="hint">Berdasarkan tanggal jatuh tempo</span></div>
-            {s.debts.filter((d:any)=>d.direction==="borrowed"&&d.dueDate&&Number(d.principal)>Number(d.paid)).sort((a:any,b:any)=>String(a.dueDate).localeCompare(String(b.dueDate))).slice(0,5).map((d:any)=>{
-              const days=Math.ceil((new Date(d.dueDate+"T00:00:00").getTime()-new Date(localDay()+"T00:00:00").getTime())/86400000);
-              const amount=d.monthlyPayment||new Decimal(d.principal).minus(d.paid).toFixed(2);
-              return <div className="debt-due-row" key={d.id}><div><strong>{d.name}</strong><small>{d.dueDate} · {days<0?"Terlambat "+Math.abs(days)+" hari":days===0?"Jatuh tempo hari ini":"Dalam "+days+" hari"} · Pengingat "+(d.reminderDays??3)+" hari sebelumnya</small></div><strong>{money(amount)}</strong><Button onClick={()=>show("pay",d)}>Bayar</Button></div>;
-            })}
-            {!s.debts.some((d:any)=>d.direction==="borrowed"&&d.dueDate)&&<p className="hint">Belum ada jadwal jatuh tempo. Tambahkan tanggal pembayaran pada data utang.</p>}
+          <section className="panel debt-reminders debt-reminders-compact">
+            <button type="button" className="debt-reminder-toggle" aria-expanded={remindersExpanded} onClick={()=>setRemindersExpanded(v=>!v)}>
+              <span>Pengingat pembayaran <small>{s.debts.filter((d:any)=>d.direction==="borrowed"&&d.dueDate&&Number(d.principal)>Number(d.paid)).length} jadwal aktif</small></span>
+              <span>{remindersExpanded?"Tutup −":"Lihat jadwal +"}</span>
+            </button>
+            {remindersExpanded&&<div className="debt-reminder-list">
+              {s.debts.filter((d:any)=>d.direction==="borrowed"&&d.dueDate&&Number(d.principal)>Number(d.paid)).sort((a:any,b:any)=>String(a.dueDate).localeCompare(String(b.dueDate))).map((d:any)=>{
+                const days=Math.ceil((new Date(d.dueDate+"T00:00:00").getTime()-new Date(localDay()+"T00:00:00").getTime())/86400000);
+                const amount=d.monthlyPayment||new Decimal(d.principal).minus(d.paid).toFixed(2);
+                return <div className="debt-due-row" key={d.id}><div><strong>{d.name}</strong><small>{d.dueDate} · {days<0?"Terlambat "+Math.abs(days)+" hari":days===0?"Hari ini":"Dalam "+days+" hari"} · Pengingat {d.reminderDays??3} hari sebelumnya</small></div><strong>{money(amount)}</strong><Button size="sm" onClick={()=>show("pay",d)}>Bayar</Button></div>;
+              })}
+              {!s.debts.some((d:any)=>d.direction==="borrowed"&&d.dueDate&&Number(d.principal)>Number(d.paid))&&<p className="hint">Belum ada jadwal pembayaran aktif.</p>}
+            </div>}
           </section>
           <div className="section-heading">
             <h2>{tr("Daftar utang & piutang")}</h2>
