@@ -6,6 +6,7 @@ import { Globe2 } from "lucide-react";
 import * as store from "./store";
 export default function Settings() {
   const q = useQueryClient();
+  const en = localStorage.getItem("febro-one-language") === "en";
   const [discardId,setDiscardId]=useState("");
   const { data } = useQuery({
     queryKey: ["identity"],
@@ -38,8 +39,8 @@ export default function Settings() {
       {message && <div className="notice">{message}</div>}
       <div className="dashboard-grid">
         <section className="panel">
-          <h2>Bahasa / Language</h2>
-          <p>Pilih bahasa antarmuka aplikasi. Pilihan tersimpan pada perangkat ini.</p>
+          <h2>{en?"Language":"Bahasa"}</h2>
+          <p>{en?"Choose the interface language. Your choice is saved on this device.":"Pilih bahasa antarmuka aplikasi. Pilihan tersimpan pada perangkat ini."}</p>
           <div className="row"><Globe2 size={18}/><Button variant="outline" onClick={()=>{localStorage.setItem("febro-one-language","id");location.reload();}}>Bahasa Indonesia</Button><Button variant="outline" onClick={()=>{localStorage.setItem("febro-one-language","en");location.reload();}}>English</Button></div>
         </section>
         <section className="panel">
@@ -249,12 +250,12 @@ export default function Settings() {
         </section>
       </div>
       {!store.trial && <section className="panel">
-        <h2>Passkey & biometrik</h2>
-        <p>Gunakan Face ID, Touch ID, Windows Hello, atau security key untuk masuk tanpa kata sandi. Perangkat harus mendukung WebAuthn dan menggunakan koneksi HTTPS.</p>
+        <h2>{en?"Passkeys & biometrics":"Passkey & biometrik"}</h2>
+        <p>{en?"Use Face ID, Touch ID, Windows Hello, or a security key to sign in without a password. Your device must support WebAuthn and use HTTPS.":"Gunakan Face ID, Touch ID, Windows Hello, atau security key untuk masuk tanpa kata sandi. Perangkat harus mendukung WebAuthn dan menggunakan koneksi HTTPS."}</p>
         <div className="form-stack">
-          {(passkeys.data?.items || []).map((item:any)=><div className="row" key={item.id}><div><strong>{item.name}</strong><small>{item.device_type==="multiDevice"?"Passkey tersinkron":"Passkey perangkat"} · Dibuat {new Date(item.created_at).toLocaleDateString()}</small></div><Button variant="ghost" onClick={async()=>{if(!confirm("Hapus passkey ini?"))return;try{await store.api("/auth/passkeys/"+item.id,"DELETE");await q.invalidateQueries({queryKey:["passkeys"]});setMessage("Passkey dihapus.");}catch(e){setError(e);}}}>Hapus</Button></div>)}
-          {!passkeys.data?.items?.length && <p>Belum ada passkey terdaftar.</p>}
-          <Button onClick={async()=>{try{await store.registerPasskey("Febro One · "+new Date().toLocaleDateString());await q.invalidateQueries({queryKey:["passkeys"]});setMessage("Passkey berhasil ditambahkan.");}catch(e){setError(e);}}}>Daftarkan passkey</Button>
+          {(passkeys.data?.items || []).map((item:any)=><div className="row" key={item.id}><div><strong>{item.name}</strong><small>{item.device_type==="multiDevice"?"Passkey tersinkron":"Passkey perangkat"} · Dibuat {new Date(item.created_at).toLocaleDateString()}</small></div><Button variant="ghost" onClick={async()=>{if(!confirm("Hapus passkey ini?"))return;try{await store.api("/auth/passkeys/"+item.id,"DELETE");await q.invalidateQueries({queryKey:["passkeys"]});setMessage("Passkey dihapus.");}catch(e){setError(e);}}}>{en?"Remove":"Hapus"}</Button></div>)}
+          {!passkeys.data?.items?.length && <p>{en?"No passkeys registered yet.":"Belum ada passkey terdaftar."}</p>}
+          <Button onClick={async()=>{try{await store.registerPasskey("Febro One · "+new Date().toLocaleDateString());await q.invalidateQueries({queryKey:["passkeys"]});setMessage("Passkey berhasil ditambahkan.");}catch(e){setError(e);}}}>{en?"Add a passkey":"Daftarkan passkey"}</Button>
         </div>
       </section>}
       <div className="settings-security-grid">
