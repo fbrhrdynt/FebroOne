@@ -179,7 +179,7 @@ export async function createDebt(db: DB, owner: string, raw: any) {
   const d = debtSchema.parse(raw);
   const did = randomUUID();
   await db.query(
-    "INSERT INTO debts(id,owner_id,name,principal,apr,months,start,direction,model,rates) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)",
+    "INSERT INTO debts(id,owner_id,name,principal,apr,months,start,direction,model,rates,details) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)",
     [
       did,
       owner,
@@ -191,6 +191,7 @@ export async function createDebt(db: DB, owner: string, raw: any) {
       d.direction,
       d.model,
       JSON.stringify(d.rates),
+      JSON.stringify({dueDate:d.dueDate||null,repaymentMode:d.repaymentMode||null,monthlyPayment:d.monthlyPayment||null,paymentBank:d.paymentBank||"",paymentAccount:d.paymentAccount||"",paymentType:d.paymentType||"",notes:d.notes||""}),
     ],
   );
   return { id: did };
