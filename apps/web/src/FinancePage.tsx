@@ -54,6 +54,7 @@ export default function FinancePage() {
   const [strategy, setStrategy] = useState("avalanche");
   const [csv, setCsv] = useState<any[] | null>(null);
   const [key, setKey] = useState(crypto.randomUUID());
+  const [debtDirection,setDebtDirection]=useState<"borrowed"|"lent">("borrowed");
   const financeDraftKey=`finance-draft:${profile.data?.user.id||""}:${modal}:${selectedId||"new"}`;
   const draftCommitted=useRef(false);
   useEffect(()=>{
@@ -139,8 +140,14 @@ export default function FinancePage() {
         await store.addTransaction({ ...d, key });
       }
       if (modal === "debt") {
+        const documents = Array.from((e.currentTarget.elements.namedItem("documents") as HTMLInputElement | null)?.files || []);
+        delete d.documents;
         d.rates = d.rates ? JSON.parse(d.rates) : [];
-        await store.addDebt(d);
+        const debt = await store.addDebt(d);
+        if (documents.length) {
+          const documentRecord = await store.saveRecord({kind:"notes",title:"Dokumen utang - "+d.name,tags:["finance","debt-document",debt.id],data:{folder:"Keuangan/Utang",kind:"Knowledge",content:"Dokumen pendukung untuk "+d.name+" (ID: "+debt.id+")",pinned:false,favorite:false}});
+          for (const file of documents) await store.uploadFile(documentRecord.id,file);
+        }
       }
       if (modal === "pay") await store.payDebt(selected.id, { ...d, key });
       draftCommitted.current=true;sessionStorage.removeItem(financeDraftKey);
@@ -611,72 +618,43 @@ export default function FinancePage() {
             )}
             {modal === "debt" && (
               <>
-                <Field label={tr("Nama pinjaman / pihak")}>
-                  <input name="name" required />
+                <Field label={debtDirection==="borrowed"?"Nama pemberi pinjaman / platform":"Nama peminjam / pihak yang berutang"}>
+                  <input name="name" required placeholder={debtDirection==="borrowed"?"Contoh: Bank, kartu kredit, pinjol":"Nama orang atau perusahaan"}/>
                 </Field>
-                <Field label={tr("Jenis")}>
-                  <select name="direction">
-                    <option value="borrowed">{tr("Saya berutang")}</option>
-                    <option value="lent">{tr("Piutang saya")}</option>
-                  </select>
-                </Field>
-                <Field label={tr("Pokok IDR")}>
-                  <input
-                    type="number"
-                    step="0.01"
-                    min="0.01"
-                    name="principal"
-                    required
-                  />
-                </Field>
-                <div className="form-grid">
-                  <Field label={tr("Bunga tahunan (%)")}>
-                    <input
-                      type="number"
-                      step="0.01"
-                      min="0"
-                      max="100"
-                      name="apr"
-                      defaultValue="0"
-                      required
-                    />
+                {debtDirection==="borrowed" ? <>
+                  <Field label="Total pokok utang (IDR)"><input name="principal" type="number" min="0.01" step="0.01" required placeholder="Total kewajiban saat ini"/></Field>
+                  <Field label="Skema pembayaran"><select name="repaymentMode" defaultValue="flexible"><option value="flexible">Manual / nominal belum pasti</option><option value="installment">Cicilan bulanan</option></select></Field>
+                  <Field label="Cicilan per bulan (IDR) — opsional"><input name="monthlyPayment" type="number" min="0" step="0.01" placeholder="Isi jika nominal sudah diketahui"/></Field>
+                  <Field label="Batas waktu pembayaran terakhir"><input name="dueDate" type="date"/></Field>
+                  <Field label="Jenis pembayaran / aktivitas">
+                    <input name="paymentType" list="debt-payment-types" placeholder="Ketik: Cicilan, Keringanan, Pelunasan..."/>
+                    <datalist id="debt-payment-types">
+                      {Array.from(new Set(s.debts.map((d:any)=>d.paymentType).filter(Boolean))).map((v:any)=><option key={v} value={v}/>)}
+                      <option value="Cicilan"/><option value="Keringanan"/><option value="Pelunasan"/>
+                    </datalist>
                   </Field>
-                  <Field label={tr("Tenor (bulan)")}>
-                    <input
-                      type="number"
-                      min="1"
-                      max="600"
-                      name="months"
-                      defaultValue="12"
-                      required
-                    />
-                  </Field>
-                </div>
-                <Field label={tr("Mulai")}>
-                  <input
-                    type="date"
-                    name="start"
-                    defaultValue={localDay()}
-                    required
-                  />
-                </Field>
-                <Field label={tr("Model bunga")}>
-                  <select name="model">
-                    <option value="reducing">{tr("Saldo menurun / anuitas")}</option>
-                    <option value="flat">{tr("Flat atas pokok awal")}</option>
-                  </select>
-                </Field>
-                <details>
-                  <summary>{tr("Perubahan bunga terjadwal")}</summary>
-                  <Field label={'JSON, contoh: [{"month":7,"apr":9}]'}>
-                    <textarea name="rates" defaultValue="[]" />
-                  </Field>
-                </details>
-                <p className="hint">
-                  Pencatatan utang tidak otomatis menambah saldo akun. Catat
-                  pencairan secara terpisah menggunakan rekonsiliasi agar tidak
-                  dihitung sebagai pendapatan.
-                </p>
+                  <div className="form-grid">
+                    <Field label="Bank tujuan pembayaran"><input name="paymentBank" placeholder="Nama bank"/></Field>
+                    <Field label="Nomor rekening / VA"><input name="paymentAccount" inputMode="numeric" placeholder="Nomor rekening atau virtual account"/></Field>
+                  </div>
+                  <Field label="Bunga tahunan (%) — jika diketahui"><input name="apr" type="number" step="0.01" min="0" max="100" defaultValue="0"/></Field>
+                  <Field label="Tenor (bulan) — perkiraan"><input name="months" type="number" min="1" max="600" defaultValue="12"/></Field>
+                  <Field label="Tanggal mulai"><input type="date" name="start" defaultValue={localDay()}/></Field>
+                  <Field label="Model bunga"><select name="model"><option value="reducing">Saldo menurun / anuitas</option><option value="flat">Flat atas pokok awal</option></select></Field>
+                  <details><summary>Perubahan bunga terjadwal (opsional)</summary><Field label='JSON, contoh: [{"month":7,"apr":9}]'><textarea name="rates" defaultValue="[]"/></Field></details>
+                </> : <>
+                  <Field label="Total pokok piutang (IDR)"><input type="number" step="0.01" min="0.01" name="principal" required/></Field>
+                  <div className="form-grid">
+                    <Field label="Bunga tahunan (%)"><input type="number" step="0.01" min="0" max="100" name="apr" defaultValue="0" required/></Field>
+                    <Field label="Tenor (bulan)"><input type="number" min="1" max="600" name="months" defaultValue="12" required/></Field>
+                  </div>
+                  <Field label="Tanggal mulai"><input type="date" name="start" defaultValue={localDay()} required/></Field>
+                  <Field label="Model bunga"><select name="model"><option value="reducing">Saldo menurun / anuitas</option><option value="flat">Flat atas pokok awal</option></select></Field>
+                  <details><summary>Perubahan bunga terjadwal</summary><Field label='JSON, contoh: [{"month":7,"apr":9}]'><textarea name="rates" defaultValue="[]"/></Field></details>
+                </>}
+                <Field label="Dokumen pendukung (PDF, PNG, JPG, WebP · maks. 10 MB/file)"><input type="file" name="documents" accept=".pdf,.png,.jpg,.jpeg,.webp" multiple/></Field>
+                <Field label="Catatan"><textarea name="notes" rows={4} placeholder="Nomor kontrak, tanggal jatuh tempo, ketentuan, atau informasi lainnya."/></Field>
+                <p className="hint">Pencatatan utang/piutang tidak otomatis mengubah saldo rekening. Catat transaksi pembayaran secara terpisah agar saldo tetap akurat.</p>
               </>
             )}
             {modal === "pay" && (
