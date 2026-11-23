@@ -105,7 +105,7 @@ function Login({ onDone, language, setLanguage }: { onDone: () => void; language
               if (recovery) {
                 await store.api("/auth/recover", "POST", d);
                 setRecovery(false);
-                setError("Password diganti. Silakan masuk.");
+                setError(language==="id"?"Kata sandi diganti. Silakan masuk.":"Password updated. Please sign in.");
               } else {
                 await store.login(d.email, d.password);
                 onDone();
@@ -121,7 +121,7 @@ function Login({ onDone, language, setLanguage }: { onDone: () => void; language
             <input ref={emailRef} name="email" type="email" autoComplete="username" required />
           </Field>
           {recovery && (
-            <Field label="Kode pemulihan">
+            <Field label={t.recovery}>
               <input name="recovery" autoComplete="off" required />
             </Field>
           )}
@@ -156,7 +156,7 @@ function Login({ onDone, language, setLanguage }: { onDone: () => void; language
             {recovery ? t.back : t.recover}
           </Button>
         </form>
-        <small>Akun pertama dibuat melalui perintah admin di VPS.</small>
+        <small>{language==="id"?"Akun pertama dibuat melalui perintah admin di VPS.":"The first account is created using the VPS admin command."}</small>
       </div>
     </div>
   );
@@ -297,7 +297,7 @@ export default function App() {
               className={i === 4 ? "nav-divider" : ""}
             >
               <Icon size={18} />
-              <span>{label}</span>
+              <span>{(language==="id" ? ({Home:"Beranda",Calendar:"Kalender",Tasks:"Tugas",Notes:"Catatan",Finance:"Keuangan",Debt:"Utang",Workspace:"Ruang kerja",Career:"Karier",Life:"Aktivitas",Documents:"Dokumen",Tools:"Alat",Insights:"Analisis"} as Record<string,string>) : ({Home:"Home",Calendar:"Calendar",Tasks:"Tasks",Notes:"Notes",Finance:"Finance",Debt:"Debt",Workspace:"Workspace",Career:"Career",Life:"Life",Documents:"Documents",Tools:"Tools",Insights:"Insights"} as Record<string,string>))[label]}</span>
               {label === "Tasks" && !!pending.data && <small>{pending.data}</small>}
             </NavLink>
           ))}
