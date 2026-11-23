@@ -154,6 +154,7 @@ export default function FinancePage() {
       }
       if (modal === "pay") {
         const paymentFiles=Array.from((e.currentTarget.elements.namedItem("paymentFiles") as HTMLInputElement | null)?.files||[]);
+        delete d.paymentFiles;
         const payment=await store.payDebt(selected.id,{...d,key});
         if(paymentFiles.length){
           const paymentRecord=await store.saveRecord({kind:"notes",title:"Bukti pembayaran - "+selected.name+" - "+d.date,tags:["finance","debt-payment",selected.id,payment.id||key],data:{folder:"Keuangan/Bukti Pembayaran",kind:"Knowledge",content:"Bukti pembayaran utang "+selected.name+" tanggal "+d.date+". Pokok: "+d.principal+". Bunga: "+d.interest+".",pinned:false,favorite:false}});
@@ -673,7 +674,7 @@ export default function FinancePage() {
                   <Field label="Tenor (bulan) — perkiraan"><input name="months" type="number" min="1" max="600" defaultValue={selected?.months??12}/></Field>
                   <Field label="Tanggal mulai"><input type="date" name="start" defaultValue={selected?.start||localDay()}/></Field>
                   <Field label="Model bunga"><select name="model" defaultValue={selected?.model||"reducing"}><option value="reducing">Saldo menurun / anuitas</option><option value="flat">Flat atas pokok awal</option></select></Field>
-                  <details><summary>Perubahan bunga terjadwal (opsional)</summary><Field label='JSON, contoh: [{"month":7,"apr":9}]'><textarea name="rates" defaultValue="[]"/></Field></details>
+                  <details><summary>Perubahan bunga terjadwal (opsional)</summary><Field label='JSON, contoh: [{"month":7,"apr":9}]'><textarea name="rates" defaultValue={JSON.stringify(selected?.rates||[])}/></Field></details>
                 </> : <>
                   <Field label="Total pokok piutang (IDR)"><input type="number" step="0.01" min="0.01" name="principal" required/></Field>
                   <div className="form-grid">
