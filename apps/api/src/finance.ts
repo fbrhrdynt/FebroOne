@@ -210,7 +210,7 @@ export async function updateDebt(db: DB, owner: string, did: string, raw: any) {
   return {id:did};
 }
 export async function setDebtInstallmentPaid(db: DB, owner: string, raw: any) {
-  const input=z.object({debtId:id,period:z.string().regex(/^\\d{4}-(0[1-9]|1[0-2])$/),amount:money.optional(),dueDate:z.iso.date().optional(),notes:z.string().max(1000).optional(),paid:z.boolean().default(true)}).parse(raw);
+  const input=z.object({debtId:id,period:z.string().regex(/^\d{4}-(0[1-9]|1[0-2])$/),amount:money.optional(),dueDate:z.iso.date().optional(),notes:z.string().max(1000).optional(),paid:z.boolean().default(true)}).parse(raw);
   return db.transaction(async tx=>{
     await tx.query("SELECT id FROM users WHERE id=$1 FOR UPDATE",[owner]);
     const debt=(await tx.query("SELECT id FROM debts WHERE id=$1 AND owner_id=$2 AND archived_at IS NULL FOR UPDATE",[input.debtId,owner])).rows[0];
@@ -233,7 +233,7 @@ export async function runDebtReminders(db: DB) {
     SELECT
       'debt-due:'||d.id::text||':'||to_char(m.period,'YYYY-MM'),
       d.owner_id,
-      CASE WHEN m.due_date < CURRENT_DATE THEN 'Pembayaran terlambat: '||d.name ELSE 'Jadwal pembayaran: '||d.name END,
+      CASE WHEN due.due_date < CURRENT_DATE THEN 'Pembayaran terlambat: '||d.name ELSE 'Jadwal pembayaran: '||d.name END,
       NULL
     FROM debts d
     CROSS JOIN LATERAL generate_series(
