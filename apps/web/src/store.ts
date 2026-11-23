@@ -398,6 +398,7 @@ export async function markDebtInstallmentPaid(input: {debtId:string;period:strin
     return next;
   });
 }
+export async function settleDebt(id:string) { if(!trial)return api("/debts/"+id+"/settle","POST",{}); return financeMutation((s:any)=>{const d=s.debts.find((x:any)=>x.id===id);if(!d)throw new Error("Utang tidak ditemukan");d.settledAt=new Date().toISOString();return {ok:true};}); }
 export async function archiveDebt(id: string) {
   if(!trial)return api("/debts/"+id,"DELETE");
   return financeMutation(s=>{const d=s.debts.find((x:any)=>x.id===id);if(!d)throw new Error("Utang tidak ditemukan");d.archivedAt=new Date().toISOString();s.debts=s.debts.filter((x:any)=>x.id!==id);return {ok:true};});
