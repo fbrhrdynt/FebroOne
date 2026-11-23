@@ -7,7 +7,7 @@ import { rp } from "./money";
 import { localDay } from "../../../packages/shared/domain";
 
 type Debt = any;
-type PaymentDraft = { debt: Debt; period: string };
+type PaymentDraft = { debt: Debt; periods: string[] };
 const monthLabel=(value:string)=>new Date(value+"-01T00:00:00").toLocaleDateString("id-ID",{month:"long",year:"numeric"});
 const monthDate=(value:string,day?:number)=>{const [y,m]=value.split("-").map(Number);const last=new Date(y,m,0).getDate();return new Date(y,m-1,Math.min(day||1,last)).toISOString().slice(0,10)};
 const money=(value:any)=>value===null||value===undefined||value===""?"Belum diisi":rp(value);
@@ -21,6 +21,7 @@ export default function DebtCenter(){
  const [query,setQuery]=useState("");
  const [editing,setEditing]=useState<Debt|null>(null);
  const [payment,setPayment]=useState<PaymentDraft|null>(null);
+ const [selectedPeriods,setSelectedPeriods]=useState<Record<string,string[]>>({});
  const [settlement,setSettlement]=useState<Debt|null>(null);
  const [saving,setSaving]=useState(false);
  const [failure,setFailure]=useState<unknown>();
