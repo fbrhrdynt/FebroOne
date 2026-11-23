@@ -29,6 +29,8 @@ export default function FinancePlanPage(){
  const [error,setError]=useState<unknown>();
  const [saveState,setSaveState]=useState<"saved"|"saving"|"error">("saved");
  const [editing,setEditing]=useState<string[]>([]);
+ const [copySource,setCopySource]=useState<any>(null);
+ const [copyNotice,setCopyNotice]=useState("");
  const activeRef=useRef<any>(null);
  const dirtyRef=useRef(false);
  const signatureRef=useRef("");
@@ -37,6 +39,9 @@ export default function FinancePlanPage(){
  useEffect(()=>{
   if(!query.isSuccess)return;
   const found=plans.find(r=>r.data.month===month)||null;
+  const previousMonth=new Date(Number(month.slice(0,4)),Number(month.slice(5,7))-2,1).toLocaleDateString("en-CA",{timeZone:"Asia/Jakarta",year:"numeric",month:"2-digit"});
+  const previous=plans.find(r=>r.data.month===previousMonth)||null;
+  setCopySource(!found&&previous?previous:null);
   const data=parsePlan(found?.data);
   activeRef.current=found;
   setIncomes(data.incomeSources);
@@ -49,6 +54,7 @@ export default function FinancePlanPage(){
  const allocated=useMemo(()=>items.filter(v=>v.checked).reduce((s,v)=>s+numberValue(v.amount),0),[items]);
  const planned=useMemo(()=>items.reduce((s,v)=>s+numberValue(v.amount),0),[items]);
  const remaining=totalIncome-allocated;
+ const unallocated=items.filter(v=>!v.checked).reduce((s,v)=>s+numberValue(v.amount),0);
  function markDirty(){dirtyRef.current=true;setSaveState("saving");}
  function changeMonth(value:string){if(value&&value!==month){void persist().finally(()=>{setLoaded(false);setMonth(value);});}}
  function updateIncome(id:string,patch:Partial<Income>){markDirty();setIncomes(v=>v.map(x=>x.id===id?{...x,...patch}:x));}
@@ -74,6 +80,7 @@ export default function FinancePlanPage(){
   return ()=>window.clearTimeout(timer);
  },[month,incomes,items,loaded]);
  useEffect(()=>()=>{if(dirtyRef.current)void persist();},[]);
+ function duplicatePrevious(){if(!copySource)return;const previous=parsePlan(copySource.data);markDirty();setIncomes(previous.incomeSources.map(v=>({...v,id:makeId()})));setItems(previous.plannedItems.map(v=>({...v,id:makeId(),checked:false})));setCopySource(null);setCopyNotice("Rencana bulan sebelumnya berhasil disalin. Semua checklist direset.");}
  function addIncome(){const value={id:makeId(),name:"",amount:"0"};markDirty();setIncomes(v=>[...v,value]);}
  function addItem(){const value={id:makeId(),name:"",amount:"0",checked:false};markDirty();setItems(v=>[...v,value]);setEditing(v=>[...v,value.id]);}
  function updateAmount(value:string,change:(v:string)=>void){change(formatNumber(value));}
@@ -81,10 +88,13 @@ export default function FinancePlanPage(){
   <header className="page-header"><div><Link to="/finance" className="text-button"><ArrowLeft size={14}/> Keuangan</Link><h1>Rencana keuangan</h1><p>Atur pemasukan dan tentukan ke mana uang akan dialokasikan.</p></div></header>
   <ErrorText error={error||query.error}/>
   <div className="plan-actions"><Field label="Periode"><input type="month" value={month} onChange={e=>changeMonth(e.target.value)}/></Field><span className="plan-save-state" aria-live="polite">{saveState==="saving"?<><Cloud size={14}/> Menyimpan otomatis…</>:saveState==="error"?<><CloudOff size={14}/> Gagal menyimpan</>:<><Check size={14}/> Tersimpan</>}</span></div>
+  {copySource&&<section className="plan-copy-prompt"><div><strong>Belum ada rencana untuk bulan ini</strong><small>Salin pemasukan dan daftar kebutuhan dari {copySource.data.month} agar tidak perlu membuat ulang.</small></div><Button variant="outline" onClick={duplicatePrevious}>Salin bulan sebelumnya</Button></section>}
+  {copyNotice&&<p className="plan-copy-notice" role="status">{copyNotice}</p>}
   <section className="plan-summary">
    <div className="plan-stat"><span>Total pemasukan</span><strong>{rupiah(totalIncome)}</strong></div>
    <div className="plan-stat"><span>Sudah dialokasikan</span><strong>{rupiah(allocated)}</strong></div>
    <div className="plan-stat"><span>Sisa tersedia</span><strong>{rupiah(remaining)}</strong></div>
+   <div className="plan-stat plan-unallocated"><span>Belum dicentang</span><strong>{rupiah(unallocated)}</strong></div>
   </section>
   <section className="panel">
    <div className="plan-actions"><div><h2><Wallet size={16}/> Sumber pemasukan</h2><small>Tambahkan gaji, lembur, freelance, bonus, atau pemasukan lain.</small></div><Button variant="outline" onClick={addIncome}><Plus size={14}/> Tambah sumber</Button></div>
