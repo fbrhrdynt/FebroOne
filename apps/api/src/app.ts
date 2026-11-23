@@ -23,6 +23,7 @@ import {
   updateDebt,
   archiveDebt,
   payDebt,
+  setDebtInstallmentPaid,
   reverseTransaction,
   importTransactions,
 } from "./finance";
@@ -610,6 +611,7 @@ export async function makeApp(
   app.post("/api/debts/:id/pay", (req: any) =>
     payDebt(db, owner(req), req.params.id, req.body),
   );
+  app.post("/api/debt-installments", (req:any) => setDebtInstallmentPaid(db,owner(req),req.body));
   app.get(
     "/api/files",
     async (req) =>
