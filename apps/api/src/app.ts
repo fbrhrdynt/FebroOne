@@ -55,6 +55,9 @@ export async function makeApp(
     ai?: { url: string; key: string; model: string };
   },
 ) {
+  const expectedOrigin = new URL(options.origin).origin;
+  const rpID = new URL(expectedOrigin).hostname;
+  const rpName = "Febro One";
   const app = Fastify({
     logger: false,
     bodyLimit: 1048576,
@@ -73,7 +76,7 @@ export async function makeApp(
     const publicPath = ["/api/health", "/api/auth/login", "/api/auth/recover", "/api/auth/passkey/options", "/api/auth/passkey/verify"];
     if (
       !["GET", "HEAD", "OPTIONS"].includes(req.method) &&
-      req.headers.origin !== options.origin
+      req.headers.origin !== expectedOrigin
     )
       return reply.code(403).send({ error: "Origin ditolak" });
     if (publicPath.includes(req.url.split("?")[0])) return;
@@ -121,8 +124,6 @@ export async function makeApp(
     await db.query("SELECT 1");
     return { status: "ok", app: "Febro One", version:"1.2.0" };
   });
-  const rpID = new URL(options.origin).hostname;
-  const rpName = "Febro One";
   app.post("/api/auth/passkey/options", { config: { rateLimit: { max: 8, timeWindow: "15 minutes" } } }, async (req: any, reply: any) => {
     const p = z.object({ email: z.email() }).parse(req.body);
     const user = (await db.query("SELECT id FROM users WHERE email=$1", [p.email.toLowerCase()])).rows[0];
@@ -151,7 +152,7 @@ export async function makeApp(
       verification = await verifyAuthenticationResponse({
         response: p.response,
         expectedChallenge: challenge.challenge,
-        expectedOrigin: options.origin,
+        expectedOrigin,
         expectedRPID: rpID,
         credential: {
           id: credential.credential_id,
