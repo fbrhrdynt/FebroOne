@@ -15,6 +15,8 @@ const creditorLabel:Record<string,string>={bank:"Pinjaman bank","credit-card":"K
 export default function DebtCenter(){
  const qc=useQueryClient();
  const {data:state,error}=useQuery({queryKey:["finance"],queryFn:store.finance});
+ const {data:records=[]}=useQuery({queryKey:["records"],queryFn:()=>store.records()});
+ const {data:files=[]}=useQuery({queryKey:["files"],queryFn:store.getFiles});
  const debts:Debt[]=state?.debts||[];
  const installments:any[]=state?.installments||[];
  const [tab,setTab]=useState<"active"|"settled">("active");
