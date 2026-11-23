@@ -51,6 +51,7 @@ const Home = lazy(() => import("./Home"));
 const Records = lazy(() => import("./RecordsPage"));
 const Calendar = lazy(() => import("./CalendarPage"));
 const Finance = lazy(() => import("./FinancePage"));
+const FinancePlan = lazy(() => import("./FinancePlanPage"));
 const Tools = lazy(() => import("./ToolsPage"));
 const Insights = lazy(() => import("./Insights"));
 const Settings = lazy(() => import("./Settings"));
@@ -74,7 +75,6 @@ const nav = [
   ["/records/tasks", "Tasks", CheckSquare],
   ["/records/notes", "Notes", FileText],
   ["/finance", "Finance", Wallet],
-  ["/debts", "Debt", ChartNoAxesCombined],
   ["/records/work", "Workspace", BriefcaseBusiness],
   ["/records/trainings", "Career", GraduationCap],
   ["/records/activities", "Life", Heart],
@@ -322,7 +322,7 @@ export default function App() {
           ))}
           {!collapsed && <div className="sidebar-categories">{groupNames.map(group => <div key={group}>
             <button className="sidebar-category-toggle" aria-expanded={expanded.includes(group)} onClick={() => toggleCategory(group)}>{tr(group)}<ChevronRight size={14} className={expanded.includes(group) ? "rotate" : ""} /></button>
-            {expanded.includes(group) && <div className="sidebar-category-links">{modules.filter(m => m.group === group).map(m => <NavLink key={m.key} to={m.key === "events" ? "/calendar" : "/records/"+m.key}><ModuleIcon group={m.group}/>{tr(m.title)}</NavLink>)}</div>}
+            {expanded.includes(group) && <div className="sidebar-category-links">{modules.filter(m => m.group === group).map(m => <NavLink key={m.key} to={m.key === "events" ? "/calendar" : m.key === "incomePlans" ? "/finance/plans" : "/records/"+m.key}><ModuleIcon group={m.group}/>{tr(m.title)}</NavLink>)}</div>}
           </div>)}</div>}
           <NavLink to="/more">
             <Grid2X2 size={18} />
@@ -414,6 +414,7 @@ export default function App() {
             <Routes>
               <Route path="/" element={<Home />} />
               <Route path="/calendar" element={<Calendar />} />
+              <Route path="/finance/plans" element={<FinancePlan />} />
               <Route path="/records/:kind" element={<Records key={location.pathname} />} />
               <Route path="/records/:kind/new" element={<RecordPage edit />} />
               <Route path="/records/:kind/:id" element={<RecordPage />} />
