@@ -107,7 +107,7 @@ export default function Insights() {
           <strong>
             {current
               .filter((r) => r.kind === "timesheets")
-              .reduce((a, r) => a + Number(r.data.minutes || 0), 0)}{" "}
+              .reduce((a, r) => a + Number(r.data.minutes || 0), 0)}{tr(" ")}
             <small>{tr("min")}</small>
           </strong>
         </div>
@@ -179,7 +179,7 @@ export default function Insights() {
           <p>
             {store.trial
               ? "AI eksternal tidak aktif pada trial browser. Pada VPS, atur provider dan API key di environment."
-              : "Atur AI_BASE_URL, AI_MODEL, dan AI_API_KEY pada environment server untuk mengaktifkan assistant."}{" "}
+              : "Atur AI_BASE_URL, AI_MODEL, dan AI_API_KEY pada environment server untuk mengaktifkan assistant."}{tr(" ")}
             Catatan pribadi tidak dikirim otomatis.
           </p>
         ) : (
