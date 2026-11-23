@@ -211,7 +211,7 @@ export async function updateDebt(db: DB, owner: string, did: string, raw: any) {
   return {id:did};
 }
 export async function setDebtInstallmentPaid(db: DB, owner: string, raw: any) {
-  const input=z.object({debtId:id,periods:z.array(z.string().regex(/^\d{4}-(0[1-9]|1[0-2])$/)).min(1).max(24),amount:money.optional(),dueDate:z.iso.date().optional(),notes:z.string().max(1000).optional(),paid:z.boolean().default(true)}).parse(raw);
+  const input=z.object({debtId:id,periods:z.array(z.string().regex(/^\d{4}-(0[1-9]|1[0-2])$/)).min(1).max(24),amount:money.optional(),dueDate:z.iso.date().optional(),paidAt:z.iso.date().optional(),notes:z.string().max(1000).optional(),paid:z.boolean().default(true)}).parse(raw);
   if(new Set(input.periods).size!==input.periods.length)throw new Error("Periode pembayaran duplikat");
   return db.transaction(async tx=>{
     await tx.query("SELECT id FROM users WHERE id=$1 FOR UPDATE",[owner]);
@@ -224,7 +224,7 @@ export async function setDebtInstallmentPaid(db: DB, owner: string, raw: any) {
          VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9)
          ON CONFLICT(debt_id,period) DO UPDATE SET due_date=EXCLUDED.due_date,amount=EXCLUDED.amount,status=EXCLUDED.status,paid_at=EXCLUDED.paid_at,notes=EXCLUDED.notes
          RETURNING id,status,period::text period`,
-        [randomUUID(),owner,input.debtId,period+"-01",input.dueDate||null,input.amount?minor(input.amount).toString():null,input.paid?"paid":"scheduled",input.paid?new Date().toISOString():null,input.notes||""]
+        [randomUUID(),owner,input.debtId,period+"-01",input.dueDate||null,input.amount?minor(input.amount).toString():null,input.paid?"paid":"scheduled",input.paid?(input.paidAt?new Date(input.paidAt+"T12:00:00.000Z").toISOString():new Date().toISOString()):null,input.notes||""]
       );
       result.push(saved.rows[0]);
     }
@@ -232,6 +232,23 @@ export async function setDebtInstallmentPaid(db: DB, owner: string, raw: any) {
     return {items:result};
   });
 }
+
+export async function deleteDebtInstallment(db: DB, owner: string, installmentId: string) {
+  id.parse(installmentId);
+  return db.transaction(async tx => {
+    const result = await tx.query(
+      "DELETE FROM debt_installments WHERE id=$1 AND owner_id=$2 RETURNING debt_id",
+      [installmentId, owner],
+    );
+    if (!result.rows.length) throw new Error("Pembayaran tidak ditemukan");
+    await tx.query(
+      "INSERT INTO audit_logs(owner_id,action,entity_id) VALUES($1,'debt.installment_deleted',$2)",
+      [owner, result.rows[0].debt_id],
+    );
+    return { ok: true };
+  });
+}
+
 export async function runDebtReminders(db: DB) {
   await db.query(`
     INSERT INTO notifications(id,owner_id,title,record_id)
