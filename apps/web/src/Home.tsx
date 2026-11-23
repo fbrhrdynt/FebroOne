@@ -100,7 +100,7 @@ export default function Home() {
       </PageHeader>
       <ErrorText error={error || data.error || fin.error} />
       {data.isLoading && <div className="skeleton" role="status" aria-label={tr("Memuat dashboard")} />}
-      <section className="day-intro">
+      <section className="day-intro dashboard-day-intro">
         <div>
           <div className="eyebrow">
             <Sun size={16} /> MY DAY
