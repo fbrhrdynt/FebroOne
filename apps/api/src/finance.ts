@@ -51,6 +51,7 @@ export async function financialState(db: DB, owner: string) {
     })),
     debts: d.rows.map((d) => ({
       ...d,
+      ...(d.details || {}),
       principal: major(d.principal),
       paid: major(d.paid),
       apr: Number(d.apr),
