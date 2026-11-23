@@ -232,6 +232,13 @@ export async function runDebtReminders(db: DB) {
     "INSERT INTO notifications(id,owner_id,title,record_id) SELECT 'debt-due:'||d.id::text||':'||(d.details->>'dueDate'),d.owner_id,CASE WHEN (d.details->>'dueDate')::date < CURRENT_DATE THEN 'Pembayaran terlambat: '||d.name ELSE 'Jadwal pembayaran: '||d.name END,NULL FROM debts d WHERE d.archived_at IS NULL AND d.direction='borrowed' AND NULLIF(d.details->>'dueDate','') IS NOT NULL AND (d.details->>'dueDate')::date <= CURRENT_DATE + COALESCE((d.details->>'reminderDays')::int,3) AND COALESCE((SELECT sum(p.principal) FROM debt_payments p WHERE p.debt_id=d.id),0) < d.principal ON CONFLICT(id) DO NOTHING"
   );
 }
+export async function settleDebt(db: DB, owner: string, did: string) {
+  id.parse(did);
+  const result=await db.query("UPDATE debts SET settled_at=now() WHERE id=$1 AND owner_id=$2 AND archived_at IS NULL AND settled_at IS NULL RETURNING id",[did,owner]);
+  if(!result.rows.length)throw new Error("Utang tidak ditemukan atau sudah lunas");
+  await db.query("INSERT INTO audit_logs(owner_id,action,entity_id) VALUES($1,'debt.settled',$2)",[owner,did]);
+  return {ok:true};
+}
 export async function archiveDebt(db: DB, owner: string, did: string) {
   id.parse(did);
   const result=await db.query("UPDATE debts SET archived_at=now() WHERE id=$1 AND owner_id=$2 AND archived_at IS NULL RETURNING id",[did,owner]);
