@@ -54,7 +54,8 @@ export default function FinancePage() {
   const [strategy, setStrategy] = useState("avalanche");
   const [csv, setCsv] = useState<any[] | null>(null);
   const [key, setKey] = useState(crypto.randomUUID());
-  const [debtDirection,setDebtDirection]=useState<"borrowed"|"lent">("borrowed");
+  const [debtDirection,setDebtDirection]=useState<"borrowed"|"lent">(selected?.direction||"borrowed");
+  useEffect(()=>{if(modal==="debt")setDebtDirection(selected?.direction||"borrowed");},[modal,selectedId]);
   const financeDraftKey=`finance-draft:${profile.data?.user.id||""}:${modal}:${selectedId||"new"}`;
   const draftCommitted=useRef(false);
   useEffect(()=>{
@@ -145,13 +146,20 @@ export default function FinancePage() {
         d.monthlyPayment = d.monthlyPayment || undefined;
         d.dueDate = d.dueDate || undefined;
         d.rates = d.rates ? JSON.parse(d.rates) : [];
-        const debt = await store.addDebt(d);
+        const debt = selectedId ? await store.updateDebt(selectedId,d) : await store.addDebt(d);
         if (documents.length) {
           const documentRecord = await store.saveRecord({kind:"notes",title:"Dokumen utang - "+d.name,tags:["finance","debt-document",debt.id],data:{folder:"Keuangan/Utang",kind:"Knowledge",content:"Dokumen pendukung untuk "+d.name+" (ID: "+debt.id+")",pinned:false,favorite:false}});
           for (const file of documents) await store.uploadFile(documentRecord.id,file);
         }
       }
-      if (modal === "pay") await store.payDebt(selected.id, { ...d, key });
+      if (modal === "pay") {
+        const paymentFiles=Array.from((e.currentTarget.elements.namedItem("paymentFiles") as HTMLInputElement | null)?.files||[]);
+        const payment=await store.payDebt(selected.id,{...d,key});
+        if(paymentFiles.length){
+          const paymentRecord=await store.saveRecord({kind:"notes",title:"Bukti pembayaran - "+selected.name+" - "+d.date,tags:["finance","debt-payment",selected.id,payment.id||key],data:{folder:"Keuangan/Bukti Pembayaran",kind:"Knowledge",content:"Bukti pembayaran utang "+selected.name+" tanggal "+d.date+". Pokok: "+d.principal+". Bunga: "+d.interest+".",pinned:false,favorite:false}});
+          for(const file of paymentFiles)await store.uploadFile(paymentRecord.id,file);
+        }
+      }
       draftCommitted.current=true;sessionStorage.removeItem(financeDraftKey);
       await q.invalidateQueries();
       setModal("");
