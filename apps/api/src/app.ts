@@ -124,56 +124,35 @@ export async function makeApp(
     await db.query("SELECT 1");
     return { status: "ok", app: "Febro One", version:"1.2.0" };
   });
-  app.post("/api/auth/passkey/options", { config: { rateLimit: { max: 8, timeWindow: "15 minutes" } } }, async (req: any, reply: any) => {
-    const p = z.object({ email: z.email() }).parse(req.body);
-    const user = (await db.query("SELECT id FROM users WHERE email=$1", [p.email.toLowerCase()])).rows[0];
-    if (!user) return reply.code(401).send({ error: "Email atau passkey tidak valid" });
-    const credentials = (await db.query("SELECT credential_id,transports FROM passkey_credentials WHERE owner_id=$1", [user.id])).rows;
-    if (!credentials.length) return reply.code(401).send({ error: "Email atau passkey tidak valid" });
-    const optionsJSON = await generateAuthenticationOptions({
-      rpID,
-      allowCredentials: credentials.map((item: any) => ({ id: item.credential_id, transports: item.transports })),
-      userVerification: "required",
-      timeout: 60000,
-    });
+  app.post("/api/auth/passkey/options", { config: { rateLimit: { max: 8, timeWindow: "15 minutes" } } }, async (_req: any) => {
+    const optionsJSON = await generateAuthenticationOptions({ rpID, userVerification: "required", timeout: 60000 });
     const challengeId = randomBytes(24).toString("hex");
     await db.query("DELETE FROM webauthn_challenges WHERE expires_at < now()");
-    await db.query("INSERT INTO webauthn_challenges(id,owner_id,challenge,purpose,expires_at) VALUES($1,$2,$3,'authentication',now()+interval '5 minutes')", [challengeId, user.id, optionsJSON.challenge]);
+    await db.query("INSERT INTO webauthn_challenges(id,owner_id,challenge,purpose,expires_at) VALUES($1,NULL,$2,'authentication',now()+interval '5 minutes')", [challengeId, optionsJSON.challenge]);
     return { challengeId, options: optionsJSON };
   });
   app.post("/api/auth/passkey/verify", { config: { rateLimit: { max: 8, timeWindow: "15 minutes" } } }, async (req: any, reply: any) => {
     const p = z.object({ challengeId: z.string().min(32).max(100), response: z.any() }).parse(req.body);
     const challenge = (await db.query("DELETE FROM webauthn_challenges WHERE id=$1 AND purpose='authentication' AND expires_at>now() RETURNING owner_id,challenge", [p.challengeId])).rows[0];
     if (!challenge) return reply.code(401).send({ error: "Challenge tidak valid atau sudah kedaluwarsa" });
-    const credential = (await db.query("SELECT c.*,u.name,u.email,u.preferences FROM passkey_credentials c JOIN users u ON u.id=c.owner_id WHERE c.owner_id=$1 AND c.credential_id=$2", [challenge.owner_id, p.response.id])).rows[0];
-    if (!credential) return reply.code(401).send({ error: "Passkey tidak terdaftar" });
+    const credential = (await db.query("SELECT c.*,u.name,u.email,u.preferences FROM passkey_credentials c JOIN users u ON u.id=c.owner_id WHERE c.credential_id=$1", [p.response.id])).rows[0];
+    if (!credential || (challenge.owner_id && challenge.owner_id !== credential.owner_id)) return reply.code(401).send({ error: "Passkey tidak terdaftar" });
     let verification;
     try {
       verification = await verifyAuthenticationResponse({
-        response: p.response,
-        expectedChallenge: challenge.challenge,
-        expectedOrigin,
-        expectedRPID: rpID,
-        credential: {
-          id: credential.credential_id,
-          publicKey: new Uint8Array(credential.public_key),
-          counter: Number(credential.counter),
-          transports: credential.transports,
-        },
+        response: p.response, expectedChallenge: challenge.challenge, expectedOrigin, expectedRPID: rpID,
+        credential: { id: credential.credential_id, publicKey: new Uint8Array(credential.public_key), counter: Number(credential.counter), transports: credential.transports },
         requireUserVerification: true,
       });
-    } catch {
-      return reply.code(401).send({ error: "Verifikasi passkey gagal" });
-    }
+    } catch { return reply.code(401).send({ error: "Verifikasi passkey gagal" }); }
     if (!verification.verified) return reply.code(401).send({ error: "Verifikasi passkey gagal" });
     await db.query("UPDATE passkey_credentials SET counter=$1,last_used_at=now() WHERE id=$2", [verification.authenticationInfo.newCounter, credential.id]);
-    const token = randomBytes(32).toString("hex");
-    const csrf = randomBytes(24).toString("hex");
+    const token = randomBytes(32).toString("hex"), csrf = randomBytes(24).toString("hex");
     if (req.cookies.session) await db.query("DELETE FROM sessions WHERE id=$1", [hashToken(req.cookies.session)]);
     await db.query("DELETE FROM sessions WHERE expires_at<now()");
     await db.query("INSERT INTO sessions(id,owner_id,csrf,expires_at) VALUES($1,$2,$3,now()+interval '7 days')", [hashToken(token), credential.owner_id, csrf]);
     reply.setCookie("session", token, { httpOnly: true, secure: options.secure, sameSite: "strict", path: "/", maxAge: 604800 });
-    await db.query("INSERT INTO audit_logs(owner_id,action) VALUES($1,$2)", [credential.owner_id, "auth.login.passkey"]);
+    await db.query("INSERT INTO audit_logs(owner_id,action) VALUES($1,'auth.login.passkey')", [credential.owner_id]);
     return { csrf, user: { id: credential.owner_id, name: credential.name, email: credential.email, preferences: credential.preferences } };
   });
   app.post("/api/auth/passkey/register/options", async (req: any) => {
