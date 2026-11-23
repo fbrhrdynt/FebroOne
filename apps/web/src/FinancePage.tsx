@@ -329,8 +329,20 @@ export default function FinancePage() {
                         .minus(new Decimal(b.principal).minus(b.paid))
                         .toNumber(),
                 )
-                .map((d: any, i: number) => (
-                  <article className="panel" key={d.id}>
+                .map((d: any, i: number) => {
+                  const remaining=new Decimal(d.principal).minus(d.paid);
+                  const paymentMonths:string[]=[];
+                  if(d.direction==="borrowed"&&d.start&&d.monthlyPayment){
+                    const first=new Date(d.start+"T00:00:00");
+                    const today=new Date(localDay()+"T00:00:00");
+                    for(let cursor=new Date(first.getFullYear(),first.getMonth(),1),n=0;cursor<new Date(today.getFullYear(),today.getMonth(),1)&&n<240;cursor.setMonth(cursor.getMonth()+1),n++){
+                      const ym=cursor.toISOString().slice(0,7);
+                      if(!s.transactions.some((t:any)=>t.debtId===d.id&&t.kind==="debt_payment"&&String(t.date).slice(0,7)===ym))paymentMonths.push(ym);
+                    }
+                  }
+                  const selectedMonth=historySelection[d.id]||"";
+                  return (
+                  <article className="panel debt-compact-card" key={d.id}>
                     <div className="section-heading">
                       <span className="eyebrow">
                         {d.direction === "lent"
@@ -340,15 +352,24 @@ export default function FinancePage() {
                       <span className="badge">{d.apr}% APR</span>
                     </div>
                     <h2>{d.name}</h2>
-                    <strong className="balance">
-                      {money(new Decimal(d.principal).minus(d.paid))}
-                    </strong>
+                    <strong className="balance">{money(remaining)}</strong>
                     <p>
                       dari {money(d.principal)} ·{tr(" ")}
                       {d.direction === "borrowed" ? "Saya berutang" : "Piutang saya"}
                     </p>
                     {d.direction === "borrowed" && <p className="hint">{d.repaymentMode==="installment"?"Cicilan bulanan":"Pembayaran fleksibel"}{d.monthlyPayment ? " · "+money(d.monthlyPayment)+"/bulan" : " · Nominal cicilan belum ditentukan"}{d.dueDate ? " · Jatuh tempo "+d.dueDate : ""}</p>}
                     <progress max={d.principal} value={d.paid} />
+                    {paymentMonths.length>0&&<details className="debt-history-checklist">
+                      <summary>Pembayaran lampau <span>{paymentMonths.length} periode belum tercatat</span></summary>
+                      <div className="debt-history-action">
+                        <select aria-label="Pilih periode pembayaran lampau" value={selectedMonth} onChange={e=>setHistorySelection(v=>({...v,[d.id]:e.target.value}))}>
+                          <option value="">Pilih bulan</option>
+                          {paymentMonths.map(m=><option key={m} value={m}>{new Date(m+"-01T00:00:00").toLocaleDateString("id-ID",{month:"long",year:"numeric"})}</option>)}
+                        </select>
+                        <Button size="sm" disabled={!selectedMonth} onClick={()=>{setPaymentDraft({debtId:d.id,date:selectedMonth+"-01",amount:d.monthlyPayment||""});show("pay",d);}}>Paid / Catat</Button>
+                      </div>
+                      <small className="hint">Pilih periode yang sudah dibayar. Tanggal dan nominal dapat disesuaikan sebelum disimpan.</small>
+                    </details>}
                     <div className="row-actions">
                       <Button variant="ghost" onClick={()=>show("debt",d)}>Edit</Button>
                       <Button variant="ghost" onClick={async()=>{if(!window.confirm("Pindahkan "+d.name+" ke arsip? Data pembayaran tetap tersimpan."))return;try{await store.archiveDebt(d.id);await q.invalidateQueries({queryKey:["finance"]});}catch(e){setError(e);}}}>Arsipkan</Button>
@@ -366,7 +387,7 @@ export default function FinancePage() {
                       </Button>
                     </div>
                   </article>
-                ))}
+                )})}
             </div>
           )}
         </>
