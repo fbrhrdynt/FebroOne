@@ -303,8 +303,8 @@ export default function App() {
             </NavLink>
           ))}
           {!collapsed && <div className="sidebar-categories">{groupNames.map(group => <div key={group}>
-            <button className="sidebar-category-toggle" aria-expanded={expanded.includes(group)} onClick={() => toggleCategory(group)}>{group}<ChevronRight size={14} className={expanded.includes(group) ? "rotate" : ""} /></button>
-            {expanded.includes(group) && <div className="sidebar-category-links">{modules.filter(m => m.group === group).map(m => <NavLink key={m.key} to={m.key === "events" ? "/calendar" : "/records/"+m.key}><ModuleIcon group={m.group}/>{m.title}</NavLink>)}</div>}
+            <button className="sidebar-category-toggle" aria-expanded={expanded.includes(group)} onClick={() => toggleCategory(group)}>{tr(group)}<ChevronRight size={14} className={expanded.includes(group) ? "rotate" : ""} /></button>
+            {expanded.includes(group) && <div className="sidebar-category-links">{modules.filter(m => m.group === group).map(m => <NavLink key={m.key} to={m.key === "events" ? "/calendar" : "/records/"+m.key}><ModuleIcon group={m.group}/>{tr(m.title)}</NavLink>)}</div>}
           </div>)}</div>}
           <NavLink to="/more">
             <Grid2X2 size={18} />
