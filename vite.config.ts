@@ -10,6 +10,6 @@ export default defineConfig({
   } } } },
   server: {
     allowedHosts: ["terminal.local"],
-    proxy: { "/api": "http://127.0.0.1:3470" },
+    proxy: { "/api": `http://127.0.0.1:${process.env.FEBRO_API_PORT || 3470}` },
   },
 });

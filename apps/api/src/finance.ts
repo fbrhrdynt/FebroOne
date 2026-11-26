@@ -48,6 +48,7 @@ export async function financialState(db: DB, owner: string) {
         typeof t.date === "string" ? t.date : t.date.toISOString().slice(0, 10),
       description: t.description,
       key: t.idempotency_key,
+      recordId: t.record_id || undefined,
       reversed: t.reversed,
       debtId: t.debt_id,
       principal: t.principal ? major(t.principal) : undefined,
@@ -112,8 +113,8 @@ export async function book(db: DB, owner: string, t: any) {
   }
   const tid = randomUUID();
   await db.query(
-    "INSERT INTO ledger_transactions(id,owner_id,kind,category,date,description,idempotency_key,request_hash) VALUES($1,$2,$3,$4,$5,$6,$7,$8)",
-    [tid, owner, t.kind, t.category, t.date, t.description, t.key, requestHash],
+    "INSERT INTO ledger_transactions(id,owner_id,kind,category,date,description,idempotency_key,request_hash,record_id) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9)",
+    [tid, owner, t.kind, t.category, t.date, t.description, t.key, requestHash, t.recordId || null],
   );
   for (const p of postings(t))
     await db.query(
@@ -367,4 +368,15 @@ export async function payDebt(db: DB, owner: string, did: string, raw: any) {
     }
     return result;
   });
+}
+export async function setTransactionRecord(db: DB, owner: string, tid: string, raw: unknown) {
+  id.parse(tid);
+  const { recordId } = z.object({ recordId: id.nullable() }).parse(raw);
+  const r = await db.query(
+    "UPDATE ledger_transactions SET record_id=$1 WHERE id=$2 AND owner_id=$3 RETURNING id",
+    [recordId, tid, owner],
+  );
+  if (!r.rows.length) throw Object.assign(new Error("Transaksi tidak ditemukan"), { statusCode: 404 });
+  await db.query("INSERT INTO audit_logs(owner_id,action,entity_id) VALUES($1,'finance.link',$2)", [owner, tid]);
+  return { ok: true, recordId };
 }

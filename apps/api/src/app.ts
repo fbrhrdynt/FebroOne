@@ -11,6 +11,7 @@ import { z } from "zod";
 import {
   validateRecord,
   id,
+  major,
   dueNotifications,
   nextOccurrence,
 } from "../../../packages/shared/domain";
@@ -28,6 +29,7 @@ import {
   settleDebt,
   reverseTransaction,
   importTransactions,
+  setTransactionRecord,
 } from "./finance";
 import type { DB } from "./db";
 import { registerPush } from "./push";
@@ -602,6 +604,57 @@ export async function makeApp(
     );
     return { ok: true };
   });
+  app.delete("/api/links", async (req) => {
+    const p = z.object({ sourceId: id, targetId: id, relation: z.string().min(1).max(60) }).parse(req.body);
+    await db.query(
+      "DELETE FROM entity_links WHERE owner_id=$1 AND source_id=$2 AND target_id=$3 AND relation=$4",
+      [owner(req), p.sourceId, p.targetId, p.relation],
+    );
+    return { ok: true };
+  });
+  // Everything that points at, or is pointed at by, one record: the hub view
+  // that lets a company show its projects, tasks, hours, notes and money.
+  app.get("/api/records/:id/related", async (req: any, reply: any) => {
+    const rid = id.parse(req.params.id);
+    const o = owner(req);
+    const self = (await db.query("SELECT * FROM records WHERE id=$1 AND owner_id=$2", [rid, o])).rows[0];
+    if (!self) return reply.code(404).send({ error: "Tidak ditemukan" });
+    const refIds = [self.company_id, self.project_id, self.category_id].filter(Boolean);
+    const references = refIds.length
+      ? (await db.query("SELECT * FROM records WHERE owner_id=$1 AND id=ANY($2::uuid[])", [o, refIds])).rows.map(mapRecord)
+      : [];
+    const children = (await db.query(
+      `SELECT * FROM records WHERE owner_id=$1 AND id<>$2 AND deleted_at IS NULL AND (
+         company_id=$2 OR project_id=$2 OR category_id=$2 OR
+         data->>'habitId'=$2::text OR data->>'goalId'=$2::text OR data->>'taskId'=$2::text OR data->>'parent'=$2::text)
+       ORDER BY updated_at DESC LIMIT 300`,
+      [o, rid],
+    )).rows.map(mapRecord);
+    const links = (await db.query(
+      `SELECT l.relation, CASE WHEN l.source_id=$2 THEN 'out' ELSE 'in' END AS direction, r.*
+         FROM entity_links l JOIN records r ON r.owner_id=l.owner_id
+          AND r.id = CASE WHEN l.source_id=$2 THEN l.target_id ELSE l.source_id END
+        WHERE l.owner_id=$1 AND (l.source_id=$2 OR l.target_id=$2) AND r.deleted_at IS NULL
+        ORDER BY r.updated_at DESC`,
+      [o, rid],
+    )).rows.map((r: any) => ({ relation: r.relation, direction: r.direction, record: mapRecord(r) }));
+    const transactions = (await db.query(
+      `SELECT t.id, t.kind, t.category, t.date::text AS date, t.description, t.record_id,
+              (SELECT max(abs(p.amount)) FROM ledger_postings p WHERE p.transaction_id=t.id)::text AS amount,
+              EXISTS(SELECT 1 FROM ledger_transactions x WHERE x.reversal_of=t.id) AS reversed
+         FROM ledger_transactions t
+        WHERE t.owner_id=$1 AND (t.record_id=$2 OR t.record_id IN (
+              SELECT id FROM records WHERE owner_id=$1 AND (company_id=$2 OR project_id=$2)))
+        ORDER BY t.date DESC, t.created_at DESC LIMIT 200`,
+      [o, rid],
+    )).rows.map((t: any) => ({ id: t.id, kind: t.kind, category: t.category, date: t.date, description: t.description, recordId: t.record_id, amount: major(t.amount || "0"), reversed: t.reversed }));
+    const files = (await db.query(
+      "SELECT id,name,mime,size,created_at FROM files WHERE owner_id=$1 AND record_id=$2 ORDER BY created_at DESC",
+      [o, rid],
+    )).rows;
+    return { record: mapRecord(self), references, children, links, transactions, files };
+  });
+  app.patch("/api/transactions/:id/record", (req: any) => setTransactionRecord(db, owner(req), req.params.id, req.body));
   app.get("/api/finance", (req) => financialState(db, owner(req)));
   app.post("/api/accounts", (req) => createAccount(db, owner(req), req.body));
   app.post("/api/transactions", (req) =>

@@ -2,10 +2,11 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import App from "./App";
+import OneApp from "./one/OneApp";
 import NavigationState from "./NavigationState";
 import "./styles.css";
 import "./bento.css";
+import "./one/theme.css";
 // The internal HTTP preview lacks randomUUID; getRandomValues remains cryptographic.
 if (!crypto.randomUUID)
   Object.defineProperty(crypto, "randomUUID", {
@@ -32,7 +33,7 @@ class Boundary extends React.Component<
   }
   render() {
     return this.state.error ? (
-      <div className="login-card">
+      <div className="login-card" style={{ margin: "20vh auto", background: "#121419", color: "#eceef3" }}>
         <h1>Workspace perlu dimuat ulang.</h1>
         <p>Data yang sudah tersimpan tetap tersedia.</p>
         <button className="button primary" onClick={() => location.reload()}>
@@ -49,7 +50,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
     <Boundary>
       <QueryClientProvider client={query}>
         <BrowserRouter>
-          <NavigationState/><App />
+          <NavigationState/><OneApp />
         </BrowserRouter>
       </QueryClientProvider>
     </Boundary>

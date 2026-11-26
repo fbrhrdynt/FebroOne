@@ -119,6 +119,7 @@ export const txSchema = z.object({
   date: z.iso.date(),
   description: z.string().max(1000).default(""),
   key: id,
+  recordId: id.optional(),
 });
 export function postings(t: {
   kind: string;

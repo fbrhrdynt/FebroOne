@@ -103,7 +103,7 @@ test("migration repeat is idempotent", async () => {
   assert.equal(
     (await db.query("SELECT count(*)::int count FROM schema_migrations"))
       .rows[0].count,
-    8,
+    9,
   );
 });
 test("authentication, origin and CSRF controls", async () => {

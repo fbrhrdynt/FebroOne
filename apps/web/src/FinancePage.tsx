@@ -142,6 +142,7 @@ export default function FinancePage() {
         await store.addAccount(d.name, d.type, d.opening);
       if (modal === "transaction") {
         if (d.kind !== "transfer") delete d.toAccountId;
+        if (!d.recordId) delete d.recordId;
         await store.addTransaction({ ...d, key });
       }
       if (modal === "debt") {
@@ -655,6 +656,19 @@ export default function FinancePage() {
                 </Field>
                 <Field label={tr("Deskripsi")}>
                   <input name="description" />
+                </Field>
+                <Field label="Untuk proyek / perusahaan / tujuan">
+                  <select name="recordId" defaultValue={new URLSearchParams(location.search).get("record") || ""}>
+                    <option value="">— Tidak ditautkan —</option>
+                    {[["projects", "Proyek"], ["companies", "Perusahaan"], ["goals", "Tujuan"], ["travel", "Perjalanan"]].map(([k, label]) => {
+                      const options = rs.filter((r) => r.kind === k && !r.archivedAt);
+                      return options.length ? (
+                        <optgroup key={k} label={label}>
+                          {options.map((r) => <option key={r.id} value={r.id}>{r.title}</option>)}
+                        </optgroup>
+                      ) : null;
+                    })}
+                  </select>
                 </Field>
                 <p className="hint">
                   Transfer memindahkan saldo tanpa menambah pemasukan. Lampirkan

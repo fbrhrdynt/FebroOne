@@ -83,7 +83,7 @@ const nav = [
   ["/insights", "Insights", ChartNoAxesCombined],
   ["/cms", "CMS", Inbox],
 ] as const;
-function Login({ onDone, language, setLanguage }: { onDone: () => void; language: Language; setLanguage:(v:Language)=>void }) {
+export function Login({ onDone, language, setLanguage }: { onDone: () => void; language: Language; setLanguage:(v:Language)=>void }) {
   const [recovery, setRecovery] = useState(false);
   const [error, setError] = useState<unknown>();
   const [busy, setBusy] = useState(false);
