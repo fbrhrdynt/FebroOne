@@ -392,3 +392,12 @@ a.o-chip:hover { filter: brightness(1.2); }
 .o-legacy .page-tabs a { border-radius: 999px; }
 .o-legacy .tabs button[aria-selected=true] { background: #f1f3f8 !important; color: #06070b !important; }
 .o-legacy .badge { background: var(--surface-3); color: var(--text); }
+
+/* money sub-navigation */
+.o-money-nav { position: sticky; top: calc(60px + var(--safe-t)); z-index: 15; margin: 4px 0 18px; backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); background: color-mix(in srgb, var(--surface) 88%, transparent); }
+.o-money-nav a { flex: 1 0 auto; display: inline-flex; align-items: center; justify-content: center; min-height: 36px; padding: 0 14px; border-radius: 999px; color: var(--muted); font-size: 13.5px; font-weight: 600; white-space: nowrap; }
+.o-money-nav a.on { background: #f1f3f8; color: #06070b; }
+@media (min-width: 960px) { .o-money-nav { top: 68px; } }
+.o-money .page-tabs { display: none !important; }
+.o-pill.on { background: #f1f3f8; color: #06070b; border-color: #f1f3f8; }
+button.o-pill { cursor: pointer; font: inherit; font-size: 13px; font-weight: 600; color: var(--text); }

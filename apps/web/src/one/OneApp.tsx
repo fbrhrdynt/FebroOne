@@ -14,6 +14,8 @@ import Work from "./Work";
 import Notes from "./Notes";
 import Life from "./Life";
 import RecordView from "./RecordView";
+import Debts from "./Debts";
+import { MoneyNav, moneyKinds, isMoneyPath } from "./MoneyNav";
 
 const RecordPage = lazy(() => import("../RecordPage"));
 const RecordsPage = lazy(() => import("../RecordsPage"));
@@ -37,9 +39,13 @@ const kindHome: Record<string, string> = {
   importantDates: "/life/dates", travel: "/life/travel", events: "/calendar", reminders: "/work/tasks",
   debts: "/debts", incomePlans: "/finance/plans",
 };
+/** Money screens share one sub-navigation that never disappears. */
+const Money = ({ children }: { children: React.ReactNode }) => <><MoneyNav /><div className="o-legacy o-money">{children}</div></>;
 function RecordsRoute() {
   const { kind = "" } = useParams();
-  return kindHome[kind] ? <Navigate to={kindHome[kind]} replace /> : <div className="o-legacy"><RecordsPage key={kind} /></div>;
+  if (kindHome[kind]) return <Navigate to={kindHome[kind]} replace />;
+  if (moneyKinds.includes(kind)) return <Money><RecordsPage key={kind} /></Money>;
+  return <div className="o-legacy"><RecordsPage key={kind} /></div>;
 }
 function OldDetailRoute() {
   const { id = "" } = useParams();
@@ -48,7 +54,7 @@ function OldDetailRoute() {
 
 function areaOf(path: string): AreaKey {
   if (path.startsWith("/work") || /^\/records\/(tasks|projects|companies|timesheets|employments|trainings|certificates|achievements)/.test(path)) return "work";
-  if (path.startsWith("/finance") || path.startsWith("/debts")) return "money";
+  if (isMoneyPath(path)) return "money";
   if (path.startsWith("/notes") || /^\/records\/(notes|documents|templates)/.test(path)) return "notes";
   if (path.startsWith("/life") || /^\/records\/(habits|goals|wellness|importantDates|travel)/.test(path)) return "life";
   return "today";
@@ -151,11 +157,11 @@ function Shell() {
                   <Route path="/life/:tab" element={<Life />} />
                   <Route path="/r/:id" element={<RecordView />} />
                   <Route path="/calendar" element={<div className="o-legacy"><Calendar /></div>} />
-                  <Route path="/finance" element={<div className="o-legacy"><Finance /></div>} />
-                  <Route path="/finance/new/:action" element={<div className="o-legacy"><Finance /></div>} />
-                  <Route path="/finance/plans" element={<div className="o-legacy"><FinancePlan /></div>} />
-                  <Route path="/debts" element={<div className="o-legacy"><Finance /></div>} />
-                  <Route path="/debts/new/:action" element={<div className="o-legacy"><Finance /></div>} />
+                  <Route path="/finance" element={<Money><Finance /></Money>} />
+                  <Route path="/finance/new/:action" element={<Money><Finance /></Money>} />
+                  <Route path="/finance/plans" element={<Money><FinancePlan /></Money>} />
+                  <Route path="/debts" element={<><MoneyNav /><Debts /></>} />
+                  <Route path="/debts/new/:action" element={<Money><Finance /></Money>} />
                   <Route path="/records/:kind" element={<RecordsRoute />} />
                   <Route path="/records/:kind/new" element={<div className="o-legacy"><RecordPage edit /></div>} />
                   <Route path="/records/:kind/:id/edit" element={<div className="o-legacy"><RecordPage edit /></div>} />
