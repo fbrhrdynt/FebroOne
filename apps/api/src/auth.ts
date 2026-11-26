@@ -15,3 +15,16 @@ export async function verifyPassword(password: string, stored: string) {
   const expected = Buffer.from(hash, "hex");
   return actual.length === expected.length && timingSafeEqual(actual, expected);
 }
+// Spends the same scrypt cost as a real check so unknown emails are not
+// distinguishable from wrong passwords by response time.
+const DUMMY_HASH = `${"0".repeat(32)}:${"0".repeat(128)}`;
+export async function verifyPasswordOrDummy(password: string, stored?: string | null) {
+  const ok = await verifyPassword(password, stored || DUMMY_HASH);
+  return !!stored && ok;
+}
+export function tokenHashEquals(token: string, storedHash?: string | null) {
+  if (!storedHash) return false;
+  const a = Buffer.from(hashToken(token), "hex");
+  const b = Buffer.from(storedHash, "hex");
+  return a.length === b.length && timingSafeEqual(a, b);
+}
