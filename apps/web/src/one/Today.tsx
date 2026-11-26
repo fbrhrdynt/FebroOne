@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { ArrowUp, CalendarDays, Sun } from "lucide-react";
 import type { RecordItem } from "../../../../packages/shared/catalog";
@@ -10,6 +10,12 @@ import {
 import { Section, Row, KindIcon, Chip, Check, Empty, Stat, cx } from "./ui";
 import { priorityLabel } from "./kinds";
 import * as store from "../store";
+
+function Clock() {
+  const [now, setNow] = useState(() => new Date());
+  useEffect(() => { const t = setInterval(() => setNow(new Date()), 15000); return () => clearInterval(t); }, []);
+  return <div className="o-clock" aria-label="Jam sekarang">{now.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit", timeZone: "Asia/Jakarta" }).replace(".", ":")}<small>WIB</small></div>;
+}
 
 function greeting() {
   const h = Number(new Date().toLocaleString("en-US", { hour: "numeric", hour12: false, timeZone: "Asia/Jakarta" }));
@@ -127,8 +133,9 @@ export default function Today() {
   return (
     <>
       <div className="o-hero">
-        <div className="o-eyebrow">{fmtDay(today, { weekday: "long", day: "numeric", month: "long" })}</div>
-        <h1>{greeting()}{name ? `, ${name}` : ""}.</h1>
+        <h1>{greeting()}{name ? <>, <b>{name}</b></> : ""}</h1>
+        <div className="o-eyebrow" style={{ marginTop: 4 }}>{fmtDay(today, { weekday: "long", day: "numeric", month: "long", year: "numeric" })}</div>
+        <Clock />
         <p>{nextEvent ? <>Berikutnya: <b>{nextEvent.title}</b> pukul {fmtTime(nextEvent.data.start)}</> : events.length ? "Agenda hari ini sudah selesai." : "Tidak ada agenda hari ini."}</p>
       </div>
 
