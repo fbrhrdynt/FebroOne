@@ -1,4 +1,5 @@
 import { tr } from "./i18n";
+import { SearchSelect } from "./one/SearchSelect";
 import { useState, useEffect, useRef } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
@@ -491,7 +492,7 @@ export default function FinancePage() {
       </div>
       <div className="list-toolbar">
         <select aria-label={tr("Jenis transaksi")} value={transactionKind} onChange={e=>setTransactionKind(e.target.value)}><option value="">{tr("Semua jenis")}</option><option value="income">{tr("Pemasukan")}</option><option value="expense">{tr("Pengeluaran")}</option><option value="transfer">{tr("Transfer")}</option><option value="debt_payment">{tr("Pembayaran utang")}</option><option value="debt_receipt">{tr("Penerimaan piutang")}</option></select>
-        <select aria-label={tr("Rekening transaksi")} value={accountFilter} onChange={e=>setAccountFilter(e.target.value)}><option value="">{tr("Semua rekening")}</option>{s.accounts.map((a:any)=><option key={a.id} value={a.id}>{a.name}</option>)}</select>
+        <SearchSelect label="Rekening" value={accountFilter} onChange={setAccountFilter} emptyLabel="Semua rekening" options={s.accounts.map((a: any) => ({ value: a.id, label: a.name, hint: a.type }))} />
         <input
           aria-label={tr("Bulan transaksi")}
           type="month"
@@ -603,24 +604,10 @@ export default function FinancePage() {
                   </select>
                 </Field>
                 <Field label={tr("Dari / akun")}>
-                  <select name="accountId" required>
-                    <option value="">{tr("Pilih akun")}</option>
-                    {s.accounts.map((a: any) => (
-                      <option key={a.id} value={a.id}>
-                        {a.name}
-                      </option>
-                    ))}
-                  </select>
+                  <SearchSelect name="accountId" required label="Akun" placeholder="Pilih akun" options={s.accounts.map((a: any) => ({ value: a.id, label: a.name, hint: a.type }))} />
                 </Field>
                 <Field label={tr("Akun tujuan (hanya transfer)")}>
-                  <select name="toAccountId">
-                    <option value="">{tr("Tidak digunakan")}</option>
-                    {s.accounts.map((a: any) => (
-                      <option key={a.id} value={a.id}>
-                        {a.name}
-                      </option>
-                    ))}
-                  </select>
+                  <SearchSelect name="toAccountId" label="Akun tujuan" emptyLabel="Tidak digunakan" options={s.accounts.map((a: any) => ({ value: a.id, label: a.name, hint: a.type }))} />
                 </Field>
                 <Field label={tr("Nominal IDR")}>
                   <input
@@ -658,17 +645,9 @@ export default function FinancePage() {
                   <input name="description" />
                 </Field>
                 <Field label="Untuk proyek / perusahaan / tujuan">
-                  <select name="recordId" defaultValue={new URLSearchParams(location.search).get("record") || ""}>
-                    <option value="">— Tidak ditautkan —</option>
-                    {[["projects", "Proyek"], ["companies", "Perusahaan"], ["goals", "Tujuan"], ["travel", "Perjalanan"]].map(([k, label]) => {
-                      const options = rs.filter((r) => r.kind === k && !r.archivedAt);
-                      return options.length ? (
-                        <optgroup key={k} label={label}>
-                          {options.map((r) => <option key={r.id} value={r.id}>{r.title}</option>)}
-                        </optgroup>
-                      ) : null;
-                    })}
-                  </select>
+                  <SearchSelect name="recordId" label="Tautkan ke" emptyLabel="— Tidak ditautkan —" defaultValue={new URLSearchParams(location.search).get("record") || ""}
+                    options={[["projects", "Proyek"], ["companies", "Perusahaan"], ["goals", "Tujuan"], ["travel", "Perjalanan"]].flatMap(([k, group]) =>
+                      rs.filter((r) => r.kind === k && !r.archivedAt).map((r) => ({ value: r.id, label: r.title, group })))} />
                 </Field>
                 <p className="hint">
                   Transfer memindahkan saldo tanpa menambah pemasukan. Lampirkan
@@ -731,14 +710,7 @@ export default function FinancePage() {
                   {money(new Decimal(selected.principal).minus(selected.paid))}
                 </p>
                 <Field label={tr("Akun pembayaran")}>
-                  <select required name="accountId">
-                    <option value="">{tr("Pilih akun")}</option>
-                    {s.accounts.map((a: any) => (
-                      <option value={a.id} key={a.id}>
-                        {a.name}
-                      </option>
-                    ))}
-                  </select>
+                  <SearchSelect name="accountId" required label="Akun pembayaran" placeholder="Pilih akun" options={s.accounts.map((a: any) => ({ value: a.id, label: a.name, hint: a.type }))} />
                 </Field>
                 <Field label={tr("Pokok dibayar (IDR)")}>
                   <input

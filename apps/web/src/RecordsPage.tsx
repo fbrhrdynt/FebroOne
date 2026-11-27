@@ -1,4 +1,5 @@
 import { tr } from "./i18n";
+import { SearchSelect } from "./one/SearchSelect";
 import { useState, useEffect } from "react";
 import { useParams, Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -287,7 +288,8 @@ export default function RecordsPage() {
       )}
       <div className="list-toolbar">
         <select aria-label={tr("Urutkan")} value={sort} onChange={e=>{setSort(e.target.value);setPage(0)}}><option value="updated">{tr("Terbaru")}</option><option value="title">{tr("Judul A–Z")}</option><option value="due">{tr("Tenggat")}</option></select>
-        <input type="search" aria-label={tr("Cari opsi relasi")} placeholder={tr("Cari perusahaan / kategori / proyek")} value={referenceSearch} onChange={e=>setReferenceSearch(e.target.value)}/><select aria-label={tr("Filter relasi")} value={related} onChange={e=>{setRelated(e.target.value);setPage(0)}}><option value="">{tr("Semua perusahaan / kategori / proyek")}</option>{all.data?.filter(r=>["companies","categories","projects"].includes(r.kind)).map(r=><option key={r.id} value={r.id}>{r.title}</option>)}</select>
+        <SearchSelect label="Filter relasi" value={related} onChange={v=>{setRelated(v);setPage(0)}} emptyLabel="Semua perusahaan / kategori / proyek" onSearch={setReferenceSearch} loading={all.isFetching}
+          options={(all.data||[]).filter(r=>["companies","categories","projects"].includes(r.kind)).map(r=>({value:r.id,label:r.title,group:({companies:"Perusahaan",categories:"Kategori",projects:"Proyek"} as Record<string,string>)[r.kind]}))}/>
         <Button variant="ghost" onClick={()=>{const cell=(v:any)=>'"'+String(v??'').replace(/^[=+@-]/,"'$&").replaceAll('"','""')+'"';store.download(m.key+'.csv', ['Title,Status,Priority,Due,Company,Category,Project',...rows.map(r=>[r.title,r.data.status,r.data.priority,r.data.due,...[r.data.companyId,r.data.categoryId,r.data.projectId].map(id=>referenceRows.find(v=>v.id===id)?.title||'')].map(cell).join(','))].join('\r\n'),'text/csv;charset=utf-8')}}>{serverPaged?"CSV halaman ini":"CSV export"}</Button>
         <label className="search-input">
           <Search size={17} />

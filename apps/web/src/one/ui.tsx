@@ -4,7 +4,8 @@ import { Link } from "react-router-dom";
 import { Check as CheckIcon, ChevronRight, X } from "lucide-react";
 import { kindMeta, areaColor } from "./kinds";
 import type { RecordItem } from "../../../../packages/shared/catalog";
-import { recordHref } from "./data";
+// Kept local so these primitives can load without the data layer (and its store).
+const recordHref = (r: { id: string }) => `/r/${r.id}`;
 
 export const cx = (...c: (string | false | null | undefined)[]) => c.filter(Boolean).join(" ");
 

@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { SearchSelect } from "./SearchSelect";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Plus, Landmark, Check as CheckIcon, Pencil, Archive, CircleCheck, Paperclip, Undo2 } from "lucide-react";
 import * as store from "../store";
@@ -192,10 +193,8 @@ function PaySheet({ debt, periods: initial, unpaid, accounts, onClose }: { debt:
             <input className="o-input" type="date" value={date} onChange={(e) => setDate(e.target.value)} max={todayKey()} /></label>
         </div>
         <label className="o-field"><span>Dibayar dari rekening (opsional)</span>
-          <select className="o-input" value={account} onChange={(e) => setAccount(e.target.value)}>
-            <option value="">Jangan catat sebagai pengeluaran</option>
-            {accounts.map((a: any) => <option key={a.id} value={a.id}>{a.name} · {rupiah(a.balance)}</option>)}
-          </select></label>
+          <SearchSelect label="Rekening" value={account} onChange={setAccount} emptyLabel="Jangan catat sebagai pengeluaran"
+            options={accounts.map((a: any) => ({ value: a.id, label: a.name, hint: `${a.type} · ${rupiah(a.balance)}` }))} /></label>
         <label className="o-field"><span>Catatan (opsional)</span>
           <input className="o-input" value={notes} onChange={(e) => setNotes(e.target.value)} maxLength={1000} placeholder="Contoh: transfer via m-banking" /></label>
         <label className="o-field"><span>Bukti bayar (opsional)</span>

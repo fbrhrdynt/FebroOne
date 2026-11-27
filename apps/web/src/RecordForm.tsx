@@ -1,4 +1,5 @@
 import { tr } from "./i18n";
+import { SearchSelect } from "./one/SearchSelect";
 import { useNavigate } from "react-router-dom";
 import { lazy, Suspense, useEffect, useState, useRef } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -184,21 +185,9 @@ export function RecordFormPage({
           </Field>
           {kind === "notes" && !initial && (
             <Field label={tr("Gunakan template")}>
-              <select
-                onChange={(e) => {
-                  const t = all.data?.find((r) => r.id === e.target.value);
-                  if (t) setData({ ...data, content: t.data.content || "" });
-                }}
-              >
-                <option value="">{tr("Tanpa template")}</option>
-                {all.data
-                  ?.filter((r) => r.kind === "templates")
-                  .map((r) => (
-                    <option key={r.id} value={r.id}>
-                      {r.title}
-                    </option>
-                  ))}
-              </select>
+              <SearchSelect label="Template" emptyLabel="Tanpa template" defaultValue=""
+                options={(all.data || []).filter((r) => r.kind === "templates").map((r) => ({ value: r.id, label: r.title }))}
+                onChange={(v) => { const t = all.data?.find((r) => r.id === v); if (t) setData({ ...data, content: t.data.content || "" }); }} />
             </Field>
           )}
           <div className="form-grid">
@@ -383,16 +372,9 @@ export function RecordFormPage({
       {tab === "links" && (
         <div className="form-stack">
           <Field label={tr("Hubungkan record")}>
-            <select value={target} onChange={(e) => setTarget(e.target.value)}>
-              <option value="">{tr("Pilih record")}</option>
-              {all.data
-                ?.filter((r) => r.id !== initial?.id)
-                .map((r) => (
-                  <option value={r.id} key={r.id}>
-                    {catalog[r.kind]?.title} · {r.title}
-                  </option>
-                ))}
-            </select>
+            <SearchSelect label="Record" placeholder="Pilih record" value={target} onChange={setTarget}
+              onSearch={(q) => { setLookupSearch(q); setLookupPage(0); }} loading={all.isFetching}
+              options={(all.data || []).filter((r) => r.id !== initial?.id).map((r) => ({ value: r.id, label: r.title, hint: catalog[r.kind]?.title }))} />
           </Field>
           <Field label={tr("Hubungan")}>
             <select

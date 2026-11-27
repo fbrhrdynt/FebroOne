@@ -11,7 +11,11 @@ test('progress handles an empty total and clamps invalid ranges accessibly',()=>
  for(const [value,total,expected] of [[4,0,0],[-4,100,0],[200,100,100],[3,4,75]]){const output=html(React.createElement(ProgressCard,{title:'Checklist',value,total}));assert.ok(output.includes('aria-label="Checklist"'));assert.ok(output.includes(`value="${expected}"`));}
 });
 test('relationship picker keeps selected record and provides searchable labeled controls',()=>{
- const output=html(React.createElement(SearchableSelect,{label:'Company',value:'real-id',options:[{value:'real-id',label:'Existing Company'}],onChange:()=>{}}));assert.ok(output.includes('type="search"'));assert.ok(output.includes('aria-label="Company"'));assert.ok(output.includes('value="real-id" selected=""'));assert.ok(output.includes('Existing Company'));
+ // The picker is a labelled trigger that opens a searchable listbox sheet; the sheet itself is exercised in the browser.
+ const output=html(React.createElement(SearchableSelect,{label:'Company',value:'real-id',options:[{value:'real-id',label:'Existing Company'}],onChange:()=>{}}));
+ assert.ok(output.includes('aria-haspopup="listbox"'));
+ assert.ok(output.includes('aria-label="Company: Existing Company"'));
+ assert.ok(output.includes('Existing Company'));
 });
 test('loading and status components expose meaningful content',()=>{
  assert.ok(html(React.createElement(LoadingSkeleton,{label:'Loading records'})).includes('role="status"'));assert.ok(html(React.createElement(StatusBadge,{status:'Completed'})).includes('Completed'));

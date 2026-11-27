@@ -1,4 +1,5 @@
 import { tr } from "./i18n";
+import { SearchSelect } from "./one/SearchSelect";
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
@@ -170,18 +171,10 @@ export default function ToolsPage() {
             </Field>
             <div className="form-grid">
               <Field label={tr("Dari")}>
-                <select value={from} onChange={(e) => setFrom(e.target.value)}>
-                  {Object.keys(units).map((u) => (
-                    <option key={u}>{u}</option>
-                  ))}
-                </select>
+                <SearchSelect label="Dari satuan" value={from} onChange={setFrom} options={Object.keys(units).map((u) => ({ value: u, label: u }))} />
               </Field>
               <Field label={tr("Ke")}>
-                <select value={to} onChange={(e) => setTo(e.target.value)}>
-                  {Object.keys(units).map((u) => (
-                    <option key={u}>{u}</option>
-                  ))}
-                </select>
+                <SearchSelect label="Ke satuan" value={to} onChange={setTo} options={Object.keys(units).map((u) => ({ value: u, label: u }))} />
               </Field>
             </div>
             <div className="calculation-result">

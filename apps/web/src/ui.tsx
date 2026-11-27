@@ -1,4 +1,5 @@
 import { tr } from "./i18n";
+import { SearchSelect } from "./one/SearchSelect";
 import * as React from "react";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { Slot } from "@radix-ui/react-slot";
@@ -156,7 +157,7 @@ export function StatusBadge({children,status}: {children?:React.ReactNode;status
 export function ProgressCard({title,value,total=100,children}: {title:string;value:number;total?:number;children?:React.ReactNode}){const progress=total>0?Math.max(0,Math.min(100,value/total*100)):0;return <BentoCard><div className="section-heading"><h2>{title}</h2><span>{Math.round(progress)}%</span></div><progress aria-label={title} max={100} value={progress}/>{children}</BentoCard>;}
 export function StatCard({title,value,description}: {title:string;value:React.ReactNode;description?:string}){return <BentoCard span={3} className="stat"><span>{title}</span><strong>{value}</strong>{description&&<small>{description}</small>}</BentoCard>;}
 export function FilterDropdown({label,options,...props}:React.SelectHTMLAttributes<HTMLSelectElement>&{label:string;options:{value:string;label:string}[]}){return <Field label={label}><select {...props}>{options.map(option=><option key={option.value} value={option.value}>{option.label}</option>)}</select></Field>;}
-export function SearchableSelect({label,options,value,onChange,placeholder="Pilih…",disabled=false}: {label:string;options:{value:string;label:string}[];value:string;onChange:(value:string)=>void;placeholder?:string;disabled?:boolean}){const [query,setQuery]=React.useState("");const id=React.useId();const selected=options.find(o=>o.value===value);const filtered=options.filter(o=>o.label.toLocaleLowerCase().includes(query.toLocaleLowerCase()));return <div className="searchable-select"><label htmlFor={id+"-search"}>{label}</label><input id={id+"-search"} type="search" value={query} onChange={e=>setQuery(e.target.value)} placeholder={"Cari "+label.toLocaleLowerCase()} disabled={disabled}/><select id={id} aria-label={label} value={value} onChange={e=>onChange(e.target.value)} disabled={disabled}><option value="">{placeholder}</option>{selected&&!filtered.includes(selected)&&<option value={selected.value}>{selected.label}</option>}{filtered.map(option=><option key={option.value} value={option.value}>{option.label}</option>)}</select>{query&&!filtered.length&&<small role="status">Tidak ada hasil.</small>}</div>;}
+export function SearchableSelect({label,options,value,onChange,placeholder="Pilih…",disabled=false}: {label:string;options:{value:string;label:string}[];value:string;onChange:(value:string)=>void;placeholder?:string;disabled?:boolean}){return <label className="field"><span>{label}</span><SearchSelect label={label} options={options} value={value} onChange={onChange} placeholder={placeholder} emptyLabel={placeholder} disabled={disabled}/></label>;}
 export const ResponsiveModal = Modal;
 export const BottomSheet = Modal;
 export const EmptyState = Empty;

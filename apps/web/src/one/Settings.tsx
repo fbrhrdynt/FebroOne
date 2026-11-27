@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { SearchSelect, timeZoneOptions } from "./SearchSelect";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Fingerprint, LogOut, Download, RefreshCw, HardDrive, BellRing, X, Smartphone, MonitorSmartphone, Save } from "lucide-react";
 import * as store from "../store";
@@ -7,10 +8,6 @@ import { Section, Row, ErrorNote, PageHead, cx } from "./ui";
 import { AuditTable } from "./AuditTable";
 
 const when = (iso: string) => new Date(iso).toLocaleString("id-ID", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit", timeZone: tz() });
-const zones = (() => {
-  try { return (Intl as any).supportedValuesOf("timeZone").filter((z: string) => /^(Asia|Australia|Europe|America|Pacific|UTC)/.test(z)); }
-  catch { return ["Asia/Jakarta", "Asia/Makassar", "Asia/Jayapura", "Asia/Singapore", "UTC"]; }
-})();
 
 function Status({ text, error }: { text?: string; error?: unknown }) {
   if (error) return <ErrorNote error={error} />;
@@ -59,9 +56,7 @@ function Profile() {
         <label className="o-field"><span>Nama</span><input className="o-input" name="name" defaultValue={user.name} required maxLength={100} /></label>
         <label className="o-field"><span>Email</span><input className="o-input" value={user.email} disabled /></label>
         <label className="o-field"><span>Zona waktu</span>
-          <select className="o-input" name="timezone" defaultValue={prefs.timezone || "Asia/Jakarta"}>
-            {[...new Set([prefs.timezone || "Asia/Jakarta", ...zones])].map((z) => <option key={z}>{z}</option>)}
-          </select></label>
+          <SearchSelect name="timezone" label="Zona waktu" defaultValue={prefs.timezone || "Asia/Jakarta"} options={timeZoneOptions(prefs.timezone)} required /></label>
         <label className="o-toggle"><input type="checkbox" name="maskMoney" defaultChecked={!!prefs.maskMoney} /><span><b>Sembunyikan nominal uang</b><small>Saldo disamarkan sampai Anda menampilkannya.</small></span></label>
         <button className="o-btn primary" disabled={busy}><Save size={15} /> {busy ? "Menyimpan…" : "Simpan profil"}</button>
         <Status text={msg} error={error} />
