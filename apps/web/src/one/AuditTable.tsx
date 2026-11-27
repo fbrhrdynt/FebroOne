@@ -3,6 +3,7 @@ import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Search } from "lucide-react";
 import * as store from "../store";
 import { ErrorNote } from "./ui";
+import { tz } from "./data";
 
 const actionLabel: Record<string, string> = {
   "auth.login": "Masuk dengan kata sandi", "auth.login.passkey": "Masuk dengan passkey", "auth.recover": "Pemulihan akun",
@@ -48,7 +49,7 @@ export function AuditTable() {
           <tbody>
             {(result.data?.items || []).map((r, i) => (
               <tr key={`${r.created_at}-${i}`}>
-                <td className="nowrap">{new Date(r.created_at).toLocaleString("id-ID", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit", timeZone: "Asia/Jakarta" })}</td>
+                <td className="nowrap">{new Date(r.created_at).toLocaleString("id-ID", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit", timeZone: tz() })}</td>
                 <td><span className={`o-tag ${tone(r.action)}`}>{label(r.action)}</span></td>
                 <td className="mono" title={r.entity_id || ""}>{r.entity_id ? r.entity_id.slice(0, 8) : "—"}</td>
               </tr>

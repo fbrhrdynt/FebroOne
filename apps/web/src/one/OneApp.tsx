@@ -5,7 +5,7 @@ import { Search, Bell, Plus, Settings, CalendarDays, LogOut, Inbox, Calculator, 
 import * as store from "../store";
 import { Login } from "../App";
 import { areas, kindMeta, type AreaKey } from "./kinds";
-import { useIdentity, useRecords, recordHref, relDay, dayKey } from "./data";
+import { useIdentity, useRecords, recordHref, relDay, dayKey, setTimezone } from "./data";
 import { Sheet, Row, KindIcon, Empty, cx } from "./ui";
 import { QuickAdd, type QuickPreset } from "./QuickAdd";
 import { QuickContext } from "./quick";
@@ -91,6 +91,7 @@ function Shell() {
   const navArea = /^\/(settings|notifications)/.test(location.pathname) ? null : area;
   const openQuick = useMemo(() => (preset?: QuickPreset) => setQuick({ open: true, preset }), []);
   const user = identity.data?.user;
+  setTimezone(user?.preferences?.timezone);
 
   useEffect(() => {
     let last = window.scrollY;

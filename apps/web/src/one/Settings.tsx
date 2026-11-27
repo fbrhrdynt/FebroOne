@@ -2,11 +2,11 @@ import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Fingerprint, LogOut, Download, RefreshCw, HardDrive, BellRing, X, Smartphone, MonitorSmartphone, Save } from "lucide-react";
 import * as store from "../store";
-import { useIdentity } from "./data";
+import { useIdentity, tz } from "./data";
 import { Section, Row, ErrorNote, PageHead, cx } from "./ui";
 import { AuditTable } from "./AuditTable";
 
-const when = (iso: string) => new Date(iso).toLocaleString("id-ID", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit", timeZone: "Asia/Jakarta" });
+const when = (iso: string) => new Date(iso).toLocaleString("id-ID", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit", timeZone: tz() });
 const zones = (() => {
   try { return (Intl as any).supportedValuesOf("timeZone").filter((z: string) => /^(Asia|Australia|Europe|America|Pacific|UTC)/.test(z)); }
   catch { return ["Asia/Jakarta", "Asia/Makassar", "Asia/Jayapura", "Asia/Singapore", "UTC"]; }

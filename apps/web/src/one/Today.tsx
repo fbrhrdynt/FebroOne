@@ -4,7 +4,7 @@ import { ArrowUp, CalendarDays, Sun } from "lucide-react";
 import type { RecordItem } from "../../../../packages/shared/catalog";
 import { streak } from "../../../../packages/shared/domain";
 import {
-  useRecords, useFinance, useIdentity, useMutate, todayKey, addDays, dayKey, fmtTime, fmtDay, relDay,
+  useRecords, useFinance, useIdentity, useMutate, todayKey, tz, tzLabel, atLocal, addDays, dayKey, fmtTime, fmtDay, relDay,
   eventsOn, upcomingDates, dueInstallments, monthTotals, rupiah, isDone, taskDue, taskProgress, byId, recordHref,
 } from "./data";
 import { Section, Row, KindIcon, Chip, Check, Empty, Stat, cx } from "./ui";
@@ -14,11 +14,11 @@ import * as store from "../store";
 function Clock() {
   const [now, setNow] = useState(() => new Date());
   useEffect(() => { const t = setInterval(() => setNow(new Date()), 15000); return () => clearInterval(t); }, []);
-  return <div className="o-clock" aria-label="Jam sekarang">{now.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit", timeZone: "Asia/Jakarta" }).replace(".", ":")}<small>WIB</small></div>;
+  return <div className="o-clock" aria-label="Jam sekarang">{now.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit", timeZone: tz() }).replace(".", ":")}<small>{tzLabel()}</small></div>;
 }
 
 function greeting() {
-  const h = Number(new Date().toLocaleString("en-US", { hour: "numeric", hour12: false, timeZone: "Asia/Jakarta" }));
+  const h = Number(new Date().toLocaleString("en-US", { hour: "numeric", hour12: false, timeZone: tz() }));
   return h < 11 ? "Selamat pagi" : h < 15 ? "Selamat siang" : h < 19 ? "Selamat sore" : "Selamat malam";
 }
 
@@ -122,7 +122,7 @@ export default function Today() {
     e.preventDefault();
     if (!capture.trim() || busy) return;
     setBusy(true);
-    try { await save({ kind: "tasks", title: capture.trim(), tags: [], data: { status: "To Do", priority: "Medium", due: `${today}T17:00` } }); setCapture(""); }
+    try { await save({ kind: "tasks", title: capture.trim(), tags: [], data: { status: "To Do", priority: "Medium", due: atLocal(`${today}T17:00`) } }); setCapture(""); }
     finally { setBusy(false); }
   }
 

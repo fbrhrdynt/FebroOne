@@ -1,6 +1,6 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import type { RecordItem } from "../../../../packages/shared/catalog";
-import { localDay, occurrences, checklistItems } from "../../../../packages/shared/domain";
+import { localDay, occurrences, checklistItems, zonedInstant } from "../../../../packages/shared/domain";
 import * as store from "../store";
 
 export type Related = {
@@ -41,16 +41,28 @@ export function useMutate() {
   };
 }
 
-export const TZ = "Asia/Jakarta";
-export const todayKey = () => localDay(new Date(), TZ);
-export const dayKey = (iso: string) => localDay(new Date(iso), TZ);
+// The person's time zone from their profile. The shell sets it before the
+// pages render, so every date and time below follows the chosen zone.
+let zone = "Asia/Jakarta";
+export const setTimezone = (tz?: string) => {
+  if (!tz || tz === zone) return;
+  try { new Intl.DateTimeFormat("en", { timeZone: tz }); zone = tz; } catch { /* keep the last valid zone */ }
+};
+export const tz = () => zone;
+/** Short zone label in Indonesian: WIB, WITA, WIT, or e.g. GMT+9. */
+export const tzLabel = () =>
+  new Intl.DateTimeFormat("id-ID", { timeZone: zone, timeZoneName: "short" }).formatToParts(new Date()).find((p) => p.type === "timeZoneName")?.value || zone;
+/** A wall-clock "YYYY-MM-DDTHH:mm" in the person's zone, as an ISO instant. */
+export const atLocal = (local: string) => zonedInstant(local.slice(0, 16), zone);
+export const todayKey = () => localDay(new Date(), zone);
+export const dayKey = (iso: string) => localDay(new Date(iso), zone);
 export const addDays = (key: string, n: number) => {
   const d = new Date(key + "T12:00:00Z");
   d.setUTCDate(d.getUTCDate() + n);
   return d.toISOString().slice(0, 10);
 };
 export const fmtTime = (iso: string) =>
-  new Date(iso).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit", timeZone: TZ });
+  new Date(iso).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit", timeZone: zone });
 export const fmtDay = (key: string, opts: Intl.DateTimeFormatOptions = { weekday: "short", day: "numeric", month: "short" }) =>
   new Date(key + "T12:00:00Z").toLocaleDateString("id-ID", { ...opts, timeZone: "UTC" });
 export function relDay(key: string) {
@@ -79,7 +91,7 @@ export function taskProgress(r: RecordItem) {
 
 /** Events that happen on one local day, with recurrences expanded. */
 export function eventsOn(records: RecordItem[], key: string) {
-  const from = new Date(key + "T00:00:00+07:00"), to = new Date(key + "T23:59:59+07:00");
+  const from = new Date(atLocal(key + "T00:00")), to = new Date(new Date(atLocal(addDays(key, 1) + "T00:00")).getTime() - 1);
   return records
     .filter((r) => r.kind === "events")
     .flatMap((r) => occurrences(r, from, to))

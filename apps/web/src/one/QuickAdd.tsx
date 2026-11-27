@@ -5,7 +5,7 @@ import type { RecordItem } from "../../../../packages/shared/catalog";
 import * as store from "../store";
 import { Sheet, KindIcon, Chip, ErrorNote, cx } from "./ui";
 import { LinkPicker } from "./LinkPicker";
-import { useMutate, todayKey, recordHref } from "./data";
+import { useMutate, todayKey, recordHref, atLocal, tz } from "./data";
 import { kindMeta, areaColor } from "./kinds";
 
 export type QuickPreset = { kind?: string; link?: RecordItem | null; due?: string };
@@ -19,8 +19,8 @@ const placeholder: Record<QuickType, string> = {
 
 const pad = (n: number) => String(n).padStart(2, "0");
 function nextHour() {
-  const d = new Date(Date.now() + 3600000);
-  return `${pad(d.getHours())}:00`;
+  const h = Number(new Date(Date.now() + 3600000).toLocaleString("en-US", { hour: "numeric", hour12: false, timeZone: tz() })) % 24;
+  return `${pad(h)}:00`;
 }
 
 export function QuickAdd({ open, onOpenChange, preset }: { open: boolean; onOpenChange: (v: boolean) => void; preset?: QuickPreset }) {
@@ -60,11 +60,10 @@ export function QuickAdd({ open, onOpenChange, preset }: { open: boolean; onOpen
       const data: Record<string, unknown> = {};
       if (link?.kind === "projects") { data.projectId = link.id; if (link.data.companyId) data.companyId = link.data.companyId; }
       if (link?.kind === "companies") data.companyId = link.id;
-      if (type === "tasks") Object.assign(data, { status: "To Do", priority: "Medium", ...(date ? { due: `${date}T${time || "17:00"}` } : {}) });
+      if (type === "tasks") Object.assign(data, { status: "To Do", priority: "Medium", ...(date ? { due: atLocal(`${date}T${time || "17:00"}`) } : {}) });
       if (type === "events") {
-        const start = `${date}T${time || "09:00"}`;
         const [h, m] = (time || "09:00").split(":").map(Number);
-        Object.assign(data, { start, end: `${date}T${pad(Math.min(23, h + 1))}:${pad(m)}`, category: link ? "Work" : "Personal" });
+        Object.assign(data, { start: atLocal(`${date}T${time || "09:00"}`), end: atLocal(`${date}T${pad(Math.min(23, h + 1))}:${pad(m)}`), category: link ? "Work" : "Personal" });
       }
       if (type === "notes") Object.assign(data, { kind: "Note", content: "" });
       if (type === "projects") Object.assign(data, { status: "In Progress", startDate: date });
