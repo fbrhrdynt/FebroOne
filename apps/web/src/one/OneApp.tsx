@@ -1,7 +1,7 @@
 import { lazy, Suspense, useEffect, useMemo, useState } from "react";
 import { Routes, Route, NavLink, Link, Navigate, useLocation, useNavigate, useParams } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Search, Bell, Plus, Settings, CalendarDays, LogOut, Inbox, Calculator, ChartNoAxesCombined, CloudOff, CheckCheck } from "lucide-react";
+import { Search, Bell, Plus, Settings, CalendarDays, LogOut, Inbox, Calculator, ChartNoAxesCombined, CloudOff } from "lucide-react";
 import * as store from "../store";
 import { Login } from "../App";
 import { areas, kindMeta, type AreaKey } from "./kinds";
@@ -15,6 +15,8 @@ import Notes from "./Notes";
 import Life from "./Life";
 import RecordView from "./RecordView";
 import Debts from "./Debts";
+import SettingsPage from "./Settings";
+import NotificationsPage, { NotificationCenter, useNotifications } from "./Notifications";
 import { MoneyNav, moneyKinds, isMoneyPath } from "./MoneyNav";
 
 const RecordPage = lazy(() => import("../RecordPage"));
@@ -24,7 +26,6 @@ const Finance = lazy(() => import("../FinancePage"));
 const FinancePlan = lazy(() => import("../FinancePlanPage"));
 const Tools = lazy(() => import("../ToolsPage"));
 const Insights = lazy(() => import("../Insights"));
-const SettingsPage = lazy(() => import("../Settings"));
 const Cms = lazy(() => import("../CmsPage"));
 const CmsRequest = lazy(() => import("../CmsPage").then((m) => ({ default: m.CmsRequestPage })));
 
@@ -80,22 +81,31 @@ function Shell() {
   const [menu, setMenu] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [offline, setOffline] = useState(!navigator.onLine);
-  const notifications = useQuery<any[]>({ queryKey: ["notifications"], queryFn: store.notifications, refetchInterval: 120_000 });
+  const notifications = useNotifications();
+  const [fabHidden, setFabHidden] = useState(false);
   const unread = (notifications.data || []).filter((n) => !n.read_at).length;
   const allRecords = useRecords();
   const viewing = location.pathname.startsWith("/r/") ? allRecords.data?.find((r) => r.id === location.pathname.slice(3)) : undefined;
   const area = viewing ? kindMeta(viewing.kind).area : areaOf(location.pathname);
+  // Settings and notifications belong to no area, so no tab lights up there.
+  const navArea = /^\/(settings|notifications)/.test(location.pathname) ? null : area;
   const openQuick = useMemo(() => (preset?: QuickPreset) => setQuick({ open: true, preset }), []);
   const user = identity.data?.user;
 
   useEffect(() => {
-    const on = () => setScrolled(window.scrollY > 4);
+    let last = window.scrollY;
+    const on = () => {
+      const y = window.scrollY;
+      setScrolled(y > 4);
+      // Tuck the + button away while scrolling down so it never covers a control.
+      if (Math.abs(y - last) > 6) { setFabHidden(y > last && y > 80); last = y; }
+    };
     const net = () => setOffline(!navigator.onLine);
     window.addEventListener("scroll", on, { passive: true });
     window.addEventListener("online", net); window.addEventListener("offline", net);
     return () => { window.removeEventListener("scroll", on); window.removeEventListener("online", net); window.removeEventListener("offline", net); };
   }, []);
-  useEffect(() => { window.scrollTo(0, 0); }, [location.pathname]);
+  useEffect(() => { window.scrollTo(0, 0); setFabHidden(false); }, [location.pathname]);
   useEffect(() => {
     const key = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") { e.preventDefault(); setSearch(true); }
@@ -105,7 +115,7 @@ function Shell() {
   }, []);
   useEffect(() => { if (navigator.onLine) store.syncQueue().catch(() => {}); }, [offline]);
 
-  const title = areas.find((a) => a.key === area)!.label;
+  const title = location.pathname.startsWith("/settings") ? "Pengaturan" : location.pathname.startsWith("/notifications") ? "Notifikasi" : areas.find((a) => a.key === area)!.label;
   const initials = String(user?.name || "F").split(" ").map((s: string) => s[0]).slice(0, 2).join("").toUpperCase();
 
   return (
@@ -117,7 +127,7 @@ function Shell() {
             <button className="o-btn primary o-side-add" onClick={() => openQuick()}><Plus size={16} /> Tambah</button>
             <nav>
               {areas.map((a) => (
-                <NavLink key={a.key} to={a.path} end={a.path === "/"} className={() => cx(area === a.key && "active")} style={{ "--tint": a.color } as React.CSSProperties}>
+                <NavLink key={a.key} to={a.path} end={a.path === "/"} className={() => cx(navArea === a.key && "active")} style={{ "--tint": a.color } as React.CSSProperties}>
                   <a.icon size={18} />{a.label}
                 </NavLink>
               ))}
@@ -166,7 +176,8 @@ function Shell() {
                   <Route path="/records/:kind/new" element={<div className="o-legacy"><RecordPage edit /></div>} />
                   <Route path="/records/:kind/:id/edit" element={<div className="o-legacy"><RecordPage edit /></div>} />
                   <Route path="/records/:kind/:id" element={<OldDetailRoute />} />
-                  <Route path="/settings" element={<div className="o-legacy"><SettingsPage /></div>} />
+                  <Route path="/settings" element={<SettingsPage />} />
+                  <Route path="/notifications" element={<NotificationsPage />} />
                   <Route path="/tools" element={<div className="o-legacy"><Tools /></div>} />
                   <Route path="/insights" element={<div className="o-legacy"><Insights /></div>} />
                   <Route path="/cms" element={<div className="o-legacy"><Cms /></div>} />
@@ -180,16 +191,19 @@ function Shell() {
 
         <nav className="o-bottom" aria-label="Navigasi utama">
           {areas.map((a) => (
-            <NavLink key={a.key} to={a.path} end={a.path === "/"} className={() => cx(area === a.key && "active")} style={{ "--tint": a.color } as React.CSSProperties}>
-              <a.icon size={22} strokeWidth={area === a.key ? 2.3 : 1.8} />{a.label}
+            <NavLink key={a.key} to={a.path} end={a.path === "/"} className={() => cx(navArea === a.key && "active")} style={{ "--tint": a.color } as React.CSSProperties}>
+              <a.icon size={22} strokeWidth={navArea === a.key ? 2.3 : 1.8} />{a.label}
             </NavLink>
           ))}
         </nav>
-        <button className="o-fab" aria-label="Tambah cepat" onClick={() => openQuick()}><Plus size={26} strokeWidth={2.4} /></button>
+        <button className={cx("o-fab", (fabHidden || /^\/(settings|notifications)/.test(location.pathname)) && "away")} aria-label="Tambah cepat" onClick={() => openQuick()}><Plus size={26} strokeWidth={2.4} /></button>
 
         <QuickAdd open={quick.open} preset={quick.preset} onOpenChange={(open) => setQuick((s) => ({ ...s, open }))} />
         <GlobalSearch open={search} onOpenChange={setSearch} />
-        <Notifications open={bell} onOpenChange={setBell} items={notifications.data || []} />
+        <Sheet open={bell} onOpenChange={setBell} title="Notifikasi" wide>
+          <NotificationCenter compact onNavigate={() => setBell(false)} />
+          <Link to="/notifications" className="o-btn ghost block" style={{ marginTop: 6 }} onClick={() => setBell(false)}>Buka halaman notifikasi</Link>
+        </Sheet>
         <Sheet open={menu} onOpenChange={setMenu} title={user?.name || "Profil"}>
           <div className="o-list">
             <Row onClick={() => { setMenu(false); navigate("/calendar"); }} icon={<span className="o-kind-icon" style={{ "--tint": "var(--c-today)" } as React.CSSProperties}><CalendarDays size={16} /></span>} title="Kalender" />
@@ -234,27 +248,6 @@ function GlobalSearch({ open, onOpenChange }: { open: boolean; onOpenChange: (v:
           </>
         ) : <Empty title="Tidak ditemukan" text="Coba kata kunci lain." />}
       </div>
-    </Sheet>
-  );
-}
-
-function Notifications({ open, onOpenChange, items }: { open: boolean; onOpenChange: (v: boolean) => void; items: any[] }) {
-  const q = useQueryClient();
-  const navigate = useNavigate();
-  const records = useRecords();
-  const read = async (n: any) => { if (!n.read_at) { await store.markRead(n.id); await q.invalidateQueries({ queryKey: ["notifications"] }); } };
-  const unread = items.filter((n) => !n.read_at);
-  const kindOf = (id?: string) => (records.data || []).find((r) => r.id === id)?.kind || "reminders";
-  return (
-    <Sheet open={open} onOpenChange={onOpenChange} title="Notifikasi">
-      {unread.length > 1 && <button className="o-btn small ghost" style={{ marginBottom: 10 }} onClick={async () => { for (const n of unread) await store.markRead(n.id); await q.invalidateQueries({ queryKey: ["notifications"] }); }}><CheckCheck size={15} /> Tandai semua dibaca</button>}
-      {items.length ? (
-        <div className="o-list">{items.slice(0, 50).map((n) => (
-          <Row key={n.id} muted={!!n.read_at} icon={<KindIcon kind={kindOf(n.record_id)} />} title={n.title}
-            meta={n.created_at ? relDay(dayKey(n.created_at)) : n.due ? relDay(dayKey(n.due)) : undefined}
-            onClick={async () => { await read(n); onOpenChange(false); if (n.record_id) navigate(`/r/${n.record_id}`); }} />
-        ))}</div>
-      ) : <Empty icon={<Bell size={18} />} title="Tidak ada notifikasi" text="Pengingat task dan agenda akan muncul di sini." />}
     </Sheet>
   );
 }

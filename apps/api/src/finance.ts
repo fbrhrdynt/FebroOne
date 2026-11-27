@@ -229,6 +229,8 @@ export async function setDebtInstallmentPaid(db: DB, owner: string, raw: any) {
       );
       result.push(saved.rows[0]);
     }
+    // A paid instalment settles its due/overdue reminder.
+    if(input.paid)await tx.query("UPDATE notifications SET read_at=now() WHERE owner_id=$1 AND id = ANY($2::text[]) AND read_at IS NULL",[owner,input.periods.map(p=>`debt-due:${input.debtId}:${p}`)]);
     await tx.query("INSERT INTO audit_logs(owner_id,action,entity_id) VALUES($1,$2,$3)",[owner,input.paid?"debt.installments_paid":"debt.installments_scheduled",input.debtId]);
     return {items:result};
   });
